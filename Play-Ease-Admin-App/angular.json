@@ -3,7 +3,7 @@
   "version": 1,
   "newProjectRoot": "projects",
   "projects": {
-    "Play-Ease-Booking-App": {
+    "Play-Ease-Admin-App": {
       "projectType": "application",
       "schematics": {},
       "root": "",
@@ -13,7 +13,7 @@
         "build": {
           "builder": "@angular-devkit/build-angular:application",
           "options": {
-            "outputPath": "dist/play-ease-booking-app",
+            "outputPath": "dist/play-ease-admin-app",
             "index": "src/index.html",
             "browser": "src/main.ts",
             "polyfills": [
@@ -64,10 +64,10 @@
           "builder": "@angular-devkit/build-angular:dev-server",
           "configurations": {
             "production": {
-              "buildTarget": "Play-Ease-Booking-App:build:production"
+              "buildTarget": "Play-Ease-Admin-App:build:production"
             },
             "development": {
-              "buildTarget": "Play-Ease-Booking-App:build:development"
+              "buildTarget": "Play-Ease-Admin-App:build:development"
             }
           },
           "defaultConfiguration": "development"
@@ -97,5 +97,8 @@
         }
       }
     }
+  },
+  "cli": {
+    "analytics": "c08e63b0-3311-44cc-9324-12f230bb3037"
   }
 }

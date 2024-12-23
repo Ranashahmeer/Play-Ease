@@ -3,7 +3,7 @@
   "version": 1,
   "newProjectRoot": "projects",
   "projects": {
-    "Play-Ease-Booking-App": {
+    "Play-Ease-Admin-App": {
       "projectType": "application",
       "schematics": {},
       "root": "",
@@ -13,7 +13,7 @@
         "build": {
           "builder": "@angular-devkit/build-angular:browser",
           "options": {
-            "outputPath": "dist/Play-Ease-Booking-App",
+            "outputPath": "dist/Play-Ease-Admin-App",
             "index": "src/index.html",
             "main": "src/main.ts",
             "polyfills": "src/polyfills.ts",
@@ -62,18 +62,18 @@
         "serve": {
           "builder": "@angular-devkit/build-angular:dev-server",
           "options": {
-            "browserTarget": "Play-Ease-Booking-App:build"
+            "browserTarget": "Play-Ease-Admin-App:build"
           },
           "configurations": {
             "production": {
-              "browserTarget": "Play-Ease-Booking-App:build:production"
+              "browserTarget": "Play-Ease-Admin-App:build:production"
             }
           }
         },
         "extract-i18n": {
           "builder": "@angular-devkit/build-angular:extract-i18n",
           "options": {
-            "browserTarget": "Play-Ease-Booking-App:build"
+            "browserTarget": "Play-Ease-Admin-App:build"
           }
         },
         "test": {
@@ -110,19 +110,15 @@
           "builder": "@angular-devkit/build-angular:protractor",
           "options": {
             "protractorConfig": "e2e/protractor.conf.js",
-            "devServerTarget": "Play-Ease-Booking-App:serve"
+            "devServerTarget": "Play-Ease-Admin-App:serve"
           },
           "configurations": {
             "production": {
-              "devServerTarget": "Play-Ease-Booking-App:serve:production"
+              "devServerTarget": "Play-Ease-Admin-App:serve:production"
             }
           }
         }
       }
-    }
-  },
-  "defaultProject": "Play-Ease-Booking-App",
-  "cli": {
-    "analytics": "f60885fe-3c93-45e6-8756-5dcf8d16d761"
-  }
+    }},
+  "defaultProject": "Play-Ease-Admin-App"
 }

@@ -1,0 +1,62 @@
+.calendar-container {
+    display: flex;
+    height: 100vh;
+    background-color: #1a1a1a;
+    color: #fff;
+  }
+  
+  .sidebar {
+    width: 20%;
+    background: #2c2c2c;
+    padding: 20px;
+  }
+  
+  .sidebar h3 {
+    color: #e53935;
+    margin-bottom: 15px;
+  }
+  
+  .sidebar ul {
+    list-style: none;
+    padding: 0;
+  }
+  
+  .sidebar li {
+    padding: 10px;
+    cursor: pointer;
+    color: #fff;
+    border: 1px solid transparent;
+  }
+  
+  .sidebar li:hover {
+    background-color: #e53935;
+    border-radius: 5px;
+  }
+  
+  .calendar-content {
+    flex: 1;
+    padding: 20px;
+  }
+  
+  ::ng-deep .fc {
+    background: #1a1a1a;
+    color: #fff;
+  }
+  
+  ::ng-deep .fc-toolbar-title {
+    color: #e53935;
+  }
+  
+  ::ng-deep .fc-day-header {
+    background: #333;
+    color: #fff;
+  }
+  
+  ::ng-deep .fc-daygrid-day {
+    border: 1px solid #444;
+  }
+  
+  ::ng-deep .fc-day-today {
+    background-color: #e5393510;
+  }
+  

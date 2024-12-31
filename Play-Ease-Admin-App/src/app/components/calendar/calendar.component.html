@@ -1,1 +1,16 @@
-<p>calendar works!</p>
+<div class="calendar-container">
+    <div class="sidebar">
+      <h3>Select Date</h3>
+      <ul>
+        <li *ngFor="let month of months" (click)="selectMonth(month)">
+          {{ month }}
+        </li>
+      </ul>
+    </div>
+    <div class="calendar-content">
+      <full-calendar
+      
+      ></full-calendar>
+    </div>
+  </div>
+  

@@ -1,0 +1,97 @@
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 20px;
+  background-color: #000; /* Black navbar background */
+  color: #fff; /* White text */
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  font-size: 24px;
+}
+
+.logo img {
+  height: 40px;
+  margin-right: 10px;
+}
+
+.nav-links {
+  list-style: none;
+  display: flex;
+  gap: 20px;
+}
+
+.nav-links li {
+  position: relative;
+}
+
+.nav-links a {
+  text-decoration: none;
+  color: #fff; /* White text */
+  font-weight: 500;
+}
+
+.nav-links a:hover {
+  color: green; /* Highlight in green */
+}
+
+.dropdown {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  background: #333;
+  list-style: none;
+  padding: 10px 0;
+}
+
+.nav-links li:hover .dropdown {
+  display: block;
+}
+
+.dropdown li a {
+  padding: 5px 15px;
+  display: block;
+  color: #fff;
+}
+.nav-links a.active {
+  color: green;
+  font-weight: bold;
+}
+
+.action-buttons {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.book-now {
+  background-color: green; /* Green button */
+  color: #fff; /* White text */
+  padding: 5px 10px;
+  border: none;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.book-now:hover {
+  background-color: #007a33; /* Darker green on hover */
+}
+
+.login {
+  background: none;
+  color: #fff;
+  border: none;
+  cursor: pointer;
+}
+
+.menu-icon {
+  background: none;
+  color: #fff;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+}

@@ -1,0 +1,63 @@
+/* General Wrapper Styling */
+.wrap-login {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background-color: #f4f4f9;
+  }
+  
+  /* Container Styling */
+  .container {
+    width: 100%;
+    max-width: 400px;
+    padding: 20px;
+    box-sizing: border-box;
+  }
+  
+  /* Login Box Styling */
+  .login-box {
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+    background-color: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    gap: 15px;
+  }
+  
+  /* Field Styling */
+  dx-text-box {
+    width: 100%;
+  }
+  
+  dx-text-box input {
+    font-size: 16px;
+    padding: 10px;
+  }
+  
+  /* Validation Error Styling */
+  div[ngIf] {
+    color: red;
+    font-size: 12px;
+    margin-top: -10px;
+    margin-bottom: 10px;
+  }
+  
+  /* Submit Button Styling */
+  dx-button {
+    width: 100%;
+    margin-top: 10px;
+  }
+  
+  /* Responsive Styling */
+  @media (max-width: 768px) {
+    .container {
+      padding: 10px;
+    }
+  
+    .login-box {
+      padding: 15px;
+    }
+  }
+  

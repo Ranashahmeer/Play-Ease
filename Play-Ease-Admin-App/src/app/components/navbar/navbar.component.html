@@ -1,0 +1,18 @@
+<nav class="navbar">
+    <div class="logo">
+      <!-- <img src="path-to-logo.png" alt="PlayEase Logo" /> -->
+      <span>Play<span style="color: green;">Ease</span></span>
+    </div>
+    <ul class="nav-links">
+      <li><a (click)="navigateTo('/home')">Home</a></li>
+      <li><a (click)="navigateTo('/our-services')">Services</a></li>
+      <li><a (click)="navigateTo('/contact-us')">Contact Us</a></li>
+      <li><a (click)="navigateTo('/my-account')">My Account</a></li>
+    </ul>
+    <div class="action-buttons">
+      <button class="book-now" (click)="RedirectToBooking()">Book Now!</button>
+      <button class="login" (click)="RedirectToLogin()">Login</button>
+      <button class="menu-icon">☰</button>
+    </div>
+  </nav>
+  

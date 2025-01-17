@@ -1,0 +1,126 @@
+/* Footer main styling */
+.footer {
+    background-color: #000; /* Black background */
+    color: #fff; /* White text */
+    padding: 10px;
+    position: relative;
+  }
+  
+  /* Footer "Get in Touch" section */
+  .footer-content {
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  
+  .footer-content h2 {
+    font-size: 24px;
+    font-weight: bold;
+    margin-bottom: 15px;
+  }
+  
+  .social-icons {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+  }
+  
+  .social-icon {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border: 2px solid #333;
+    border-radius: 50%;
+    color: #fff;
+    font-size: 18px;
+    transition: all 0.3s ease;
+  }
+  
+  .social-icon:hover {
+    background-color: #f00; /* Red highlight on hover */
+    color: #fff;
+  }
+  
+  /* Footer navigation links */
+  .footer-nav {
+    border-top: 1px solid #333;
+    padding-top: 15px;
+    text-align: center;
+  }
+  
+  .footer-links {
+    list-style: none;
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    padding: 0;
+    margin: 10px 0;
+  }
+  
+  .footer-links li a {
+    text-decoration: none;
+    color: #fff;
+    font-weight: 500;
+    transition: all 0.3s ease;
+  }
+  
+  .footer-links li a:hover {
+    color: green; /* Green highlight on hover */
+  }
+  
+  .footer-links .highlight {
+    color: #f00; /* Red for "Book Now!" */
+    font-weight: bold;
+  }
+  
+  /* Copyright section */
+  .copyright {
+    font-size: 14px;
+    color: #ccc;
+  }
+  
+  .brand {
+    color: rgb(74, 127, 10); /* Brand name in red */
+    font-weight: bold;
+  }
+  
+  /* Back to Top Button */
+  .back-to-top {
+    position: fixed;
+    bottom: 50px;
+    right: 50px;
+    background-color: red;
+    color: #fff;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 20px;
+    text-decoration: none;
+    z-index: 1000;
+    transition: all 0.3s ease;
+  }
+  
+  .back-to-top:hover {
+    background-color: green;
+  }
+  
+  /* WhatsApp Link */
+  .whatsapp-link {
+    position: fixed;
+    bottom: 10px;
+    right: 50px;
+    background-color: #25d366;
+    color: #fff;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 20px;
+    text-deco
+  

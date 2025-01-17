@@ -6,10 +6,13 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card'; // Import MatCardModule
-
-import {FormControl} from '@angular/forms';
 import { CommonModule } from '@angular/common';
-import { RedirectCommand } from '@angular/router';
+import { DxButtonModule, DxTextBoxModule } from 'devextreme-angular';
+import { ActivatedRoute, Router } from '@angular/router';
+const DEMO_PARAMS = {
+	EMAIL: 'rana@gmail.com',
+	PASSWORD: 'rana'
+};
 
 @Component({
   selector: 'app-login',
@@ -22,30 +25,60 @@ import { RedirectCommand } from '@angular/router';
     MatFormFieldModule,
     MatInputModule,
     MatButtonModule,
-    MatCardModule
+    MatCardModule,  DxTextBoxModule,
+    DxButtonModule
+    // , DxChartModule, DxDataGridModule,
+    // DxFormModule
   ],
   templateUrl: './login.component.html',
   styleUrl: './login.component.css'
 })
 export class LoginComponent implements OnInit {
-  loginForm: FormGroup;
+  // [x: string]: any;
+  loginForm!: FormGroup 
 
-  constructor(private formBuilder: FormBuilder) {
-    this.loginForm = this.formBuilder.group({
-      email: ['', [Validators.required, Validators.email]],
-      password: ['', [Validators.required, Validators.minLength(6)]]
-    });
+  
+    constructor(private formBuilder: FormBuilder,private router: Router) {
   }
   
   ngOnInit(): void {
-  }
+		this.initLoginForm();
 
+  }
+  initLoginForm() {
+
+		this.loginForm = this.formBuilder.group({
+			email: [DEMO_PARAMS.EMAIL, Validators.compose([
+				Validators.required,
+				Validators.email,
+				Validators.minLength(3),
+				Validators.maxLength(320) 
+			])
+			],
+			password: [DEMO_PARAMS.PASSWORD, Validators.compose([
+				Validators.required,
+				Validators.minLength(3),
+				Validators.maxLength(100)
+			])
+			]
+		});
+	}
+  
   onSubmit(): void {
     if (this.loginForm.valid) {
-      console.log('Login form submitted');
-      
-    } else {
-      return;
+      const email = this.loginForm.get('email')?.value;
+      const password = this.loginForm.get('password')?.value;
+
+      if (email === DEMO_PARAMS.EMAIL && password === DEMO_PARAMS.PASSWORD) {
+        console.log('Login successful');
+        this.RedirectToList();
+      } else {
+        console.log('Invalid email or password');
+      }
     }
   }
+
+  RedirectToList(): void {
+    this.router.navigate(['/dashboard']);
+}
 }

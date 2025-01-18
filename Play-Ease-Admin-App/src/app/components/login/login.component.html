@@ -1,1 +1,25 @@
-<h1>Login !</h1>
+<!-- login.component.html -->
+<h2 mat-dialog-title>{{ isSignUp ? 'Sign Up' : 'Sign In' }}</h2>
+
+<form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+  <div class="input-group">
+    <label for="email">Email</label>
+    <input type="email" formControlName="email" id="email" placeholder="Enter your email" required />
+  </div>
+
+  <div class="input-group">
+    <label for="password">Password</label>
+    <input type="password" formControlName="password" id="password" placeholder="Enter your password" required />
+  </div>
+
+  <div class="actions">
+    <button type="submit" [disabled]="loginForm.invalid">{{ isSignUp ? 'Sign Up' : 'Sign In' }}</button>
+  </div>
+</form>
+
+<div  class="toggle-link">
+  <p>Already have an account? <a href="#" (click)="toggleForm()">Sign In</a></p>
+</div>
+<div  class="toggle-link">
+  <p>Don't have an account? <a href="#" (click)="toggleForm()">Sign Up</a></p>
+</div>

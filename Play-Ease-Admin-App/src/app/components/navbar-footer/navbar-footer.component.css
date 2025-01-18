@@ -1,126 +1,182 @@
-/* Footer main styling */
+/* Footer Styling */
 .footer {
-    background-color: #000; /* Black background */
-    color: #fff; /* White text */
-    padding: 10px;
-    position: relative;
+  background: linear-gradient(135deg, rgba(7, 7, 7, 0.5), #027e02); /* Green gradient */
+  color: #ffffff; /* White text */
+  padding: 40px 20px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0px -4px 10px rgba(0, 0, 0, 0.2); /* Subtle depth */
+}
+
+.footer::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, rgba(7, 7, 7, 0.5), #027e02);
+  /* filter: blur(10px); */
+  z-index: -1;
+  animation: gradientMove 6s infinite ease-in-out;
+  pointer-events: none; /* Allow clicks to pass through */
+}
+
+/* @keyframes rotate {
+  0% {
+    transform: rotate(0deg);
   }
-  
-  /* Footer "Get in Touch" section */
-  .footer-content {
+  100% {
+    transform: rotate(360deg);
+  }
+} */
+
+.footer-container {
+  position: relative;
+  z-index: 1;
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 30px;
+}
+
+/* Logo Section */
+.footer-logo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.footer-logo img {
+  height: 60px;
+  margin-bottom: 10px;
+  transition: transform 0.3s ease-in-out;
+}
+
+.footer-logo img:hover {
+  transform: scale(1.1);
+}
+
+.brand {
+  font-size: 24px;
+  font-weight: bold;
+  color: #ffffff;
+  text-shadow: 1px 1px 5px rgba(0, 0, 0, 0.5);
+}
+
+/* Links Section */
+.footer-links ul {
+  list-style: none;
+  display: flex; /* Use flexbox to align items in a row */
+  gap: 20px; /* Space between items */
+  padding: 0;
+  margin: 0;
+  justify-content: center; /* Center the items horizontally */
+}
+
+.footer-links a {
+  text-decoration: none;
+  color: #ffffff;
+  font-size: 16px;
+  font-weight: 500;
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.footer-links a:hover {
+  color: #e6f5eb; /* Light green on hover */
+  transform: translateY(-3px); /* Slight pop-up effect */
+}
+
+.footer-links a::after {
+  content: '';
+  position: absolute;
+  bottom: -3px;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: #ffffff;
+  transition: width 0.3s ease;
+}
+
+.footer-links a:hover::after {
+  width: 100%; /* Underline animation */
+}
+
+.footer-links .highlight {
+  color: #ffffff;
+  font-weight: bold;
+}
+
+/* Social Icons */
+.footer-social {
+  display: flex;
+  justify-content: center; /* Align icons horizontally */
+  gap: 15px; /* Space between icons */
+  margin: 20px 0; /* Add spacing above and below */
+}
+
+.social-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1); /* Transparent white background */
+  color: #ffffff;
+  font-size: 20px;
+  transition: transform 0.3s ease, background 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.social-icon::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, #ffffff, rgba(255, 255, 255, 0.3));
+  transform: scale(0);
+  border-radius: 50%;
+  transition: transform 0.3s ease;
+}
+
+.social-icon:hover {
+  transform: scale(1.1);
+  background: #ffffff;
+  color: #41B783; /* Green icon on hover */
+}
+
+.social-icon:hover::before {
+  transform: scale(1.5);
+  opacity: 0;
+}
+
+
+/* Copyright Section */
+.footer-copyright {
+  margin-top: 20px;
+  font-size: 14px;
+  color: #e6f5eb;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .footer-container {
+    flex-direction: column;
     text-align: center;
-    margin-bottom: 20px;
   }
-  
-  .footer-content h2 {
-    font-size: 24px;
-    font-weight: bold;
-    margin-bottom: 15px;
-  }
-  
-  .social-icons {
-    display: flex;
-    justify-content: center;
+
+  .footer-links ul {
+    flex-wrap: wrap;
     gap: 15px;
   }
-  
-  .social-icon {
-    width: 40px;
-    height: 40px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    border: 2px solid #333;
-    border-radius: 50%;
-    color: #fff;
-    font-size: 18px;
-    transition: all 0.3s ease;
+
+  .footer-social {
+    gap: 10px;
   }
-  
-  .social-icon:hover {
-    background-color: #f00; /* Red highlight on hover */
-    color: #fff;
-  }
-  
-  /* Footer navigation links */
-  .footer-nav {
-    border-top: 1px solid #333;
-    padding-top: 15px;
-    text-align: center;
-  }
-  
-  .footer-links {
-    list-style: none;
-    display: flex;
-    justify-content: center;
-    gap: 20px;
-    padding: 0;
-    margin: 10px 0;
-  }
-  
-  .footer-links li a {
-    text-decoration: none;
-    color: #fff;
-    font-weight: 500;
-    transition: all 0.3s ease;
-  }
-  
-  .footer-links li a:hover {
-    color: green; /* Green highlight on hover */
-  }
-  
-  .footer-links .highlight {
-    color: #f00; /* Red for "Book Now!" */
-    font-weight: bold;
-  }
-  
-  /* Copyright section */
-  .copyright {
-    font-size: 14px;
-    color: #ccc;
-  }
-  
-  .brand {
-    color: rgb(74, 127, 10); /* Brand name in red */
-    font-weight: bold;
-  }
-  
-  /* Back to Top Button */
-  .back-to-top {
-    position: fixed;
-    bottom: 50px;
-    right: 50px;
-    background-color: red;
-    color: #fff;
-    border-radius: 50%;
-    width: 40px;
-    height: 40px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-size: 20px;
-    text-decoration: none;
-    z-index: 1000;
-    transition: all 0.3s ease;
-  }
-  
-  .back-to-top:hover {
-    background-color: green;
-  }
-  
-  /* WhatsApp Link */
-  .whatsapp-link {
-    position: fixed;
-    bottom: 10px;
-    right: 50px;
-    background-color: #25d366;
-    color: #fff;
-    border-radius: 50%;
-    width: 40px;
-    height: 40px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-size: 20px;
-    text-deco
-  
+}

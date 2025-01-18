@@ -16,69 +16,52 @@ const DEMO_PARAMS = {
 
 @Component({
   selector: 'app-login',
-  imports: [
-    // BrowserModule,
-    CommonModule,
-    // BrowserAnimationsModule,
-    FormsModule,
-    ReactiveFormsModule, // Add this
-    MatFormFieldModule,
-    MatInputModule,
-    MatButtonModule,
-    MatCardModule,  DxTextBoxModule,
-    DxButtonModule
-    // , DxChartModule, DxDataGridModule,
-    // DxFormModule
+  imports: [ReactiveFormsModule
   ],
   templateUrl: './login.component.html',
   styleUrl: './login.component.css'
 })
 export class LoginComponent implements OnInit {
-  // [x: string]: any;
-  loginForm!: FormGroup 
+  loginForm!: FormGroup;
+  isLoginPopupVisible = false;
+  isSignUp = false;
 
-  
-    constructor(private formBuilder: FormBuilder,private router: Router) {
-  }
-  
+  constructor(private fb: FormBuilder) {}
+
   ngOnInit(): void {
-		this.initLoginForm();
-
+    this.initForm();
   }
-  initLoginForm() {
 
-		this.loginForm = this.formBuilder.group({
-			email: [DEMO_PARAMS.EMAIL, Validators.compose([
-				Validators.required,
-				Validators.email,
-				Validators.minLength(3),
-				Validators.maxLength(320) 
-			])
-			],
-			password: [DEMO_PARAMS.PASSWORD, Validators.compose([
-				Validators.required,
-				Validators.minLength(3),
-				Validators.maxLength(100)
-			])
-			]
-		});
-	}
-  
+  initForm(): void {
+    this.loginForm = this.fb.group({
+      email: ['', [Validators.required, Validators.email]],
+      password: ['', [Validators.required, Validators.minLength(6)]]
+    });
+  }
+
+  openLoginPopup(): void {
+    this.isLoginPopupVisible = true;
+  }
+
+  closePopup(): void {
+    this.isLoginPopupVisible = false;
+  }
+
+  toggleForm(): void {
+    this.isSignUp = !this.isSignUp;
+  }
+
   onSubmit(): void {
     if (this.loginForm.valid) {
-      const email = this.loginForm.get('email')?.value;
-      const password = this.loginForm.get('password')?.value;
-
-      if (email === DEMO_PARAMS.EMAIL && password === DEMO_PARAMS.PASSWORD) {
-        console.log('Login successful');
-        this.RedirectToList();
+      const formData = this.loginForm.value;
+      if (this.isSignUp) {
+        // Handle sign-up logic
+        console.log('Sign Up Data: ', formData);
       } else {
-        console.log('Invalid email or password');
+        // Handle sign-in logic
+        console.log('Sign In Data: ', formData);
       }
+      this.closePopup();
     }
   }
-
-  RedirectToList(): void {
-    this.router.navigate(['/dashboard']);
-}
 }

@@ -9,7 +9,7 @@ import { MyAccountComponent } from './components/my-account/my-account.component
 import { OurServicesComponent } from './components/our-services/our-services.component';
 
 export const routes: Routes = [
-  { path: '', redirectTo: '/dashboard', pathMatch: 'full' }, // Redirect to login
+  { path: '', redirectTo: '/home', pathMatch: 'full' }, // Redirect to login
   {
     path: 'dashboard',
     component: DashboardComponent,

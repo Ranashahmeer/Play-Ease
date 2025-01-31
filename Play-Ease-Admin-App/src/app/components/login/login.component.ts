@@ -1,67 +1,69 @@
 import { Component, OnInit } from '@angular/core';
-import { BrowserModule } from '@angular/platform-browser';
-import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatButtonModule } from '@angular/material/button';
-import { MatCardModule } from '@angular/material/card'; // Import MatCardModule
+import { ReactiveFormsModule, FormGroup, FormControl, Validators, FormBuilder } from '@angular/forms';
 import { CommonModule } from '@angular/common';
-import { DxButtonModule, DxTextBoxModule } from 'devextreme-angular';
-import { ActivatedRoute, Router } from '@angular/router';
-const DEMO_PARAMS = {
-	EMAIL: 'rana@gmail.com',
-	PASSWORD: 'rana'
-};
+import { ChangeDetectorRef } from '@angular/core';
 
 @Component({
   selector: 'app-login',
-  imports: [ReactiveFormsModule
-  ],
+  standalone: true,
+  imports: [ReactiveFormsModule, CommonModule],
   templateUrl: './login.component.html',
-  styleUrl: './login.component.css'
+  styleUrls: ['./login.component.css']
 })
 export class LoginComponent implements OnInit {
+  isOpen: boolean = true;
+  isLogin: boolean = true; // To toggle between login and signup
   loginForm!: FormGroup;
-  isLoginPopupVisible = false;
-  isSignUp = false;
+  signupForm!: FormGroup;
 
-  constructor(private fb: FormBuilder) {}
+  constructor(private fb: FormBuilder,private cdr: ChangeDetectorRef) {}
 
-  ngOnInit(): void {
-    this.initForm();
-  }
-
-  initForm(): void {
+  ngOnInit() {
+    // Initialize form groups for login and signup
     this.loginForm = this.fb.group({
       email: ['', [Validators.required, Validators.email]],
       password: ['', [Validators.required, Validators.minLength(6)]]
     });
+
+    this.signupForm = this.fb.group({
+      email: ['', [Validators.required, Validators.email]],
+      password: ['', [Validators.required, Validators.minLength(6)]],
+      confirmPassword: ['', [Validators.required, Validators.minLength(6)]]
+    });
   }
 
-  openLoginPopup(): void {
-    this.isLoginPopupVisible = true;
-  }
+  // Getter methods for easy access in template
+  get loginControls() { return this.loginForm.controls; }
+  get signupControls() { return this.signupForm.controls; }
 
-  closePopup(): void {
-    this.isLoginPopupVisible = false;
-  }
-
-  toggleForm(): void {
-    this.isSignUp = !this.isSignUp;
-  }
-
-  onSubmit(): void {
+  handleLogin() {
     if (this.loginForm.valid) {
-      const formData = this.loginForm.value;
-      if (this.isSignUp) {
-        // Handle sign-up logic
-        console.log('Sign Up Data: ', formData);
-      } else {
-        // Handle sign-in logic
-        console.log('Sign In Data: ', formData);
-      }
-      this.closePopup();
+      // Handle login logic here
+      console.log('Login successful');
+    } else {
+      console.log('Login form is invalid');
     }
+  }
+
+  handleSignup() {
+    if (this.signupForm.valid && this.signupForm.value.password === this.signupForm.value.confirmPassword) {
+      // Handle signup logic here
+      console.log('Sign up successful');
+    } else {
+      console.log('Signup form is invalid or passwords do not match');
+    }
+  }
+
+  closePopup() {
+    this.isOpen = false; // Close the popup
+    this.cdr.detectChanges(); 
+  }
+
+  toggleSignup() {
+    this.isLogin = false; // Switch to sign up form
+  }
+
+  toggleLogin() {
+    this.isLogin = true; // Switch to login form
   }
 }

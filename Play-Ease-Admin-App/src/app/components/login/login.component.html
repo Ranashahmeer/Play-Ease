@@ -1,25 +1,41 @@
-<!-- login.component.html -->
-<h2 mat-dialog-title>{{ isSignUp ? 'Sign Up' : 'Sign In' }}</h2>
+  <div class="popup-container" (click)="$event.stopPropagation()"> 
+    <div *ngIf="isLogin; else signupTemplate">
+      <h2>Login</h2>
+      <form [formGroup]="loginForm" (ngSubmit)="handleLogin()">
+        <div class="input-group">
+          <label for="email">Email</label>
+          <input id="email" type="email" formControlName="email" required />
+        </div>
+        <div class="input-group">
+          <label for="password">Password</label>
+          <input id="password" type="password" formControlName="password" required />
+        </div>
+        <button type="submit" [disabled]="loginForm.invalid">Login</button>
+      </form>
+      <div class="toggle-link">
+        <p>Don't have an account? <a (click)="toggleSignup()">Sign Up</a></p>
+      </div>
+    </div>
 
-<form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
-  <div class="input-group">
-    <label for="email">Email</label>
-    <input type="email" formControlName="email" id="email" placeholder="Enter your email" required />
-  </div>
-
-  <div class="input-group">
-    <label for="password">Password</label>
-    <input type="password" formControlName="password" id="password" placeholder="Enter your password" required />
-  </div>
-
-  <div class="actions">
-    <button type="submit" [disabled]="loginForm.invalid">{{ isSignUp ? 'Sign Up' : 'Sign In' }}</button>
-  </div>
-</form>
-
-<div  class="toggle-link">
-  <p>Already have an account? <a href="#" (click)="toggleForm()">Sign In</a></p>
-</div>
-<div  class="toggle-link">
-  <p>Don't have an account? <a href="#" (click)="toggleForm()">Sign Up</a></p>
-</div>
+    <ng-template #signupTemplate>
+      <h2>Sign Up</h2>
+      <form [formGroup]="signupForm" (ngSubmit)="handleSignup()">
+        <div class="input-group">
+          <label for="email">Email</label>
+          <input id="email" type="email" formControlName="email" required />
+        </div>
+        <div class="input-group">
+          <label for="password">Password</label>
+          <input id="password" type="password" formControlName="password" required />
+        </div>
+        <div class="input-group">
+          <label for="confirmPassword">Confirm Password</label>
+          <input id="confirmPassword" type="password" formControlName="confirmPassword" required />
+        </div>
+        <button type="submit" [disabled]="signupForm.invalid || signupForm.value.password !== signupForm.value.confirmPassword">Sign Up</button>
+      </form>
+      <div class="toggle-link">
+        <p>Already have an account? <a (click)="toggleLogin()">Login</a></p>
+      </div>
+    </ng-template>
+</div> 

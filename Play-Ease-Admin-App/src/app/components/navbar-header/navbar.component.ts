@@ -6,27 +6,29 @@ import { LoginComponent } from '../login/login.component';
 @Component({
   selector: 'app-navbar',
   imports: [],
-  templateUrl: './navbar.component.html',
+  templateUrl: './navbar.component.html', 
   styleUrl: './navbar.component.css'
 })
 export class NavbarComponent {
 
-  constructor(private formBuilder: FormBuilder, private dialog: MatDialog,private router: Router) {
+  constructor(
+    private router: Router,
+    private dialog: MatDialog // Inject MatDialog
+  ) { }
+
+  RedirectToBooking() {
+    this.router.navigate(['/bookings']);
   }
-  RedirectToBooking(){
-      this.router.navigate(['/bookings']);
-  }
-  RedirectToLogin(){
-    
+
+  // Open login dialog on button click
+  RedirectToLogin() {
     this.dialog.open(LoginComponent, {
-      width: '400px',  // Set fixed width for the popup
-      height: 'auto',  // Let height adjust according to content
-      maxWidth: '90vw', // Responsive, ensuring it doesn't overflow
+      width: '1100px', // Set the dialog width if you like
+      height: '600px', // Set the dialog width if you like
     });
-  
-    // this.router.navigate(['/login']);
   }
+
   navigateTo(route: string) {
-    this.router.navigate([route]); // Navigate to the specified route
+    this.router.navigate([route]);
   }
 }

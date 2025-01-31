@@ -1,55 +1,90 @@
-/* Ensure the dialog has a proper container size */
-::ng-deep .mat-dialog-container {
-  padding: 20px;  /* Add padding */
-  border-radius: 8px;  /* Rounded corners */
-  max-width: 400px;  /* Set a fixed width for the dialog */
-  width: 100%;       /* Ensure it takes full width available */
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-start;  /* Align content to the top */
+
+.popup-container {
+  background: #fff;
+  border-radius: 8px;
+  width: 550px;
+  height: 900px; /* Adjust to content */
+  text-align: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); /* Soft shadow for depth */
+  transition: transform 0.3s ease-in-out; /* Smooth popup animation */
+  transform: scale(0.9); /* Slightly smaller initially */
 }
 
-/* Add space between input fields */
+
+
+/* Form input fields */
 .input-group {
-  margin-bottom: 15px;
+  margin-bottom: 20px;
 }
 
-/* Style the form inputs */
 input {
   width: 100%;
-  padding: 10px;
-  margin-top: 5px;
-  border-radius: 5px;
-  border: 1px solid #ccc;
+  padding: 12px;
+  border-radius: 6px;
+  border: 1px solid #ddd;
+  background-color: #f9f9f9;
+  font-size: 24px;
+  box-sizing: border-box;
+  transition: border 0.3s;
 }
 
-/* Style the button */
+input:focus {
+  border-color: #4CAF50;
+  outline: none;
+  background-color: #fff;
+}
+
+/* Submit buttons */
 button {
-  background-color: #4CAF50; /* Green */
+  background-color: #4CAF50;
   color: white;
-  padding: 10px;
-  font-size: 16px;
+  padding: 12px;
+  font-size: 20px;
   width: 100%;
   border: none;
-  border-radius: 5px;
+  border-radius: 6px;
   cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s;
 }
 
 button:hover {
   background-color: #45a049;
+  transform: translateY(-2px); /* Button lift effect */
 }
 
-/* Style links */
+button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+/* Toggle link (sign-up / login switch) */
 .toggle-link {
-  text-align: center;
-  margin-top: 15px;
+  margin-top: 20px;
+  font-size: 24px;
 }
 
 .toggle-link a {
   color: #4CAF50;
   text-decoration: none;
+  font-weight: 500;
+  transition: text-decoration 0.3s ease;
 }
 
 .toggle-link a:hover {
   text-decoration: underline;
+}
+label {
+  font-size:24px;
+}
+
+/* Responsive Design */
+@media (max-width: 480px) {
+  .popup-container {
+    width: 90%;
+    padding: 20px;
+  }
+
+  input, button {
+    font-size: 24px;
+  }
 }

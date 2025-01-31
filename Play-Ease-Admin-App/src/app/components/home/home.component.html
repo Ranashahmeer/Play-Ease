@@ -1,34 +1,92 @@
+<div class="rana">
 <div class="home-container">
-    <div class="container">
-        <main>
-          <section class="hero">
-            <h1>Welcome to <span>PlayEase</span>!</h1>
-            <p>Book your favourite sports facilities in just a few clicks!</p>
-            <button class="cta-btn" (click)="navigateTo('/bookings')">Get Started</button>
-          </section>
-      
-          <section class="features">
-            <div class="feature-card">
-              <i class="fas fa-futbol"></i>
-              <i class="fas fa-basketball-ball"></i>
-              <h3>Indoor Courts</h3>
-              <p>Book world-class courts for football, basketball, and more.</p>
-            </div>
-            <div class="feature-card">
-              <i class="fas fa-running"></i>
-              <h3>Fitness Classes</h3>
-              <p>Explore fitness classes led by top trainers.</p>
-            </div>
-            <div class="feature-card">
-              <i class="fas fa-calendar-alt"></i>
-              <h3>Easy Scheduling</h3>
-              <p>Schedule slots seamlessly with our dynamic calendar.</p>
-            </div>
-            
-            
-          </section>
-        </main>
+  <div class="container">
+    <main>
+      <!-- Hero Section -->
+      <section class="hero">
+        <h1>Welcome to <span>PlayEase</span>!</h1>
+        <p>Book your favorite sports facilities in just a few clicks!</p>
+        <button class="cta-btn" onclick="navigateTo('/bookings')">Get Started</button>
+      </section>
+
+      <!-- Search Bar -->
+      <div class="search-bar">
+        <input type="text" placeholder="Search for a stadium, facility, or class..." />
+        <button>Search</button>
       </div>
-    </div>
+
+      <!-- Features Section -->
       
-  
+      <!-- Scrollable Features Section -->
+      <div class="features-container">
+        <div class="quick-booking">
+          <h2>Top Rated Sports Facilities</h2>
+        </div>
+        <button class="scroll-btn left" onclick="scrollLeft()">&#10094;</button>
+        
+        <section class="features" id="featuresScroll">
+          <div class="step">
+            <div class="step-icon"><i class="fas fa-futbol"></i></div>
+            <h3>Indoor Courts</h3>
+            <p>Book world-class courts for football, basketball, and more.</p>
+          </div>
+          <div class="step">
+            <div class="step-icon"><i class="fas fa-running"></i></div>
+            <h3>Fitness Classes</h3>
+            <p>Explore fitness classes led by top trainers.</p>
+          </div>
+          <div class="step">
+            <div class="step-icon"><i class="fas fa-calendar-alt"></i></div>
+            <h3>Easy Scheduling</h3>
+            <p>Schedule slots seamlessly with our dynamic calendar.</p>
+          </div>
+          <div class="step">
+            <div class="step-icon"><i class="fas fa-dumbbell"></i></div>
+            <h3>Gym Access</h3>
+            <p>Access modern gyms equipped with the latest machines.</p>
+          </div>
+          <div class="step">
+            <div class="step-icon"><i class="fas fa-swimmer"></i></div>
+            <h3>Swimming Pools</h3>
+            <p>Enjoy premium swimming pools for training & fun.</p>
+          </div>
+          <div class="step">
+            <div class="step-icon"><i class="fas fa-biking"></i></div>
+            <h3>Outdoor Activities</h3>
+            <p>Explore biking, hiking, and outdoor adventure sports.</p>
+          </div>
+        </section>
+        
+        <button class="scroll-btn right" onclick="scrollRight()">&#10095;</button>
+      </div>
+
+      <!-- Quick Booking Section -->
+      <section class="quick-booking">
+        <h2>Book Your Game Within Minutes</h2>
+        <div class="quick-booking-steps">
+          <div class="step">
+            <div class="step-icon"><i class="fas fa-location-arrow"></i></div>
+            <h3>Find</h3>
+            <p>A nearby stadium using AI</p>
+          </div>
+          <div class="step">
+            <div class="step-icon"><i class="fas fa-calendar-alt"></i></div>
+            <h3>Select</h3>
+            <p>Date, time, duration, and pitch size</p>
+          </div>
+          <div class="step">
+            <div class="step-icon"><i class="fas fa-credit-card"></i></div>
+            <h3>Pay</h3>
+            <p>The booking amount online</p>
+          </div>
+          <div class="step">
+            <div class="step-icon"><i class="fas fa-futbol"></i></div>
+            <h3>Play</h3>
+            <p>Enjoy your game with friends</p>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+</div>
+</div>

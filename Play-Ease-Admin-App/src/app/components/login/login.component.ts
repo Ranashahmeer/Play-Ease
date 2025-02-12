@@ -44,7 +44,7 @@ export class LoginComponent implements OnInit {
 
   handleLogin() {
     if (this.loginForm.valid) {
-      const { email, password } = this.loginForm.value;
+      const { email, password } =  this.loginForm.value;
   
       this.authService.login(this.loginForm.value).subscribe({
         next: (response: any) => {

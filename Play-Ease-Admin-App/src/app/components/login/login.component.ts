@@ -2,6 +2,9 @@ import { Component, OnInit } from '@angular/core';
 import { ReactiveFormsModule, FormGroup, FormControl, Validators, FormBuilder } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { ChangeDetectorRef } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Router } from '@angular/router';
+import { AuthService } from '../../services/auth/auth.service';
 
 @Component({
   selector: 'app-login',
@@ -15,8 +18,11 @@ export class LoginComponent implements OnInit {
   isLogin: boolean = true; // To toggle between login and signup
   loginForm!: FormGroup;
   signupForm!: FormGroup;
+  errorMessage = '';
+  loginData: { email: object; password: object; } | undefined;
+  
 
-  constructor(private fb: FormBuilder,private cdr: ChangeDetectorRef) {}
+  constructor(private fb: FormBuilder,private authService: AuthService,private cdr: ChangeDetectorRef,private http: HttpClient,private router: Router) {}
 
   ngOnInit() {
     // Initialize form groups for login and signup
@@ -38,8 +44,20 @@ export class LoginComponent implements OnInit {
 
   handleLogin() {
     if (this.loginForm.valid) {
-      // Handle login logic here
-      console.log('Login successful');
+      const { email, password } = this.loginForm.value;
+  
+      this.authService.login(this.loginForm.value).subscribe({
+        next: (response: any) => {
+          console.log('Login successful:', response);
+          alert('Login successful!');
+          // You can store the token in localStorage/sessionStorage if needed
+          // localStorage.setItem('token', response.token);
+        },
+        error: (error: any) => {
+          console.error('Login failed:', error);
+          this.errorMessage = 'Invalid credentials';
+        }
+      });
     } else {
       console.log('Login form is invalid');
     }

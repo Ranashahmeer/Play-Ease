@@ -4,10 +4,13 @@ import { CommonModule } from '@angular/common';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import interactionPlugin from '@fullcalendar/interaction';
 import bootstrapPlugin from '@fullcalendar/bootstrap';
-import { FullCalendarModule } from '@fullcalendar/angular';
 @Component({
   selector: 'app-calendar',
-  imports: [FullCalendarModule,CommonModule],
+  standalone: true,
+  imports: [
+    CommonModule
+    // Add any other modules or components used in navbar.component.html
+  ],
   templateUrl: './calendar.component.html',
   styleUrl: './calendar.component.css'
 })

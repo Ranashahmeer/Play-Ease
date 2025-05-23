@@ -4,8 +4,10 @@ import { FormBuilder } from '@angular/forms';
 import { Router } from '@angular/router';
 @Component({
   selector: 'app-dashboard',
-  // imports: [CalendarComponent],
-  imports: [],
+  standalone: true,
+  imports: [
+    // Add any other modules or components used in navbar.component.html
+  ],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.css'
 })

@@ -1,8 +1,11 @@
-import { RenderMode, ServerRoute } from '@angular/ssr';
+import { Routes } from '@angular/router';
 
-export const serverRoutes: ServerRoute[] = [
+export const serverRoutes: Routes = [
   {
     path: '**',
-    renderMode: RenderMode.Prerender
+    loadComponent: () => import('./app.component').then(m => m.AppComponent),
+    data: {
+      rendering: 'prerender' // <-- Just use the string
+    }
   }
 ];

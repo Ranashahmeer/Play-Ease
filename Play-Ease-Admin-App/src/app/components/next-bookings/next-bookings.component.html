@@ -1,0 +1,12 @@
+<div class="next-bookings-container">
+  <h2>More Available Courts</h2>
+  <div class="courts-grid">
+    <div class="court-card" *ngFor="let court of courts">
+      <img [src]="court.image" alt="{{court.name}}" />
+      <h3>{{court.name}}</h3>
+      <p>{{court.location}}</p>
+      <p>{{court.price}}</p>
+      <p>Pitch: {{court.pitchSize}}</p>
+    </div>
+  </div>
+</div>

@@ -43,10 +43,10 @@
   <!-- Court Cards -->
   <main class="courts-area">
     <!-- Search Bar -->
-    <!-- <div class="search-bar" [formGroup]="form">
+    <div class="search-bar" [formGroup]="form">
       <input type="text" formControlName="searchQuery" placeholder="Search for a stadium, facility, or class..." />
       <button type="button" (click)="updateVisibleCourts()">Search</button>
-    </div> -->
+    </div>
 
     <!-- Court Card List -->
     <div class="court-card" *ngFor="let court of visibleCourts" (click)="openCourtDetails(court)">

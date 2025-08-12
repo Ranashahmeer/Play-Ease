@@ -1,55 +1,55 @@
 <div class="bookings-container">
   <!-- Sidebar Filters -->
   <aside class="filters">
-    <h3>FILTER BY</h3>
+    <form [formGroup]="form" (ngSubmit)="applyFilters()">
+      <h3>FILTER BY</h3>
 
-    <label>Date</label>
-    <dx-date-box [(value)]="selectedDate" type="date"></dx-date-box>
+      <!-- Date -->
+      <label>Date</label>
+      <dx-date-box formControlName="selectedDate" type="date"></dx-date-box>
 
-    <label>Choose Your Time</label>
-    <dx-date-box [(value)]="selectedTime" type="time" displayFormat="shortTime"></dx-date-box>
+      <!-- Time -->
+      <label>Choose Your Time</label>
+      <dx-date-box formControlName="selectedTime" type="time" displayFormat="shortTime"></dx-date-box>
 
-    <label>Match Duration</label>
-    <div class="duration-buttons">
-      <dx-button text="60 mins" (onClick)="setDuration(60)"></dx-button>
-      <dx-button text="90 mins" (onClick)="setDuration(90)"></dx-button>
-      <dx-button text="120 mins" (onClick)="setDuration(120)"></dx-button>
-    </div>
+      <!-- Match Duration -->
+      <label>Match Duration</label>
+      <div class="duration-buttons">
+        <dx-button text="60 mins" (onClick)="setDuration(60)"></dx-button>
+        <dx-button text="90 mins" (onClick)="setDuration(90)"></dx-button>
+        <dx-button text="120 mins" (onClick)="setDuration(120)"></dx-button>
+      </div>
 
-    <label>Pitch Size</label>
-    <dx-tag-box
-      [items]="['5x5', '6x6', '7x7', '9x9', '11x11']"
-      [(value)]="selectedPitchSizes"
-      [showSelectionControls]="true"
-    ></dx-tag-box>
+      <!-- Pitch Sizes -->
+      <label>Pitch Size</label>
+      <dx-tag-box [items]="['5x5', '6x6', '7x7', '9x9', '11x11']" formControlName="selectedPitchSizes"
+        [showSelectionControls]="true"></dx-tag-box>
 
-    <label>Distance (km)</label>
-    <dx-slider [(value)]="distance" [min]="0" [max]="50"></dx-slider>
+      <!-- Distance Slider -->
+      <label>Distance (km)</label>
+      <dx-slider formControlName="distance" [min]="0" [max]="50"></dx-slider>
 
-    <dx-button text="Use Current Location" (onClick)="useCurrentLocation()"></dx-button>
- 
-    <div class="action-buttons">
-     <dx-button text="Clear" (onClick)="clearFilters()"></dx-button>
-     <dx-button text="Filter" type="default" (onClick)="applyFilters()"></dx-button>
-    </div>
+      <!-- Current Location -->
+      <dx-button text="Use Current Location" (onClick)="useCurrentLocation()"></dx-button>
+
+      <!-- Action Buttons -->
+      <div class="action-buttons">
+        <dx-button text="Clear" (onClick)="clearFilters()"></dx-button>
+        <dx-button text="Filter" type="default" [useSubmitBehavior]="true"></dx-button>
+      </div>
+    </form>
   </aside>
+
   <!-- Court Cards -->
   <main class="courts-area">
-    <div class="search-bar">
-  <input
-    type="text"
-    [(ngModel)]="searchQuery"
-    placeholder="Search for a stadium, facility, or class..."
-  />
-  <button (click)="updateVisibleCourts()">Search</button>
-</div>
+    <!-- Search Bar -->
+    <!-- <div class="search-bar" [formGroup]="form">
+      <input type="text" formControlName="searchQuery" placeholder="Search for a stadium, facility, or class..." />
+      <button type="button" (click)="updateVisibleCourts()">Search</button>
+    </div> -->
 
-
-    <div
-      class="court-card"
-      *ngFor="let court of visibleCourts"
-      (click)="openCourtDetails(court)"
-    >
+    <!-- Court Card List -->
+    <div class="court-card" *ngFor="let court of visibleCourts" (click)="openCourtDetails(court)">
       <img [src]="court.image" alt="Court Image" />
       <div class="info">
         <h4>{{ court.name }}</h4>
@@ -63,24 +63,15 @@
       </div>
     </div>
 
+    <!-- Pagination -->
     <div style="display: flex; gap: 10px; margin-top: 20px;">
-  <button
-    class="next-button"
-    (click)="prevPage()"
-    *ngIf="currentPage > 1"
-  >
-    Previous
-  </button>
+      <button class="next-button" (click)="prevPage()" *ngIf="currentPage > 1">
+        Previous
+      </button>
 
-  <button
-    class="next-button"
-    (click)="nextPage()"
-    *ngIf="hasNextPage()"
-  >
-    Next
-  </button>
-</div>
-
-
+      <button class="next-button" (click)="nextPage()" *ngIf="hasNextPage()">
+        Next
+      </button>
+    </div>
   </main>
 </div>

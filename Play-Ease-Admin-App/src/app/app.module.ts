@@ -1,5 +1,5 @@
 import { NgModule } from '@angular/core';
-import { FormsModule } from '@angular/forms'; 
+import { FormsModule, ReactiveFormsModule } from '@angular/forms'; 
 import { BrowserModule } from '@angular/platform-browser';
 import { AppComponent } from './app.component';
 import { LoginComponent } from './components/login/login.component';  // Import LoginComponent
@@ -7,7 +7,7 @@ import { NavbarComponent } from './components/navbar-header/navbar.component';  
 import { BookingsComponent } from './components/bookings/bookings.component';
 import { NextBookingsComponent } from './components/next-bookings/next-bookings.component';
 
-import { DxDateBoxModule, DxSelectBoxModule, DxTextBoxModule } from 'devextreme-angular';
+import { DxButtonModule, DxDateBoxModule, DxSelectBoxModule, DxSliderComponent, DxTagBoxModule, DxTextBoxModule } from 'devextreme-angular';
 
 @NgModule({
   declarations: [
@@ -15,15 +15,15 @@ import { DxDateBoxModule, DxSelectBoxModule, DxTextBoxModule } from 'devextreme-
     LoginComponent,  // Declare LoginComponent here
     NavbarComponent, // Declare NavbarComponent here
     BookingsComponent, 
-    NextBookingsComponent,
+    NextBookingsComponent
   ],
   imports: [
     BrowserModule,
-    DxDateBoxModule,
+    DxDateBoxModule,DxButtonModule,DxTagBoxModule,DxSliderComponent,
     DxSelectBoxModule,
     DxTextBoxModule,
     FormsModule,
-    //ReactiveFormsModule,
+    ReactiveFormsModule,
     // any other modules you need
   ],
   providers: [],

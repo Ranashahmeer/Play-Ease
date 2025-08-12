@@ -1,7 +1,12 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
-import { FormsModule } from '@angular/forms';
-import { DxDateBoxModule, DxButtonModule, DxTagBoxModule, DxSliderModule } from 'devextreme-angular';
+import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
+import {
+  DxDateBoxModule,
+  DxButtonModule,
+  DxTagBoxModule,
+  DxSliderModule
+} from 'devextreme-angular';
 
 interface Court {
   name: string;
@@ -18,7 +23,7 @@ interface Court {
   standalone: true,
   imports: [
     CommonModule,
-    FormsModule,
+    ReactiveFormsModule,
     DxDateBoxModule,
     DxButtonModule,
     DxTagBoxModule,
@@ -28,12 +33,7 @@ interface Court {
   styleUrl: './bookings.component.css',
 })
 export class BookingsComponent implements OnInit {
-  selectedDate: Date = new Date();
-  selectedTime: string = '';
-  selectedPitchSizes: string[] = [];
-  distance: number = 25;
-  searchQuery: string = '';
-  matchDuration: number = 60;
+  form!: FormGroup;
 
   currentPage: number = 1;
   pageSize: number = 4;
@@ -86,19 +86,20 @@ export class BookingsComponent implements OnInit {
   visibleCourts: Court[] = [];
   manualFilteredCourts: Court[] = [];
 
+  constructor(private fb: FormBuilder) {} 
+
   ngOnInit(): void {
+    this.form = this.fb.group({
+      selectedDate: [new Date()],
+      selectedTime: [''],
+      matchDuration: [60],
+      selectedPitchSizes: [[]],
+      distance: [25],
+      searchQuery: [''],
+    });
+
     this.manualFilteredCourts = [...this.allCourts];
     this.updateVisibleCourts();
-  }
-
-  get filteredCourts(): Court[] {
-    return this.allCourts.filter(court => {
-      const matchesSearch = court.name.toLowerCase().includes(this.searchQuery.toLowerCase());
-      const matchesPitch =
-        this.selectedPitchSizes.length === 0 ||
-        this.selectedPitchSizes.some(p => court.pitches.includes(p));
-      return matchesSearch && matchesPitch;
-    });
   }
 
   updateVisibleCourts(): void {
@@ -127,7 +128,7 @@ export class BookingsComponent implements OnInit {
   }
 
   setDuration(minutes: number): void {
-    this.matchDuration = minutes;
+    this.form.get('matchDuration')?.setValue(minutes);
   }
 
   useCurrentLocation(): void {
@@ -140,11 +141,13 @@ export class BookingsComponent implements OnInit {
   }
 
   applyFilters(): void {
-    this.manualFilteredCourts = this.allCourts.filter(court => {
-      const matchesSearch = court.name.toLowerCase().includes(this.searchQuery.toLowerCase());
+    const { searchQuery, selectedPitchSizes } = this.form.value;
+
+    this.manualFilteredCourts = this.allCourts.filter((court) => {
+      const matchesSearch = court.name.toLowerCase().includes(searchQuery.toLowerCase());
       const matchesPitch =
-        this.selectedPitchSizes.length === 0 ||
-        this.selectedPitchSizes.some(p => court.pitches.includes(p));
+        selectedPitchSizes.length === 0 ||
+        selectedPitchSizes.some((p: string) => court.pitches.includes(p));
       return matchesSearch && matchesPitch;
     });
 
@@ -153,12 +156,14 @@ export class BookingsComponent implements OnInit {
   }
 
   clearFilters(): void {
-    this.searchQuery = '';
-    this.selectedPitchSizes = [];
-    this.selectedDate = new Date();
-    this.selectedTime = '';
-    this.matchDuration = 60;
-    this.distance = 25;
+    this.form.reset({
+      selectedDate: new Date(),
+      selectedTime: '',
+      matchDuration: 60,
+      selectedPitchSizes: [],
+      distance: 25,
+      searchQuery: '',
+    });
 
     this.manualFilteredCourts = [...this.allCourts];
     this.currentPage = 1;

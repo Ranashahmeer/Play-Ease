@@ -8,6 +8,8 @@ import {
   DxSliderModule,DxDropDownBoxModule,DxPopupModule
 } from 'devextreme-angular';
 import { Subscription } from 'rxjs';
+import {GetDatabyDatasourceService} from '../../services/get-data/get-databy-datasource.service'
+import e from 'express';
 
 /* ===== Utility used both outside and inside the component ===== */
 function toKeyLocal(d: Date): string {
@@ -77,6 +79,7 @@ export class BookingsComponent implements OnInit {
   reservationRemaining = '';
   private reservationTimerRef: any = null;
   reservationExpired = false;
+  bookings: any[] = [];
 
   // Master data
   allCourts: Court[] = [
@@ -85,7 +88,7 @@ export class BookingsComponent implements OnInit {
       location: 'Gulberg',
       rating: 4.5,
       pitches: ['5x5', '6x6'],
-      price: 2000,
+      price: 5000,
       pricePerPitch: { '5x5': 2000, '6x6': 2500 },
       openingTime: '06:00 AM',
       closingTime: '10:00 PM',
@@ -160,9 +163,18 @@ export class BookingsComponent implements OnInit {
   visibleCourts: Court[] = [];
   manualFilteredCourts: Court[] = [];
 
-  constructor(private fb: FormBuilder) {}
+  constructor(private fb: FormBuilder,private GetDatabyDatasourceService: GetDatabyDatasourceService) {}
 
   ngOnInit(): void {
+
+    this.GetDatabyDatasourceService.getData(1).subscribe({
+      next: (data) => {
+        console.log('API Response:', data);
+        this.bookings = data;
+      },
+      error: (err) => console.error('API Error:', err)
+    });
+
     this.form = this.fb.group({
       selectedDate: [new Date()],
       selectedTime: [''],
@@ -171,7 +183,6 @@ export class BookingsComponent implements OnInit {
       distance: [25],
       searchQuery: [''],
     });
-
     // react to duration / date changes
     const s1 = this.form.get('matchDuration')!.valueChanges.subscribe(() => {
       if (this.popupVisible) this.recomputeAvailability();
@@ -187,10 +198,7 @@ export class BookingsComponent implements OnInit {
     this.updateVisibleCourts();
   }
 
-  ngOnDestroy(): void {
-    this.subscriptions.forEach(s => s.unsubscribe());
-    this.stopReservationTimer();
-  }
+
 
   /* ========== Pagination & filters ========== */
   updateVisibleCourts(): void {
@@ -592,5 +600,11 @@ export class BookingsComponent implements OnInit {
     const secs = totalSeconds % 60;
     this.reservationRemaining = `${String(mins).padStart(2,'0')}:${String(secs).padStart(2,'0')}`;
     this.reservationExpired = false;
+  }
+
+
+  ngOnDestroy(): void {
+    this.subscriptions.forEach(s => s.unsubscribe());
+    this.stopReservationTimer();
   }
 }

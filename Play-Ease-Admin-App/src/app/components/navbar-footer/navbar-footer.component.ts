@@ -4,10 +4,11 @@ import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 
 @Component({
-    selector: 'app-navbar-footer',
-    imports: [CommonModule, ReactiveFormsModule],
-    templateUrl: './navbar-footer.component.html',
-    styleUrls: ['./navbar-footer.component.css']
+  selector: 'app-navbar-footer',
+  standalone: true,
+  imports: [CommonModule, ReactiveFormsModule],
+  templateUrl: './navbar-footer.component.html',
+  styleUrls: ['./navbar-footer.component.css']
 })
 export class NavbarFooterComponent {
 

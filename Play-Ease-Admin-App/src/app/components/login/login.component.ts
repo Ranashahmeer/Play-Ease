@@ -7,10 +7,11 @@ import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth/auth.service';
 
 @Component({
-    selector: 'app-login',
-    imports: [ReactiveFormsModule, CommonModule],
-    templateUrl: './login.component.html',
-    styleUrls: ['./login.component.css']
+  selector: 'app-login',
+  standalone: true,
+  imports: [ReactiveFormsModule, CommonModule],
+  templateUrl: './login.component.html',
+  styleUrls: ['./login.component.css']
 })
 export class LoginComponent implements OnInit {
   isOpen: boolean = true;

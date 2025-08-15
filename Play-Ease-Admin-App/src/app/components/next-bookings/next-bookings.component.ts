@@ -1,9 +1,10 @@
 import { Component, OnInit } from '@angular/core';
 
 @Component({
-  selector: 'app-next-bookings',
-  templateUrl: './next-bookings.component.html',
-  styleUrls: ['./next-bookings.component.css']
+    selector: 'app-next-bookings',
+    templateUrl: './next-bookings.component.html',
+    styleUrls: ['./next-bookings.component.css'],
+    standalone: false
 })
 export class NextBookingsComponent implements OnInit {
   courts = [

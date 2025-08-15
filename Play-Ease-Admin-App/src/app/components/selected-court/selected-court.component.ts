@@ -2,9 +2,10 @@ import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 
 @Component({
-  selector: 'app-selected-court',
-  templateUrl: './selected-court.component.html',
-  styleUrls: ['./selected-court.component.css']
+    selector: 'app-selected-court',
+    templateUrl: './selected-court.component.html',
+    styleUrls: ['./selected-court.component.css'],
+    standalone: false
 })
 export class SelectedCourtComponent implements OnInit {
   courtName: string | null = null;

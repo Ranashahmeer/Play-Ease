@@ -7,16 +7,15 @@ import { MatButtonModule } from '@angular/material/button'; // Add any Material 
 import { MatIconModule } from '@angular/material/icon';     // Example
 
 @Component({
-  selector: 'app-navbar',
-  standalone: true,
-  imports: [
-    CommonModule,
-    MatButtonModule,
-    MatIconModule,
-    // Add any other modules or components used in navbar.component.html
-  ],
-  templateUrl: './navbar.component.html',
-  styleUrls: ['./navbar.component.css']
+    selector: 'app-navbar',
+    imports: [
+        CommonModule,
+        MatButtonModule,
+        MatIconModule,
+        // Add any other modules or components used in navbar.component.html
+    ],
+    templateUrl: './navbar.component.html',
+    styleUrls: ['./navbar.component.css']
 })
 export class NavbarComponent {
 

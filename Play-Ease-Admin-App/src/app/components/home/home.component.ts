@@ -7,11 +7,12 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 // import { DxDropDownBoxModule,DxListModule  } from 'devextreme-angular';
 @Component({
-    selector: 'app-home',
-    imports: [MatSelectModule, MatFormFieldModule, MatInputModule, CommonModule],
-    templateUrl: './home.component.html',
-    styleUrl: './home.component.css',
-    schemas: [CUSTOM_ELEMENTS_SCHEMA]
+  selector: 'app-home',
+  standalone: true,
+  imports: [MatSelectModule,MatFormFieldModule,MatInputModule,CommonModule ],
+  templateUrl: './home.component.html',
+  styleUrl: './home.component.css',
+  schemas: [CUSTOM_ELEMENTS_SCHEMA] 
 })
 export class HomeComponent {
 

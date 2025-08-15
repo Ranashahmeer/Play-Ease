@@ -5,14 +5,13 @@ import dayGridPlugin from '@fullcalendar/daygrid';
 import interactionPlugin from '@fullcalendar/interaction';
 import bootstrapPlugin from '@fullcalendar/bootstrap';
 @Component({
-  selector: 'app-calendar',
-  standalone: true,
-  imports: [
-    CommonModule
-    // Add any other modules or components used in navbar.component.html
-  ],
-  templateUrl: './calendar.component.html',
-  styleUrl: './calendar.component.css'
+    selector: 'app-calendar',
+    imports: [
+        CommonModule
+        // Add any other modules or components used in navbar.component.html
+    ],
+    templateUrl: './calendar.component.html',
+    styleUrl: './calendar.component.css'
 })
 export class CalendarComponent {
   months = [

@@ -3,13 +3,12 @@ import { CalendarComponent } from '../calendar/calendar.component';
 import { FormBuilder } from '@angular/forms';
 import { Router } from '@angular/router';
 @Component({
-  selector: 'app-dashboard',
-  standalone: true,
-  imports: [
+    selector: 'app-dashboard',
+    imports: [
     // Add any other modules or components used in navbar.component.html
-  ],
-  templateUrl: './dashboard.component.html',
-  styleUrl: './dashboard.component.css'
+    ],
+    templateUrl: './dashboard.component.html',
+    styleUrl: './dashboard.component.css'
 })
 export class DashboardComponent {
   

@@ -1,1 +1,131 @@
-<p>my-account works!</p>
+<div class="account-shell">
+
+    <!-- Top bar -->
+    <div class="account-top">
+      <h1>My Account</h1>
+      <button class="team-cta" (click)="toggleTeamModal(true)">Want a Team?</button>
+    </div>
+  
+    <div class="account-grid">
+      <!-- LEFT: Read-only Profile info + Password -->
+      <div class="left-col">
+        <div class="profile-card profile-card-no-avatar">
+          <div class="profile-heading">
+            <h2>{{ user.name }}</h2>
+            <div class="small">Member since <strong>2024</strong></div>
+          </div>
+  
+          <!-- Read-only info tiles (not a form) -->
+          <div class="info-tiles">
+            <div class="tile">
+              <div class="tile-label">Name</div>
+              <div class="tile-value">{{ user.name }}</div>
+            </div>
+            <div class="tile">
+              <div class="tile-label">Age</div>
+              <div class="tile-value">{{ user.age }}</div>
+            </div>
+            <div class="tile">
+              <div class="tile-label">Contact</div>
+              <div class="tile-value">{{ user.contact }}</div>
+            </div>
+            <div class="tile">
+              <div class="tile-label">Email</div>
+              <div class="tile-value">{{ user.email }}</div>
+            </div>
+          </div>
+        </div>
+  
+        <div class="password-card">
+          <h3>Change Password</h3>
+          <form [formGroup]="passwordForm" (ngSubmit)="changePassword()">
+            <label>Current password
+              <input type="password" formControlName="currentPassword" />
+            </label>
+            <label>New password
+              <input type="password" formControlName="newPassword" />
+            </label>
+            <label>Confirm new password
+              <input type="password" formControlName="confirmPassword" />
+            </label>
+  
+            <div class="pwd-msg" *ngIf="pwdMessage.type">
+              <div [class.success]="pwdMessage.type === 'success'" [class.error]="pwdMessage.type === 'error'">
+                {{ pwdMessage.text }}
+              </div>
+            </div>
+  
+            <div class="profile-actions">
+              <button type="submit" class="btn btn-primary">Update Password</button>
+            </div>
+          </form>
+        </div>
+      </div>
+  
+      <!-- RIGHT: Bookings -->
+      <div class="right-col">
+        <div class="bookings-panel">
+          <h3>Upcoming Bookings</h3>
+          <div *ngIf="upcomingBookings.length; else noUpcoming">
+            <div class="booking-card" *ngFor="let b of upcomingBookings">
+              <img class="thumb" [src]="b.image || 'assets/placeholder-court.jpg'" alt="court" />
+              <div class="info">
+                <div class="title">{{ b.courtName }}</div>
+                <div class="meta">{{ b.date }} • {{ b.time }} • {{ b.duration }}</div>
+                <div class="meta small">{{ b.location }}</div>
+              </div>
+              <div class="actions">
+                <div class="price">Rs {{ b.price }}</div>
+                <button class="btn btn-danger" (click)="cancelUpcoming(b.id)">Cancel</button>
+              </div>
+            </div>
+          </div>
+          <ng-template #noUpcoming>
+            <div class="empty">No upcoming bookings yet.</div>
+          </ng-template>
+        </div>
+  
+        <div class="bookings-panel">
+          <h3>Booking History</h3>
+          <div *ngIf="pastBookings.length; else noPast">
+            <div class="booking-card" *ngFor="let b of pastBookings">
+              <img class="thumb" [src]="b.image || 'assets/placeholder-court.jpg'" alt="court" />
+              <div class="info">
+                <div class="title">{{ b.courtName }}</div>
+                <div class="meta">{{ b.date }} • {{ b.time }} • {{ b.duration }}</div>
+                <div class="meta small">{{ b.location }}</div>
+              </div>
+              <div class="actions">
+                <div class="price">Rs {{ b.price }}</div>
+                <div class="status done">Completed</div>
+              </div>
+            </div>
+          </div>
+          <ng-template #noPast>
+            <div class="empty">No booking history yet.</div>
+          </ng-template>
+        </div>
+  
+        <div *ngIf="hasNoBookings" class="empty-big">No bookings yet. Book a court to see it here.</div>
+      </div>
+    </div>
+  
+    <!-- Team Modal -->
+    <div class="modal-backdrop" *ngIf="showTeamModal" (click)="toggleTeamModal(false)"></div>
+    <div class="team-modal" *ngIf="showTeamModal" role="dialog" aria-modal="true">
+      <h3>Request a Team</h3>
+      <form [formGroup]="teamForm" (ngSubmit)="sendTeamRequest()">
+        <label>Your contact number
+          <input formControlName="phone" />
+        </label>
+        <label>Message (tell us what you need)
+          <textarea formControlName="message" rows="4"></textarea>
+        </label>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-outline" (click)="toggleTeamModal(false)">Back</button>
+          <button type="submit" class="btn btn-primary">Send Request</button>
+        </div>
+      </form>
+    </div>
+  </div>
+  

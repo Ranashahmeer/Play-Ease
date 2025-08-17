@@ -190,14 +190,14 @@
       <label><strong>Select Pitch Size:</strong></label>
       <div class="pitch-buttons-row">
         <dx-button
-          *ngFor="let s of selectedCourt?.pitches || []"
-          [text]="s"
-          [type]="selectedPitchSize === s ? 'success' : 'default'"
-          stylingMode="contained"
-          (onClick)="selectPitch(s)">
-        </dx-button>
+        *ngFor="let p of selectedCourt?.pitches || []"
+        [text]="p.pitchtype"
+        [type]="selectedPitchSize === p.pitchtype ? 'success' : 'default'"
+        (onClick)="selectPitch(p)">
+      </dx-button>
       </div>
     </div>
+    
 
     <div style="margin-top: 12px;">
       <h4 style="margin: 8px 0 6px;">What we offer</h4>
@@ -316,17 +316,16 @@
       <h4>Payment Options</h4>
 
       <div class="payment-method">
-        <h5>Bank Transfer</h5>
-        <div>Account Name: <strong>PlayEase</strong></div>
-        <div>Account No: <strong>1234567890</strong></div>
-        <div>Bank: <strong>Sample Bank</strong></div>
-        <div>IBAN: <strong>SBIN000012345678</strong></div>
-      </div>
-
-      <div class="payment-method" style="margin-top:8px;">
-        <h5>Easypaisa</h5>
-        <div>Account / Number: <strong>03XX-XXXXXXX</strong></div>
-        <div>Account Name: <strong>PlayEase</strong></div>
+        <div *ngIf="ownerPaymentMethods?.length">
+          <h3 class="font-bold">Payment Methods</h3>
+          <div *ngFor="let method of ownerPaymentMethods" class="mb-2">
+            <p><strong>{{ method.MethodName }}</strong></p>
+            <p>Account Title: {{ method.AccountTitle }}</p>
+            <p>Account Number: {{ method.AccountNumber }}</p>
+            <p *ngIf="method.BankName">Bank: {{ method.BankName }}</p>
+            <hr>
+          </div>
+        </div>
       </div>
 
       <hr>

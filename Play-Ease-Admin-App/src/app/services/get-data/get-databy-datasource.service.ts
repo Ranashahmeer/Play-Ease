@@ -6,7 +6,7 @@ import { Observable } from 'rxjs';
   providedIn: 'root'
 })
 export class GetDatabyDatasourceService {
-  private apiUrl = 'https://localhost:7267/GetDataByDataSource';
+  private apiUrl = 'https://localhost:7267/api/GetDataFromDatasource/GetDataByDataSource';
 
   constructor(private http: HttpClient) {}
 

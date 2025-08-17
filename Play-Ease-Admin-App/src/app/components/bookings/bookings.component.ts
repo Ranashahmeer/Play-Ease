@@ -10,7 +10,11 @@ import {
 import { Subscription } from 'rxjs';
 import {GetDatabyDatasourceService} from '../../services/get-data/get-databy-datasource.service'
 import e from 'express';
-
+import { CourtAdapter } from '../../adapters/court.adapter';
+import { Court, SaveBookings } from '../../models/setupModels';
+import { SaveBookingsService } from '../../services/bookings/save-bookings.service';
+import { BookingAdapter } from '../../adapters/booking.adapter';
+ 
 /* ===== Utility used both outside and inside the component ===== */
 function toKeyLocal(d: Date): string {
   const y = d.getFullYear();
@@ -19,21 +23,23 @@ function toKeyLocal(d: Date): string {
   return `${y}-${m}-${day}`;
 }
 const TODAY_KEY = toKeyLocal(new Date());
-interface Court {
-  name: string;
-  location: string;
-  rating: number;
-  pitches: string[];
-  price: number; // fallback/base price for 60 minutes
-  pricePerPitch?: Record<string, number>; // variable pricing per pitch size (per 60 min)
-  openingTime?: string;  // e.g. '06:00 AM'
-  closingTime?: string;  // e.g. '10:00 PM'
-  image: string;
-  images?: string[];
-  offers?: string[];
-  about?: string;
-  bookedSlots?: Record<string, string[]>;
-}
+// interface Court {
+//   name: string;
+//   location: string;
+//   rating: number;
+//   pitches: string[];
+//   price: number; // fallback/base price for 60 minutes
+//   pricePerPitch?: Record<string, number>; // variable pricing per pitch size (per 60 min)
+//   openingTime?: string;  // e.g. '06:00 AM'
+//   closingTime?: string;  // e.g. '10:00 PM'
+//   image: string;
+//   images?: string[];
+//   offers?: string[];
+//   about?: string;
+//   openingMinutes: number;  
+//   closingMinutes: number; 
+//   bookedSlots?: Record<string, string[]>;
+// }
 
 @Component({
   selector: 'app-bookings',
@@ -81,100 +87,16 @@ export class BookingsComponent implements OnInit {
   reservationExpired = false;
   bookings: any[] = [];
 
-  // Master data
-  allCourts: Court[] = [
-    {
-      name: 'Alpha Arena',
-      location: 'Gulberg',
-      rating: 4.5,
-      pitches: ['5x5', '6x6'],
-      price: 5000,
-      pricePerPitch: { '5x5': 2000, '6x6': 2500 },
-      openingTime: '06:00 AM',
-      closingTime: '10:00 PM',
-      image: 'assets/alphaarena.jpg',
-      images: ['assets/alphaarena-1.jpg','assets/alphaarena-2.jpg','assets/alphaarena-3.jpg'],
-      offers: ['Toilet', 'Shower', 'Drinking Water', 'Changing Room', 'Parking'],
-      about: 'Alpha Arena is a modern turf with synthetic grass and professional floodlights. Friendly staff and on-site refreshments make it a great venue for evening matches.',
-      bookedSlots: { [TODAY_KEY]: ['06:00 AM', '07:00 AM', '06:00 PM'] }
-    },
-    {
-      name: 'Beta Grounds',
-      location: 'DHA',
-      rating: 4.2,
-      pitches: ['7x7', '11x11'],
-      price: 1800,
-      pricePerPitch: { '7x7': 1800, '11x11': 3000 },
-      openingTime: '07:00 AM',
-      closingTime: '11:00 PM',
-      image: 'assets/betagrounds.jpg',
-      images: ['assets/betaground-1.jpg','assets/betaground-2.jpg','assets/betaground-3.jpg'],
-      offers: ['Toilet', 'Drinking Water', 'Parking'],
-      about: 'Beta Grounds offers spacious pitches suitable for 7-a-side and 11-a-side games. Well-maintained turf with easy access and secure parking.',
-      bookedSlots: { [TODAY_KEY]: ['08:00 PM'] }
-    },
-    {
-      name: 'Gamma Pitch',
-      location: 'Johar',
-      rating: 4.0,
-      pitches: ['5x5'],
-      price: 2200,
-      pricePerPitch: { '5x5': 2200 },
-      openingTime: '08:00 AM',
-      closingTime: '10:00 PM',
-      image: 'assets/gammapitch.jpg',
-      images: ['assets/gammapitch-1.jpg','assets/gammapitch-2.jpg','assets/gammapitch-3.jpg'],
-      offers: ['Toilet', 'Changing Room'],
-      about: 'Gamma Pitch is a community favorite for short-format games and friendly tournaments. Offers quick booking and a cozy atmosphere.',
-      bookedSlots: {}
-    },
-    {
-      name: 'Delta Field',
-      location: 'PECHS',
-      rating: 4.3,
-      pitches: ['6x6', '9x9'],
-      price: 2100,
-      pricePerPitch: { '6x6': 2100, '9x9': 2600 },
-      openingTime: '06:30 AM',
-      closingTime: '09:30 PM',
-      image: 'assets/deltafields.jpg',
-      images: ['assets/deltafields-1.png','assets/deltafield-2.jpg'],
-      offers: ['Toilet', 'Shower', 'Parking', 'Equipment Rental'],
-      about: 'Delta Field is known for its excellent drainage and even playing surface. Equipment rental is available on-site for convenience.',
-      bookedSlots: {}
-    },
-    {
-      name: 'Omega Turf',
-      location: 'Nazimabad',
-      rating: 4.6,
-      pitches: ['5x5'],
-      price: 1900,
-      pricePerPitch: { '5x5': 1900 },
-      openingTime: '07:00 AM',
-      closingTime: '10:00 PM',
-      image: 'assets/padel-omegaturf.jpg',
-      images: ['assets/omegaturf-1.jpg','assets/omegaturf-2.jpeg','assets/omegaturf-3.jpg'],
-      offers: ['Toilet', 'Drinking Water', 'Cafeteria'],
-      about: 'Omega Turf is a premium indoor/outdoor hybrid turf offering great lighting and spectator seating. Perfect for competitive fixtures.',
-      bookedSlots: {}
-    }
-  ];
 
   visibleCourts: Court[] = [];
   manualFilteredCourts: Court[] = [];
+  // allCourts: Court[] = []; 
+  courts: Court[] = []; 
+  ownerPaymentMethods: any;
 
-  constructor(private fb: FormBuilder,private GetDatabyDatasourceService: GetDatabyDatasourceService) {}
+  constructor(private fb: FormBuilder,private saveBookingsService: SaveBookingsService,private GetDatabyDatasourceService: GetDatabyDatasourceService) {}
 
-  ngOnInit(): void {
-
-    this.GetDatabyDatasourceService.getData(1).subscribe({
-      next: (data) => {
-        console.log('API Response:', data);
-        this.bookings = data;
-      },
-      error: (err) => console.error('API Error:', err)
-    });
-
+  ngOnInit(): void {  
     this.form = this.fb.group({
       selectedDate: [new Date()],
       selectedTime: [''],
@@ -183,22 +105,46 @@ export class BookingsComponent implements OnInit {
       distance: [25],
       searchQuery: [''],
     });
-    // react to duration / date changes
-    const s1 = this.form.get('matchDuration')!.valueChanges.subscribe(() => {
-      if (this.popupVisible) this.recomputeAvailability();
-      this.recomputeSidebarTimeOptions();
-    });
-    const s2 = this.form.get('selectedDate')!.valueChanges.subscribe(() => {
-      this.recomputeSidebarTimeOptions();
-    });
-    this.subscriptions.push(s1, s2);
-
-    this.recomputeSidebarTimeOptions();
-    this.manualFilteredCourts = [...this.allCourts];
-    this.updateVisibleCourts();
+    
+    this.getCourtData()
   }
 
+getCourtData(){
+  this.GetDatabyDatasourceService.getData(1).subscribe({
+    next: (data: any[] | null | undefined) => {
+      const courtAdapter = new CourtAdapter();
+      const apiData = Array.isArray(data) ? data : [];
+      this.courts = apiData.map(item => courtAdapter.fromApi(item));
+      this.bookings = [...this.courts];
+      this.manualFilteredCourts = [...this.courts];
+      this.updateVisibleCourts();
+  
+      console.log('Mapped Courts:', this.courts);
+    },
+    error: (err) => {
+      console.error('Error fetching courts:', err);
+      // Fallback so you never break template/loops
+      this.courts = [];
+      this.bookings = [];
+      this.manualFilteredCourts = [];
+      this.updateVisibleCourts();
+    }
+  });
+  // React to duration / date changes
+  const s1 = this.form.get('matchDuration')!.valueChanges.subscribe(() => {
+    if (this.popupVisible) this.recomputeAvailability();
+    this.recomputeSidebarTimeOptions();
+  });
+  const s2 = this.form.get('selectedDate')!.valueChanges.subscribe(() => {
+    this.recomputeSidebarTimeOptions();
+  });
+  this.subscriptions.push(s1, s2);
 
+  this.recomputeSidebarTimeOptions();
+    this.recomputeSidebarTimeOptions();
+    this.manualFilteredCourts = [...this.courts];
+    this.updateVisibleCourts();
+}
 
   /* ========== Pagination & filters ========== */
   updateVisibleCourts(): void {
@@ -242,9 +188,9 @@ export class BookingsComponent implements OnInit {
     const selDate = this.form.get('selectedDate')?.value instanceof Date ? this.form.get('selectedDate')!.value : new Date();
     const duration = Number(this.form.get('matchDuration')?.value) || 60;
 
-    let filtered = this.allCourts.filter((court) => {
+    let filtered = this.courts.filter((court) => {
       const matchesSearch = court.name.toLowerCase().includes((searchQuery || '').toLowerCase());
-      const matchesPitch = (selectedPitchSizes?.length ?? 0) === 0 || selectedPitchSizes.some((p: string) => court.pitches.includes(p));
+      const matchesPitch =(selectedPitchSizes?.length ?? 0) === 0 ||court.pitches.some((pitch) =>selectedPitchSizes.includes(pitch.pitchtype));
       return matchesSearch && matchesPitch;
     });
 
@@ -276,7 +222,7 @@ export class BookingsComponent implements OnInit {
       searchQuery: '',
     });
 
-    this.manualFilteredCourts = [...this.allCourts];
+    this.manualFilteredCourts = [...this.courts];
     this.noCourtsMessage = '';
     this.currentPage = 1;
     this.updateVisibleCourts();
@@ -409,34 +355,40 @@ export class BookingsComponent implements OnInit {
     try { dropDownRef.instance.close(); } catch {}
   }
 
-  selectPitch(size: string): void {
-    if (this.selectedPitchSize === size) {
+  selectPitch(size: any): void {
+    if (this.selectedPitchSize === size.pitchtype) {
       this.selectedPitchSize = '';
     } else {
-      this.selectedPitchSize = size;
+      this.selectedPitchSize = size.pitchtype;
     }
   }
-
+  
   get selectedPitchPrice60(): number | null {
     if (!this.selectedCourt || !this.selectedPitchSize) return null;
-    return this.selectedCourt.pricePerPitch?.[this.selectedPitchSize] ?? this.selectedCourt.price;
+  
+    const pitch = this.selectedCourt.pitches.find(
+      p => p.pitchtype === this.selectedPitchSize
+    );
+  
+    return pitch ? pitch.price : null;
   }
-
+  
   getComputedPrice(): number {
     if (!this.selectedCourt) return 0;
+  
     const duration = Number(this.form.get('matchDuration')?.value) || 60;
     const basePrice = this.selectedPitchPrice60 ?? this.getCourtMinPrice(this.selectedCourt);
+  
     return Math.round(basePrice * (duration / 60));
   }
-
+  
   getCourtMinPrice(court: Court | null): number {
-    if (!court) return 0;
-    if (court.pricePerPitch) {
-      const vals = Object.values(court.pricePerPitch);
-      return Math.min(...vals);
-    }
-    return court.price;
+    if (!court || !court.pitches.length) return 0;
+  
+    const prices = court.pitches.map(p => p.price);
+    return Math.min(...prices);
   }
+  
 
   get allSlotsDisabled(): boolean {
     return this.timeSlotItems.length > 0 && this.timeSlotItems.every(i => i.disabled);
@@ -463,10 +415,15 @@ export class BookingsComponent implements OnInit {
   /* ========== Sidebar 24-hour slot generation (public for template) ========== */
   public recomputeSidebarTimeOptions(): void {
     const duration = Number(this.form.get('matchDuration')?.value) || 60;
-    const sidebarOpenMin = 0; // 00:00
-    const sidebarCloseMin = 24 * 60; // end of day
+    let sidebarOpenMin = this.selectedCourt?.openingMinutes 
+    let sidebarCloseMin = this.selectedCourt?.closingMinutes;
     const stepMinutes = duration;
-
+    if (sidebarOpenMin == null || sidebarCloseMin == null) {
+       sidebarOpenMin = 0; // 00:00
+       sidebarCloseMin = 24 * 60; // end of day
+      // this.timeOptionsSidebar = [];
+      // return;
+    }
     const generated = this.generateSlots(sidebarOpenMin, sidebarCloseMin, stepMinutes, duration);
     const selDate = this.form.get('selectedDate')?.value instanceof Date ? this.form.get('selectedDate')!.value : new Date();
 
@@ -519,7 +476,69 @@ export class BookingsComponent implements OnInit {
     this.paymentProofPreviewUrl = null;
     this.paymentPopupVisible = true;
     this.startReservationTimer();
+    this.loadOwnerPaymentDetails(this.selectedCourt.OwnerId)
   }
+  
+  loadOwnerPaymentDetails(ownerId: number): void {
+    const whereClause = `co.ownerid = ${ownerId}`
+    this.GetDatabyDatasourceService.getData(2,whereClause).subscribe({
+      next: (data: any[] | null | undefined) => {
+        if (data && data.length > 0) {
+          this.ownerPaymentMethods = data;
+        }
+      },
+      error: (err) => {
+        console.error('Error fetching owner payment details', err);
+      }
+    });
+  }
+
+  saveBooking(): void {
+    if (!this.paymentProofFile) {
+      alert('Please upload payment proof');
+      return;
+    }
+  
+    const reader = new FileReader();
+    reader.onload = () => {
+      const base64Proof = "img/try"//(reader.result as string).split(',')[1];
+      console.log('selected court : ',this.selectedCourt)
+      const booking: SaveBookings = {
+        courtId: this.selectedCourt?.courtId,
+        ownerId: this.selectedCourt?.OwnerId,
+        userId: 1, //this.currentUserId,
+        paymentMethodId:1,
+        paymentProof: base64Proof,
+        bookingDate: this.toKey(this.selectedBookingDate),
+        startTime: this.selectedBookingTime.split('-')[0].trim(),
+        endTime: this.selectedBookingTime.split('-')[1].trim(),
+        price: this.getComputedPrice()
+      };
+  
+      this.saveBookingsService.createBooking(booking).subscribe({
+        next: (res: any) => {
+          const bookingAdapter = new BookingAdapter();
+          const savedBooking = bookingAdapter.adapt(res); // adapt API response
+  
+          console.log('Saved booking:', savedBooking);
+          alert('Booking created successfully!');
+  
+          this.paymentPopupVisible = false;
+          this.popupVisible = false;
+          this.stopReservationTimer();
+        },
+        error: (err:any) => {
+          console.error('Error saving booking:', err);
+          alert('Booking failed.');
+        }
+      });
+    };
+    reader.readAsDataURL(this.paymentProofFile);
+  }
+  
+  
+  
+
 
   onFileUpload(e: any): void {
     const files: File[] = e?.value || [];
@@ -539,6 +558,7 @@ export class BookingsComponent implements OnInit {
   }
 
   submitPaymentProof(): void {
+    this.saveBooking()
     if (!this.paymentProofFile) { alert('Please upload payment proof (JPG/PNG) before submitting.'); return; }
     if (this.reservationExpired) { alert('Reservation has expired. Please restart booking to proceed.'); return; }
 

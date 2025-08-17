@@ -1,42 +1,111 @@
-  <div class="popup-container" (click)="$event.stopPropagation()"> 
-    <div *ngIf="isLogin; else signupTemplate">
-      <h2>Login</h2>
-      <form [formGroup]="loginForm" (ngSubmit)="handleLogin()">
-        <div class="input-group">
-          <label for="email">Email</label>
-          <input id="email" type="email" formControlName="email" required />
-        </div>
-        <div class="input-group">
-          <label for="password">Password</label>
-          <input id="password" type="password" formControlName="password" required />
-        </div>
-        <button type="submit" [disabled]="loginForm.invalid">Login</button>
-      </form>
-
-      <div class="toggle-link">
-        <p>Don't have an account? <a (click)="toggleSignup()">Sign Up</a></p>
+<div class="popup-container" (click)="$event.stopPropagation()">
+  <div *ngIf="isLogin; else signupTemplate">
+    <h2>Login</h2>
+    <form class="form" [formGroup]="loginForm" (ngSubmit)="handleLogin()">
+      <div class="input-group">
+        <label for="email">Email</label>
+        <input id="email" type="email" formControlName="email" required />
       </div>
+
+      <div class="input-group">
+        <label for="password">Password</label>
+        <input id="password" type="password" formControlName="password" required />
+      </div>
+
+      <div class="role-group">
+        <label class="role-label">Login as:</label>
+        <div class="roles" role="radiogroup" aria-label="Login role">
+          <label class="role-item" tabindex="0">
+            <input type="radio" formControlName="role" value="admin" />
+            <span>Admin</span>
+          </label>
+
+          <label class="role-item" tabindex="0">
+            <input type="radio" formControlName="role" value="player" />
+            <span>Player</span>
+          </label>
+
+          <label class="role-item" tabindex="0">
+            <input type="radio" formControlName="role" value="owner" />
+            <span>Court Owner</span>
+          </label>
+        </div>
+      </div>
+
+      <button type="submit" [disabled]="loginForm.invalid">Login</button>
+    </form>
+
+    <div class="toggle-link">
+      <p>Don't have an account? <a (click)="toggleSignup()">Sign Up</a></p>
     </div>
+  </div>
 
-    <ng-template #signupTemplate>
-      <h2>Sign Up</h2>
-      <form [formGroup]="signupForm" (ngSubmit)="handleSignup()">
-        <div class="input-group">
-          <label for="email">Email</label>
-          <input id="email" type="email" formControlName="email" required />
-        </div>
-        <div class="input-group">
-          <label for="password">Password</label>
-          <input id="password" type="password" formControlName="password" required />
-        </div>
-        <div class="input-group">
-          <label for="confirmPassword">Confirm Password</label>
-          <input id="confirmPassword" type="password" formControlName="confirmPassword" required />
-        </div>
-        <button type="submit" [disabled]="signupForm.invalid || signupForm.value.password !== signupForm.value.confirmPassword">Sign Up</button>
-      </form>
-      <div class="toggle-link">
-        <p>Already have an account? <a (click)="toggleLogin()">Login</a></p>
+  <ng-template #signupTemplate>
+    <h2>Sign Up</h2>
+
+    <form class="form" [formGroup]="signupForm" (ngSubmit)="handleSignup()">
+      <!-- Account type dropdown -->
+      <div class="input-group">
+        <label for="accountType">Account type</label>
+        <select id="accountType" formControlName="accountType" class="select">
+          <option value="player">Player</option>
+          <option value="owner">Court Owner</option>
+        </select>
       </div>
-    </ng-template>
-</div> 
+
+      <!-- Common fields -->
+      <div class="input-group">
+        <label for="name">Full Name</label>
+        <input id="name" type="text" formControlName="name" />
+      </div>
+
+      <div class="input-row">
+        <div class="input-group small">
+          <label for="age">Age</label>
+          <input id="age" type="number" formControlName="age" />
+        </div>
+
+        <div class="input-group small">
+          <label for="phone">Phone</label>
+          <input id="phone" type="tel" formControlName="phone" />
+        </div>
+      </div>
+
+      <!-- Conditional CNIC for Court Owner -->
+      <div *ngIf="signupForm.get('accountType')!.value === 'owner'" class="input-group">
+        <label for="cnic">CNIC</label>
+        <input id="cnic" type="text" formControlName="cnic" placeholder="e.g. 12345-6789012-3" />
+      </div>
+
+      <div class="input-group">
+        <label for="emailSign">Email</label>
+        <input id="emailSign" type="email" formControlName="email" />
+      </div>
+
+      <div class="input-row">
+        <div class="input-group small">
+          <label for="passwordSign">Password</label>
+          <input id="passwordSign" type="password" formControlName="password" />
+        </div>
+
+        <div class="input-group small">
+          <label for="confirmPassword">Confirm Password</label>
+          <input id="confirmPassword" type="password" formControlName="confirmPassword" />
+        </div>
+      </div>
+
+      <button
+        type="submit"
+        [disabled]="
+          !signupForm.valid ||
+          signupForm.get('password')!.value !== signupForm.get('confirmPassword')!.value
+        ">
+        Sign Up
+      </button>
+    </form>
+
+    <div class="toggle-link">
+      <p>Already have an account? <a (click)="toggleLogin()">Login</a></p>
+    </div>
+  </ng-template>
+</div>

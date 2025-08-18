@@ -15,8 +15,10 @@ body, html {
   color: #fff; /* White text */
   height: 80px;
   box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
-  position: sticky;
+  position: fixed;
   top: 0;
+  left: 0;
+  right: 0;
   z-index: 1000;
 }
 
@@ -118,33 +120,10 @@ body, html {
   color: #41B783; /* Green text */
 }
 
-.menu-icon {
-  background: none;
-  color: #ffffff;
-  border: none;
-  font-size: 25px;
-  cursor: pointer;
-  transition: color 0.3s ease;
-}
-
-.menu-icon:hover {
-  color: #e6f5eb; /* Light green hover */
-}
-
-/* Responsive Design for Mobile */
-@media (max-width: 768px) {
-  .nav-links {
-    display: none; /* Hide on smaller screens */
-  }
-
-  .menu-icon {
-    display: block;
-  }
-
   .action-buttons {
     gap: 5px;
   }
-}
+
 
 /* Add Subtle Depth */
 .navbar::before {

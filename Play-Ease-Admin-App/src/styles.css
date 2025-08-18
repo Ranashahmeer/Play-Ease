@@ -2,3 +2,34 @@
 
 html, body { height: 100%; }
 body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
+/* Ensure Material dialog wrapper is transparent and lets our card show its own layout */
+.custom-login-dialog {
+  padding: 0 !important;
+  background: transparent !important;
+  display: flex !important;
+  justify-content: center;
+  align-items: center;
+  overflow: visible !important;
+}
+
+/* Let the inner popup container control width/appearance */
+.custom-login-dialog .popup-container {
+  width: 100% !important;
+  max-width: 900px !important;
+  margin: 0 !important;
+  border-radius: 14px !important;
+  overflow: hidden !important;
+  box-shadow: 0 18px 40px rgba(15,30,34,0.08) !important;
+}
+
+/* Force left brand panel color inside mat dialog */
+.custom-login-dialog .brand-side {
+  background: linear-gradient(180deg, #007a33, #00612a) !important;
+  color: white !important;
+}
+
+/* Force right side white */
+.custom-login-dialog .content-side {
+  background: #fff !important;
+  color: #111 !important;
+}

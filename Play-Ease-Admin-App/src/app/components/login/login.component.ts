@@ -1,242 +1,244 @@
-import { Component, OnInit, Inject, ChangeDetectorRef } from '@angular/core';
-import { ReactiveFormsModule, FormGroup, Validators, FormBuilder } from '@angular/forms';
+import { Component, OnInit, Inject, ChangeDetectorRef, AfterViewInit, ViewChild, ElementRef, Renderer2, OnDestroy } from '@angular/core';
+import { ReactiveFormsModule, FormGroup, Validators, FormBuilder, ValidatorFn, AbstractControl } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth/auth.service';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
+import { Subscription, fromEvent } from 'rxjs';
+import { throttleTime } from 'rxjs/operators';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [ReactiveFormsModule, CommonModule],
+  imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.css']
 })
-export class LoginComponent implements OnInit {
-  // UI state
-  isOpen: boolean = true;
-  isLogin: boolean = true; // toggle between login / signup
+export class LoginComponent implements OnInit, AfterViewInit, OnDestroy {
+  @ViewChild('contentBody') contentBody!: ElementRef<HTMLElement>;
 
-  // Reactive forms
+  // UI state
+  isOpen = true;
+  isLogin = true;
+  signupAttempted = false;
+
+  // Forms
   loginForm!: FormGroup;
   signupForm!: FormGroup;
 
-  // misc
-  errorMessage = '';
-  loginData: { email: object; password: object; } | undefined;
-
-  // Optional message passed from AuthGuard (e.g. "Please log in to continue")
-  noticeText?: string;
+  // scroll fade state
+  private scrollSub?: Subscription;
 
   constructor(
     private fb: FormBuilder,
-    private authService: AuthService,
+    private renderer: Renderer2,
     private cdr: ChangeDetectorRef,
     private http: HttpClient,
     private router: Router,
+    private authService: AuthService,
     @Inject(MatDialogRef) private dialogRef?: MatDialogRef<LoginComponent>,
     @Inject(MAT_DIALOG_DATA) private dialogData?: any
-  ) {
-    if (this.dialogData && this.dialogData.notice) {
-      this.noticeText = this.dialogData.notice;
-    }
-  }
+  ) {}
 
-  ngOnInit() {
-    // Login form (includes role radio)
+  ngOnInit(): void {
+    // Login form
     this.loginForm = this.fb.group({
       email: ['', [Validators.required, Validators.email]],
       password: ['', [Validators.required, Validators.minLength(6)]],
-      role: ['player', [Validators.required]] // default to player
+      role: ['player', [Validators.required]]
     });
 
-    // Signup form: includes an accountType selector and all possible fields.
-    // We'll toggle validators depending on selected accountType.
+    // Signup form
     this.signupForm = this.fb.group({
-      accountType: ['player', [Validators.required]], // 'player' or 'owner'
+      accountType: ['player', [Validators.required]],
       name: ['', []],
       age: [null, []],
-      cnic: ['', []], // only required for owner
       phone: ['', []],
+      cnic: ['', []],
       email: ['', []],
       password: ['', []],
       confirmPassword: ['', []]
-    });
+    }, { validators: [this.matchPasswordsValidator('password','confirmPassword')] });
 
-    // Initialize validators for default accountType
     this.applySignupValidators(this.signupForm.get('accountType')!.value);
-
-    // When accountType changes, update validators dynamically
-    this.signupForm.get('accountType')!.valueChanges.subscribe((val) => {
-      this.applySignupValidators(val);
-    });
+    this.signupForm.get('accountType')!.valueChanges.subscribe(val => this.applySignupValidators(val));
   }
 
-  // Convenience getters
-  get loginControls() { return this.loginForm.controls; }
-  get signupControls() { return this.signupForm.controls; }
+  ngAfterViewInit(): void {
+    if (this.contentBody) {
+      this.updateFadeState();
+      this.scrollSub = fromEvent(this.contentBody.nativeElement, 'scroll').pipe(throttleTime(100))
+        .subscribe(() => this.updateFadeState());
+    }
+  }
 
-  /**
-   * Apply required/validator rules based on account type
-   */
+  ngOnDestroy(): void {
+    this.scrollSub?.unsubscribe();
+  }
+
+  // Convenience getters for template
+  get loginControls(): any { return this.loginForm.controls; }
+  get signupControls(): any { return this.signupForm.controls; }
+
+  // Form valid flags used by template (keeps binding simple)
+  get isLoginValid(): boolean { return this.loginForm.valid; }
+  get isSignupValid(): boolean {
+    const gmErr = (this.signupForm.errors as any) || {};
+    return this.signupForm.valid && !gmErr.passwordMismatch;
+  }
+
+  // Apply validators depending on account type
   applySignupValidators(accountType: string) {
-    // Clear existing validators first
     const name = this.signupForm.get('name')!;
     const age = this.signupForm.get('age')!;
-    const cnic = this.signupForm.get('cnic')!;
     const phone = this.signupForm.get('phone')!;
+    const cnic = this.signupForm.get('cnic')!;
     const email = this.signupForm.get('email')!;
     const password = this.signupForm.get('password')!;
     const confirmPassword = this.signupForm.get('confirmPassword')!;
 
-    // reset
-    name.clearValidators();
-    age.clearValidators();
-    cnic.clearValidators();
-    phone.clearValidators();
-    email.clearValidators();
-    password.clearValidators();
-    confirmPassword.clearValidators();
+    [name, age, phone, cnic, email, password, confirmPassword].forEach(c => c.clearValidators());
 
-    // common validators for both roles
-    name.setValidators([Validators.required, Validators.minLength(2)]);
-    age.setValidators([Validators.required, Validators.min(10), Validators.max(120)]);
-    phone.setValidators([Validators.required, Validators.minLength(7)]);
+    name.setValidators([Validators.required, Validators.minLength(2), Validators.pattern(/^[A-Za-z\s]+$/)]);
+    const minAge = accountType === 'owner' ? 18 : 10;
+    age.setValidators([Validators.required, Validators.min(minAge), Validators.max(120)]);
+    phone.setValidators([Validators.required, Validators.pattern(/^(?:\+92|92|0)?3\d{9}$/)]);
     email.setValidators([Validators.required, Validators.email]);
-    password.setValidators([Validators.required, Validators.minLength(6)]);
-    confirmPassword.setValidators([Validators.required, Validators.minLength(6)]);
-
-    if (accountType === 'player') {
-      // CNIC not required for player (clear value)
-      cnic.setValue('');
-      // keep validators as above (cnic none)
-    } else if (accountType === 'owner') {
-      // CNIC required for owner
-      cnic.setValidators([Validators.required, Validators.minLength(5)]);
-    }
-
-    // update validity after changing validators
-    name.updateValueAndValidity();
-    age.updateValueAndValidity();
-    cnic.updateValueAndValidity();
-    phone.updateValueAndValidity();
-    email.updateValueAndValidity();
-    password.updateValueAndValidity();
-    confirmPassword.updateValueAndValidity();
-  }
-
-  /**
-   * Called when user submits login form.
-   * For now we match against localStorage 'users' list.
-   */
-  handleLogin() {
-    if (!this.loginForm.valid) {
-      alert('Please fill in valid email, password and select a role.');
-      return;
-    }
-
-    const { email, password, role } = this.loginForm.value;
-
-    const users = JSON.parse(localStorage.getItem('users') || '[]');
-    const foundUser = users.find((user: any) =>
-      user.email === email && user.password === password && user.role === role
-    );
-
-    if (foundUser) {
-      localStorage.setItem('isLoggedIn', 'true');
-      localStorage.setItem('loggedInUser', JSON.stringify(foundUser));
-      alert('Login successful! Logged in as: ' + role);
-      try { this.dialogRef?.close(); } catch {}
-      if (role === 'admin') {
-        this.router.navigate(['/admin']);
-      } else if (role === 'player') {
-        this.router.navigate(['/player']);
-      } else if (role === 'owner') {
-        this.router.navigate(['/owner']);
-      } else {
-        this.router.navigate(['/']);
-      }
-    } else {
-      alert('Invalid email, password, or role. Make sure you selected the correct role.');
-    }
-  }
-
-  /**
-   * Signup flow: validates role-specific fields and stores user in localStorage 'users' array.
-   */
-  handleSignup() {
-    // mark controls as touched so errors appear visually if you add UI feedback later
-    this.signupForm.markAllAsTouched();
-
-    // basic form validity
-    if (!this.signupForm.valid) {
-      alert('Please fill all required fields correctly for the selected account type.');
-      return;
-    }
-
-    const accountType = this.signupForm.get('accountType')!.value as 'player' | 'owner';
-    const name = this.signupForm.get('name')!.value.trim();
-    const age = this.signupForm.get('age')!.value;
-    const cnic = this.signupForm.get('cnic')!.value ? this.signupForm.get('cnic')!.value.trim() : '';
-    const phone = this.signupForm.get('phone')!.value.trim();
-    const email = this.signupForm.get('email')!.value.trim().toLowerCase();
-    const password = this.signupForm.get('password')!.value;
-    const confirmPassword = this.signupForm.get('confirmPassword')!.value;
-
-    if (password !== confirmPassword) {
-      alert('Passwords do not match');
-      return;
-    }
-
-    // Load existing users and check uniqueness by email (one account per email)
-    const users = JSON.parse(localStorage.getItem('users') || '[]');
-    const exists = users.some((u: any) => u.email === email);
-    if (exists) {
-      alert('An account with this email already exists. Please use a different email or login.');
-      return;
-    }
-
-    // Build user object according to role
-    const newUser: any = {
-      role: accountType === 'player' ? 'player' : 'owner',
-      name,
-      age,
-      phone,
-      email,
-      password
-    };
+    password.setValidators([Validators.required, Validators.minLength(6), Validators.pattern(/^(?=.*[A-Za-z])(?=.*\d).{6,}$/)]);
+    confirmPassword.setValidators([Validators.required]);
 
     if (accountType === 'owner') {
-      newUser.cnic = cnic;
+      cnic.setValidators([Validators.required, Validators.pattern(/^\d{5}-\d{7}-\d$/)]);
+    } else {
+      cnic.setValue('');
+      cnic.clearValidators();
     }
 
+    [name, age, phone, cnic, email, password, confirmPassword].forEach(c => c.updateValueAndValidity());
+  }
+
+  private matchPasswordsValidator(passwordKey: string, confirmKey: string): ValidatorFn {
+    return (group: AbstractControl) => {
+      const p = group.get(passwordKey);
+      const c = group.get(confirmKey);
+      if (!p || !c) return null;
+      return p.value === c.value ? null : { passwordMismatch: true };
+    };
+  }
+
+  // LOGIN handler
+  handleLogin(): void {
+    this.loginForm.markAllAsTouched();
+    if (!this.loginForm.valid) return;
+
+    const { email, password, role } = this.loginForm.value;
+    const users = JSON.parse(localStorage.getItem('users') || '[]');
+    const foundUser = users.find((u: any) => u.email === email && u.password === password && u.role === role);
+
+    if (foundUser) {
+      localStorage.setItem('isLoggedIn','true');
+      localStorage.setItem('loggedInUser', JSON.stringify(foundUser));
+      alert('Login successful!');
+      try { this.dialogRef?.close(); } catch {}
+      // navigate if needed (keeps original behavior)
+      if (role === 'admin') this.router.navigate(['/admin']);
+      else if (role === 'player') this.router.navigate(['/player']);
+      else if (role === 'owner') this.router.navigate(['/owner']);
+    } else {
+      alert('Invalid email / password / role.');
+    }
+  }
+
+  // SIGNUP handler
+  handleSignup(): void {
+    this.signupAttempted = true;
+    this.signupForm.markAllAsTouched();
+
+    if (!this.isSignupValid) {
+      if (this.signupForm.errors && (this.signupForm.errors as any).passwordMismatch) {
+        alert('Passwords do not match.');
+      } else {
+        alert('Please correct the highlighted fields.');
+      }
+      return;
+    }
+
+    const accountType = this.signupForm.get('accountType')!.value as 'player'|'owner';
+    const age = Number(this.signupForm.get('age')!.value);
+    if (accountType === 'player' && age < 10) { alert('Players must be at least 10.'); return; }
+    if (accountType === 'owner' && age < 18) { alert('Owners must be at least 18.'); return; }
+
+    const name = String(this.signupForm.get('name')!.value || '').trim();
+    const phone = String(this.signupForm.get('phone')!.value || '').trim();
+    const email = String(this.signupForm.get('email')!.value || '').trim().toLowerCase();
+    const password = this.signupForm.get('password')!.value;
+    const cnic = String(this.signupForm.get('cnic')!.value || '').trim();
+
+    const users = JSON.parse(localStorage.getItem('users') || '[]');
+    if (users.some((u:any) => u.email === email)) { alert('Email already exists.'); return; }
+
+    const newUser: any = { role: accountType === 'player' ? 'player' : 'owner', name, age, phone, email, password };
+    if (accountType === 'owner') newUser.cnic = cnic;
     users.push(newUser);
     localStorage.setItem('users', JSON.stringify(users));
 
-    alert(`Signup successful! You can now login as ${newUser.role}.`);
-    // switch to login view for convenience
+    alert('Signup successful — please login.');
     this.toggleLogin();
-    // reset signup form for next time
     this.signupForm.reset({ accountType: 'player' });
-    // reapply validators for default
     this.applySignupValidators('player');
+    this.signupAttempted = false;
   }
 
-  // Close popup if used in-page (non-dialog) — also works for dialog variant
-  closePopup() {
-    this.isOpen = false;
-    try {
-      this.dialogRef?.close();
-    } catch {}
+  // UI helpers
+  closePopup(): void { try { this.dialogRef?.close(); } catch {} }
+  toggleSignup($event?: Event): void { if ($event) $event.preventDefault(); this.isLogin = false; this.cdr.detectChanges(); }
+  toggleLogin($event?: Event): void { if ($event) $event.preventDefault(); this.isLogin = true; this.cdr.detectChanges(); }
+
+  // Input formatters
+  onAgeInput(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    let v = input.value.replace(/[^\d]/g, '');
+    if (v === '') { input.value=''; this.signupForm.get('age')!.setValue(null, { emitEvent:false }); return; }
+    let n = Math.floor(Number(v)); if (isNaN(n) || n < 0) n = 0; if (n > 120) n = 120;
+    input.value = String(n);
+    this.signupForm.get('age')!.setValue(n, { emitEvent:false });
+  }
+
+  onPhoneInput(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    let v = input.value.replace(/[^\d+]/g, '');
+    v = v.split('').filter((ch,i)=> ch !== '+' || i===0).join('');
+    if (v.startsWith('+')) v = v.slice(0, 1+12); else v = v.slice(0, 12);
+    input.value = v;
+    this.signupForm.get('phone')!.setValue(v, { emitEvent:false });
+  }
+
+  onCnicInput(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const digits = (input.value || '').replace(/\D/g,'').slice(0,13);
+    const p1 = digits.slice(0,5), p2 = digits.slice(5,12), p3 = digits.slice(12);
+    let out = p1; if (p2) out += '-' + p2; if (p3) out += '-' + p3;
+    input.value = out;
+    this.signupForm.get('cnic')!.setValue(out, { emitEvent:false });
+  }
+
+  // Scroll fade state (conditionally add/remove classes)
+  private updateFadeState(): void {
+    const el = this.contentBody?.nativeElement;
+    if (!el) return;
+    const scrollTop = el.scrollTop;
+    const scrollHeight = el.scrollHeight;
+    const clientHeight = el.clientHeight;
+    const atTop = scrollTop <= 8;
+    const atBottom = scrollTop + clientHeight >= scrollHeight - 8;
+
+    const contentSide = el.closest('.content-side') as HTMLElement | null;
+    if (!contentSide) return;
+
+    if (!atTop) this.renderer.addClass(contentSide, 'has-top-fade'); else this.renderer.removeClass(contentSide, 'has-top-fade');
+    if (!atBottom) this.renderer.addClass(contentSide, 'has-bottom-fade'); else this.renderer.removeClass(contentSide, 'has-bottom-fade');
+
     this.cdr.detectChanges();
-  }
-
-  toggleSignup() {
-    this.isLogin = false;
-  }
-
-  toggleLogin() {
-    this.isLogin = true;
   }
 }

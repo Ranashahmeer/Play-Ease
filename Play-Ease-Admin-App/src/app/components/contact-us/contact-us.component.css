@@ -64,7 +64,7 @@ textarea:focus {
 }
 
 .submit-btn:hover {
-  background-color: #4CAF50;
+  background-color: #45a049;
 }
 
 .contact-info {
@@ -88,4 +88,12 @@ textarea:focus {
 
 .social-icons img:hover {
   transform: scale(1.1);
+}
+
+.thank-you-msg {
+  margin-top: 1.5rem;
+  text-align: center;
+  color: #4CAF50;
+  font-weight: 600;
+  font-size: 1.1rem;
 }

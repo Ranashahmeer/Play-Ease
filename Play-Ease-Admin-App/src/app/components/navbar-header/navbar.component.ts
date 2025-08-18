@@ -33,6 +33,7 @@ export class NavbarComponent {
     this.dialog.open(LoginComponent, {
       width: '1100px',
       height: '600px',
+      panelClass: 'custom-login-dialog'
     });
   }
 

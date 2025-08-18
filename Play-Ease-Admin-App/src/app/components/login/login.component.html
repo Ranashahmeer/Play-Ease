@@ -1,111 +1,191 @@
-<div class="popup-container" (click)="$event.stopPropagation()">
-  <div *ngIf="isLogin; else signupTemplate">
-    <h2>Login</h2>
-    <form class="form" [formGroup]="loginForm" (ngSubmit)="handleLogin()">
-      <div class="input-group">
-        <label for="email">Email</label>
-        <input id="email" type="email" formControlName="email" required />
+<!-- login.component.html -->
+<div class="popup-container"> <!-- no overlay, inline dialog -->
+  <div class="modal-grid" role="dialog" aria-modal="true" aria-labelledby="authTitle">
+
+    <!-- LEFT brand -->
+    <aside class="brand-side" aria-hidden="true">
+      <img src="assets/PlayEase.png" alt="PlayEase Logo" class="brand-logo" />
+      <p class="brand-sub">Book courts, manage schedules, and play smarter.</p>
+      <ul class="brand-features">
+        <li>Fast bookings</li>
+        <li>Verified owners</li>
+        <li>Secure payments</li>
+      </ul>
+      <span class="brand-cta">Join the PlayEase community</span>
+    </aside>
+
+    <!-- RIGHT content -->
+    <section class="content-side">
+      <button class="close-btn" type="button" aria-label="Close" (click)="closePopup()">✕</button>
+
+      <div class="content-header">
+        <h2 id="authTitle">{{ isLogin ? 'Login' : 'Sign Up' }}</h2>
       </div>
 
-      <div class="input-group">
-        <label for="password">Password</label>
-        <input id="password" type="password" formControlName="password" required />
-      </div>
+      <div class="content-body" #contentBody>
 
-      <div class="role-group">
-        <label class="role-label">Login as:</label>
-        <div class="roles" role="radiogroup" aria-label="Login role">
-          <label class="role-item" tabindex="0">
-            <input type="radio" formControlName="role" value="admin" />
-            <span>Admin</span>
-          </label>
+        <!-- LOGIN -->
+        <div *ngIf="isLogin; else signupTpl">
+          <form class="form" [formGroup]="loginForm" (ngSubmit)="handleLogin()">
 
-          <label class="role-item" tabindex="0">
-            <input type="radio" formControlName="role" value="player" />
-            <span>Player</span>
-          </label>
+            <div class="input-group">
+              <label for="loginEmail">Email</label>
+              <input id="loginEmail" type="email" formControlName="email" />
+              <div class="field-error" *ngIf="loginControls['email'].touched && loginControls['email'].invalid">
+                <small *ngIf="loginControls['email'].errors?.['required']">Email required</small>
+                <small *ngIf="loginControls['email'].errors?.['email']">Enter valid email</small>
+              </div>
+            </div>
 
-          <label class="role-item" tabindex="0">
-            <input type="radio" formControlName="role" value="owner" />
-            <span>Court Owner</span>
-          </label>
+            <div class="input-group">
+              <label for="loginPassword">Password</label>
+              <input id="loginPassword" type="password" formControlName="password" />
+              <div class="field-error" *ngIf="loginControls['password'].touched && loginControls['password'].invalid">
+                <small *ngIf="loginControls['password'].errors?.['required']">Password required</small>
+                <small *ngIf="loginControls['password'].errors?.['minlength']">Min 6 chars</small>
+              </div>
+            </div>
+
+            <!-- Segmented role selector -->
+            <div class="role-group">
+              <label class="role-label">Login as</label>
+              <div class="segmented" role="radiogroup" aria-label="Login role">
+
+                <label class="seg-item" [class.active-role]="loginForm.get('role')?.value==='admin'">
+                  <input type="radio" formControlName="role" value="admin" /> Admin
+                </label>
+
+                <label class="seg-item" [class.active-role]="loginForm.get('role')?.value==='player'">
+                  <input type="radio" formControlName="role" value="player" /> Player
+                </label>
+
+                <label class="seg-item" [class.active-role]="loginForm.get('role')?.value==='owner'">
+                  <input type="radio" formControlName="role" value="owner" /> Owner
+                </label>
+
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              class="primary-btn"
+              [disabled]="!isLoginValid"
+              [class.btn-green]="isLoginValid"
+              [attr.aria-pressed]="isLoginValid">
+              Login
+            </button>
+
+          </form>
+
+          <div class="toggle-link">
+            <p>Don't have an account? <a href="#" (click)="toggleSignup($event)">Sign Up</a></p>
+          </div>
         </div>
+
+        <!-- SIGNUP -->
+        <ng-template #signupTpl>
+          <form class="form" [formGroup]="signupForm" (ngSubmit)="handleSignup()">
+
+            <div class="input-group">
+              <label for="accountType">Account type</label>
+              <select id="accountType" formControlName="accountType">
+                <option value="player">Player</option>
+                <option value="owner">Court Owner</option>
+              </select>
+            </div>
+
+            <div class="input-group">
+              <label for="name">Full Name</label>
+              <input id="name" type="text" formControlName="name" />
+              <div class="field-error" *ngIf="(signupControls['name'].touched || signupAttempted) && signupControls['name'].invalid">
+                <small *ngIf="signupControls['name'].errors?.['required']">Name required</small>
+                <small *ngIf="signupControls['name'].errors?.['pattern']">Letters & spaces only</small>
+              </div>
+            </div>
+
+            <div class="input-row">
+
+              <div class="input-group small">
+                <label for="age">Age</label>
+                <input id="age" type="number" formControlName="age" (input)="onAgeInput($event)" />
+                <div class="field-error" *ngIf="(signupControls['age'].touched || signupAttempted) && signupControls['age'].invalid">
+                  <small *ngIf="signupControls['age'].errors?.['required']">Age required</small>
+                  <small *ngIf="signupControls['age'].errors?.['min']">Minimum age is {{ signupForm.get('accountType')?.value === 'owner' ? 18 : 10 }}.</small>
+                </div>
+              </div>
+
+              <div class="input-group small">
+                <label for="phone">Phone</label>
+                <input id="phone" type="tel" formControlName="phone" (input)="onPhoneInput($event)" placeholder="+923001234567" />
+                <div class="field-error" *ngIf="(signupControls['phone'].touched || signupAttempted) && signupControls['phone'].invalid">
+                  <small *ngIf="signupControls['phone'].errors?.['required']">Phone required</small>
+                  <small *ngIf="signupControls['phone'].errors?.['pattern']">Use +923... or 03...</small>
+                </div>
+              </div>
+
+            </div>
+
+            <div class="input-group" *ngIf="signupForm.get('accountType')?.value === 'owner'">
+              <label for="cnic">CNIC</label>
+              <input id="cnic" type="text" formControlName="cnic" (input)="onCnicInput($event)" placeholder="12345-1234567-1" />
+              <div class="field-error" *ngIf="(signupControls['cnic'].touched || signupAttempted) && signupControls['cnic'].invalid">
+                <small *ngIf="signupControls['cnic'].errors?.['required']">CNIC required</small>
+                <small *ngIf="signupControls['cnic'].errors?.['pattern']">Format 12345-1234567-1</small>
+              </div>
+            </div>
+
+            <div class="input-group">
+              <label for="emailSign">Email</label>
+              <input id="emailSign" type="email" formControlName="email" />
+              <div class="field-error" *ngIf="(signupControls['email'].touched || signupAttempted) && signupControls['email'].invalid">
+                <small *ngIf="signupControls['email'].errors?.['required']">Email required</small>
+                <small *ngIf="signupControls['email'].errors?.['email']">Enter valid email</small>
+              </div>
+            </div>
+
+            <div class="input-row">
+
+              <div class="input-group small">
+                <label for="passwordSign">Password</label>
+                <input id="passwordSign" type="password" formControlName="password" />
+                <div class="field-error" *ngIf="(signupControls['password'].touched || signupAttempted) && signupControls['password'].invalid">
+                  <small *ngIf="signupControls['password'].errors?.['required']">Password required</small>
+                  <small *ngIf="signupControls['password'].errors?.['minlength']">Min 6 chars</small>
+                  <small *ngIf="signupControls['password'].errors?.['pattern']">Include letters and numbers</small>
+                </div>
+              </div>
+
+              <div class="input-group small">
+                <label for="confirmPassword">Confirm Password</label>
+                <input id="confirmPassword" type="password" formControlName="confirmPassword" />
+                <div class="field-error" *ngIf="(signupControls['confirmPassword'].touched || signupAttempted) && signupControls['confirmPassword'].invalid">
+                  <small *ngIf="signupControls['confirmPassword'].errors?.['required']">Confirm required</small>
+                </div>
+              </div>
+
+            </div>
+
+            <div class="field-error" *ngIf="signupAttempted && signupForm.errors?.['passwordMismatch']">
+              <small>Passwords do not match.</small>
+            </div>
+
+            <button type="submit" class="primary-btn"
+                    [disabled]="!isSignupValid"
+                    [class.btn-green]="isSignupValid"
+                    [attr.aria-pressed]="isSignupValid">
+              Sign Up
+            </button>
+
+          </form>
+
+          <div class="toggle-link">
+            <p>Already have an account? <a href="#" (click)="toggleLogin($event)">Login</a></p>
+          </div>
+
+        </ng-template>
+
       </div>
+    </section>
 
-      <button type="submit" [disabled]="loginForm.invalid">Login</button>
-    </form>
-
-    <div class="toggle-link">
-      <p>Don't have an account? <a (click)="toggleSignup()">Sign Up</a></p>
-    </div>
   </div>
-
-  <ng-template #signupTemplate>
-    <h2>Sign Up</h2>
-
-    <form class="form" [formGroup]="signupForm" (ngSubmit)="handleSignup()">
-      <!-- Account type dropdown -->
-      <div class="input-group">
-        <label for="accountType">Account type</label>
-        <select id="accountType" formControlName="accountType" class="select">
-          <option value="player">Player</option>
-          <option value="owner">Court Owner</option>
-        </select>
-      </div>
-
-      <!-- Common fields -->
-      <div class="input-group">
-        <label for="name">Full Name</label>
-        <input id="name" type="text" formControlName="name" />
-      </div>
-
-      <div class="input-row">
-        <div class="input-group small">
-          <label for="age">Age</label>
-          <input id="age" type="number" formControlName="age" />
-        </div>
-
-        <div class="input-group small">
-          <label for="phone">Phone</label>
-          <input id="phone" type="tel" formControlName="phone" />
-        </div>
-      </div>
-
-      <!-- Conditional CNIC for Court Owner -->
-      <div *ngIf="signupForm.get('accountType')!.value === 'owner'" class="input-group">
-        <label for="cnic">CNIC</label>
-        <input id="cnic" type="text" formControlName="cnic" placeholder="e.g. 12345-6789012-3" />
-      </div>
-
-      <div class="input-group">
-        <label for="emailSign">Email</label>
-        <input id="emailSign" type="email" formControlName="email" />
-      </div>
-
-      <div class="input-row">
-        <div class="input-group small">
-          <label for="passwordSign">Password</label>
-          <input id="passwordSign" type="password" formControlName="password" />
-        </div>
-
-        <div class="input-group small">
-          <label for="confirmPassword">Confirm Password</label>
-          <input id="confirmPassword" type="password" formControlName="confirmPassword" />
-        </div>
-      </div>
-
-      <button
-        type="submit"
-        [disabled]="
-          !signupForm.valid ||
-          signupForm.get('password')!.value !== signupForm.get('confirmPassword')!.value
-        ">
-        Sign Up
-      </button>
-    </form>
-
-    <div class="toggle-link">
-      <p>Already have an account? <a (click)="toggleLogin()">Login</a></p>
-    </div>
-  </ng-template>
 </div>

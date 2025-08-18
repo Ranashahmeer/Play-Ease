@@ -1,4 +1,5 @@
 import { NgModule } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms'; 
 import { BrowserModule } from '@angular/platform-browser';
 import { AppComponent } from './app.component';
@@ -20,6 +21,7 @@ import { DxButtonModule,DxPopupModule,DxDropDownBoxModule,DxListModule,DxFileUpl
   ],
   imports: [
     BrowserModule,
+    CommonModule,
     DxDateBoxModule,DxButtonModule,DxTagBoxModule,DxSliderComponent,DxPopupModule,
     DxSelectBoxModule,DxGalleryModule,DxFileUploaderModule,DxDropDownBoxModule,
     DxTextBoxModule,DxListModule,

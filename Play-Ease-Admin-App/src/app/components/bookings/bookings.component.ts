@@ -23,24 +23,6 @@ function toKeyLocal(d: Date): string {
   return `${y}-${m}-${day}`;
 }
 const TODAY_KEY = toKeyLocal(new Date());
-// interface Court {
-//   name: string;
-//   location: string;
-//   rating: number;
-//   pitches: string[];
-//   price: number; // fallback/base price for 60 minutes
-//   pricePerPitch?: Record<string, number>; // variable pricing per pitch size (per 60 min)
-//   openingTime?: string;  // e.g. '06:00 AM'
-//   closingTime?: string;  // e.g. '10:00 PM'
-//   image: string;
-//   images?: string[];
-//   offers?: string[];
-//   about?: string;
-//   openingMinutes: number;  
-//   closingMinutes: number; 
-//   bookedSlots?: Record<string, string[]>;
-// }
-
 @Component({
   selector: 'app-bookings',
   standalone: true,
@@ -492,36 +474,62 @@ getCourtData(){
       }
     });
   }
+// Helper: Convert "03:00 PM" -> "15:00:00"
+formatTo24Hour(timeStr: string): string {
+  const date = new Date("1970-01-01 " + timeStr);
+  return date.toTimeString().split(" ")[0]; // "15:00:00"
+}
 
+// Helper: Add minutes to startTime
+calculateEndTime(start: string, duration: number): string {
+  const [h, m, s] = start.split(":").map(Number);
+  const date = new Date();
+  date.setHours(h, m, s || 0);
+  date.setMinutes(date.getMinutes() + duration);
+  return date.toTimeString().split(" ")[0]; // "16:00:00"
+}
   saveBooking(): void {
     if (!this.paymentProofFile) {
       alert('Please upload payment proof');
       return;
     }
-  
-    const reader = new FileReader();
-    reader.onload = () => {
-      const base64Proof = "img/try"//(reader.result as string).split(',')[1];
-      console.log('selected court : ',this.selectedCourt)
-      const booking: SaveBookings = {
-        courtId: this.selectedCourt?.courtId,
-        ownerId: this.selectedCourt?.OwnerId,
-        userId: 1, //this.currentUserId,
-        paymentMethodId:1,
-        paymentProof: base64Proof,
-        bookingDate: this.toKey(this.selectedBookingDate),
-        startTime: this.selectedBookingTime.split('-')[0].trim(),
-        endTime: this.selectedBookingTime.split('-')[1].trim(),
-        price: this.getComputedPrice()
-      };
-  
-      this.saveBookingsService.createBooking(booking).subscribe({
-        next: (res: any) => {
-          const bookingAdapter = new BookingAdapter();
-          const savedBooking = bookingAdapter.adapt(res); // adapt API response
-  
-          console.log('Saved booking:', savedBooking);
-          alert('Booking created successfully!');
+    console.log(this.selectedCourt)
+       const bookingDate = this.toKey(this.selectedBookingDate); 
+const selectedPitch = this.selectedCourt?.pitches.find(
+  (p: any) => p.pitchtype === this.selectedPitchSize
+);
+  // const courtPitchId = selectedPitch?.pitchid;
+  const startTime = this.formatTo24Hour(this.selectedBookingTime); // "15:00:00"
+  const duration = Number(this.form.get('matchDuration')?.value) || 60;
+  const endTime = this.calculateEndTime(startTime, duration);      // e.g. "16:00:00"
+  const body = {
+    courtId: this.selectedCourt?.courtId,
+    courtPitchId: 1,//courtPitchId,
+    ownerId: this.selectedCourt?.OwnerId,
+    userId: 1,
+    paymentMethodId: 1,
+    paymentProof: this.paymentProofFile.name,
+    bookingDate: bookingDate,
+    startTime: startTime,
+    endTime: endTime,
+    price: this.getComputedPrice()
+  };
+
+         console.log('bookingData : ',body) 
+    //       {
+    //   court: this.selectedCourt?.name,
+    //   date: this.toKey(this.selectedBookingDate),
+    //   time: this.selectedBookingTime,
+    //   pitch: this.selectedPitchSize,
+    //   duration: this.form.get('matchDuration')?.value,
+    //   amount: this.getComputedPrice(),
+    //   fileName: this.paymentProofFile.name
+    // });
+
+    this.saveBookingsService.createBooking(body).subscribe({
+      next: (res:any) => {
+        console.log('Booking saved successfully', res);
+        alert('Booking created!');
   
           this.paymentPopupVisible = false;
           this.popupVisible = false;
@@ -533,8 +541,6 @@ getCourtData(){
         }
       });
     };
-    reader.readAsDataURL(this.paymentProofFile);
-  }
   
   
   

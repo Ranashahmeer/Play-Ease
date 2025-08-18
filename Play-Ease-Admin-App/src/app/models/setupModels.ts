@@ -38,14 +38,15 @@ export interface Pitch {
   }
 
   export interface SaveBookings {
-    courtId?: number;
-    ownerId?: number;
-    userId: number;
-    paymentMethodId: number;
-    paymentProof: string;  // will send base64 string of image
-    bookingDate: string;   // e.g. "2025-08-16"
-    startTime: string;     // e.g. "10:00"
-    endTime: string;       // e.g. "11:00"
-    price: number;
-  }
+  CourtId?:number,
+  userId:number,
+  courtPitchId: number;
+  ownerId?: number;
+  paymentMethodId: number;
+  paymentProof: string;
+  bookingDate: string;
+  startTime: string;
+  endTime: string;
+  price: number;
+}
   

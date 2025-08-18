@@ -1,24 +1,211 @@
-<div class="services-container">
-  <h1 class="page-title">Services</h1>
+<div class="owner-container">
+  <div class="owner-form">
+    <h2>{{ editingId ? 'Edit Service / Court' : 'Create a Service (Court)' }}</h2>
 
-  <div class="services-grid">
-    <div class="service-card">
-      <img src="assets/court.jpg" alt="Court Booking Icon" class="service-icon">
-      <h2>Court Booking</h2>
-      <p>
-        Book sports courts with ease for football, cricket, or basketball. 
-        View real-time availability, choose time slots, and reserve your court instantly using our streamlined booking interface.
-      </p>
-    </div>
+    <form [formGroup]="form" (ngSubmit)="saveCourt()">
+      <label>Name *</label>
+      <input type="text" formControlName="name" placeholder="Stadium / Court name" />
+      <div class="field-error" *ngIf="submitted && form.get('name')?.invalid">Please enter a name.</div>
 
-    <div class="service-card">
-      <img src="assets/team.jpg" alt="Team Recruitment Icon" class="service-icon">
-      <h2>Team Recruitment</h2>
-      <p>
-        Looking to build your dream team? Use our player recruitment feature to find and connect with local athletes, 
-        and grow your squad with the right talent for your sport.
-      </p>
+      <label>Location</label>
+      <input type="text" formControlName="location" placeholder="City or neighborhood" />
+
+      <div style="margin-top:10px;">
+        <label>Pitch sizes</label>
+        <div class="chip-row">
+          <div *ngFor="let p of pitches" class="chip pitch-chip" (click)="$event.stopPropagation()">
+            <div style="display:flex; gap:12px; align-items:center;">
+              <div style="min-width:80px;">
+                <strong>{{ p }}</strong>
+              </div>
+
+              <div style="display:flex; flex-direction:column; gap:6px;">
+                <div style="display:flex; gap:8px; align-items:center;">
+                  <input
+                    type="number"
+                    [class.invalid-price]="!isFiniteValue(pricePerPitch[p]) && submitted"
+                    [value]="isFiniteValue(pricePerPitch[p]) ? pricePerPitch[p] : ''"
+                    (input)="setPitchPrice(p, $any($event.target).value)"
+                    placeholder="e.g. 2000"
+                    style="width:120px; padding:6px; border-radius:6px; border:1px solid #ddd;"
+                  />
+                  <div class="price-preview" *ngIf="formattedPrice(p)">{{ formattedPrice(p) }}</div>
+                </div>
+
+                <div class="field-error" *ngIf="!isFiniteValue(pricePerPitch[p]) && submitted">
+                  Enter a valid numeric price for {{ p }}.
+                </div>
+              </div>
+            </div>
+
+            <button type="button" (click)="removePitch(p)" title="Remove" class="remove-pitch-btn">×</button>
+          </div>
+        </div>
+
+        <div style="display:flex; gap:8px; margin-top:8px;">
+          <input #pitchInput type="text" placeholder="e.g. 5x5" />
+          <dx-button text="Add pitch" stylingMode="contained" (onClick)="addPitch(pitchInput)"></dx-button>
+        </div>
+        <div class="field-error" *ngIf="submitted && pitches.length === 0">Add at least one pitch and set its price.</div>
+      </div>
+
+      <label style="margin-top:12px;">Offers / Amenities</label>
+      <div class="chip-row">
+        <div *ngFor="let o of offers" class="chip" (click)="$event.stopPropagation()">
+          {{ o }} <button type="button" (click)="removeOffer(o)" title="Remove">×</button>
+        </div>
+      </div>
+      <div style="display:flex; gap:8px; margin-top:8px;">
+        <input #offerInput type="text" placeholder="e.g. Shower, Parking" />
+        <dx-button text="Add offer" stylingMode="contained" (onClick)="addOffer(offerInput)"></dx-button>
+      </div>
+
+      <label style="margin-top:12px;">Upload images (max 6)</label>
+      <dx-file-uploader [multiple]="true" [accept]="'image/png,image/jpeg'" (onValueChanged)="onImagesUpload($event)"></dx-file-uploader>
+
+      <div class="image-preview-row" *ngIf="images.length > 0">
+        <div *ngFor="let img of images" class="img-thumb" (click)="$event.stopPropagation()">
+          <img [src]="img" alt="preview" />
+          <div style="display:flex; gap:6px; margin-top:6px;">
+            <dx-button text="Set main" stylingMode="contained" (onClick)="setAsMain(img)"></dx-button>
+          </div>
+          <div *ngIf="mainImage === img" class="main-badge">Main</div>
+        </div>
+      </div>
+
+      <label style="margin-top:12px;">Opening time</label>
+      <input type="text" formControlName="openingTime" placeholder="e.g. 06:00 AM" />
+
+      <label style="margin-top:12px;">Closing time</label>
+      <input type="text" formControlName="closingTime" placeholder="e.g. 10:00 PM" />
+
+      <label style="margin-top:12px;">About</label>
+      <textarea formControlName="about" rows="3" placeholder="Short description..."></textarea>
+
+      <!-- page-level warning if any pitch price invalid -->
+      <div *ngIf="submitted && anyInvalidPitchPrice()" class="page-warning">
+        Some pitch prices are missing or invalid — please provide numeric prices for all pitches before saving.
+      </div>
+
+      <div style="display:flex; gap:8px; margin-top:12px;">
+        <dx-button text="Save Service" type="success" stylingMode="contained" (onClick)="saveCourt()"></dx-button>
+        <dx-button text="Start New" (onClick)="startCreateNew()"></dx-button>
+        <dx-button text="Reset sample data" (onClick)="resetStoreToSample()"></dx-button>
+      </div>
+    </form>
+  </div>
+
+  <div class="owner-list">
+    <h3>Saved Services</h3>
+    <div *ngIf="courts.length === 0">No services yet. Create one from the left.</div>
+
+    <div class="court-card" *ngFor="let c of courts" (click)="openCourtDetails(c)">
+      <img [src]="getPreviewImage(c)" alt="court" />
+      <div class="info">
+        <h4>{{ c.name }}</h4>
+        <p>{{ c.location }}</p>
+        <p *ngIf="c.rating !== undefined">Rating: {{ c.rating }}</p>
+        <p>Pitches: {{ c.pitches.length || 0 }}</p>
+        <ng-container *ngIf="c.pricePerPitch">
+          <div style="margin-top:6px;">
+            <small>Prices:</small>
+            <div *ngFor="let p of c.pitches">
+              <small>{{ p }} — Rs {{ (c.pricePerPitch && c.pricePerPitch[p] !== undefined) ? c.pricePerPitch[p] : '—' }}</small>
+            </div>
+          </div>
+        </ng-container>
+      </div>
+      <div class="actions">
+        <!-- use safe wrappers for DevExtreme ClickEvent -->
+        <dx-button text="Edit" (onClick)="onEditClick(c, $event)"></dx-button>
+        <dx-button text="Delete" (onClick)="onDeleteClick(c, $event)"></dx-button>
+      </div>
     </div>
   </div>
 </div>
 
+<!-- Court details popup (no payment/review) -->
+<dx-popup
+  [(visible)]="popupVisible"
+  [showTitle]="false"
+  [width]="640"
+  [height]="'70vh'"
+  [dragEnabled]="false"
+  (hidden)="closePopup()"
+>
+  <div *dxTemplate="let data of 'content'" class="popup-content" style="padding: 0 15px 15px 15px;">
+    <div class="popup-custom-header">
+      <div class="popup-header-left">
+        <h3 class="popup-court-name">{{ selectedCourt?.name ?? '' }}</h3>
+        <div class="popup-subinfo">
+          <span>{{ selectedCourt?.location }}</span>
+          <span *ngIf="selectedCourt?.rating" style="margin-left:8px;">• Rating: {{ selectedCourt?.rating }}</span>
+        </div>
+      </div>
+
+      <button
+        class="popup-close-btn"
+        (click)="closePopup()"
+        aria-label="Close popup"
+        title="Close">
+        ×
+      </button>
+    </div>
+
+    <div style="padding: 12px 0 0 0;">
+      <dx-gallery
+        [dataSource]="galleryImages"
+        [loop]="true"
+        [showIndicator]="true"
+        [height]="260"
+        [stretchImages]="true"
+        class="court-gallery">
+      </dx-gallery>
+    </div>
+
+    <div class="popup-price-row" style="padding-top: 10px; display:flex; align-items:center; justify-content:space-between; gap:12px;">
+      <p class="price-tag-popup">
+        <strong>From:</strong>
+        <span style="font-weight:900; margin-left:6px;">Rs {{ selectedCourt?.price ?? 0 }}</span>
+      </p>
+      <p class="hours-line-popup"><strong>Hours:</strong> {{ selectedCourt?.openingTime ?? '—' }} — {{ selectedCourt?.closingTime ?? '—' }}</p>
+    </div>
+
+    <div style="margin-top: 12px;">
+      <h4 style="margin: 8px 0 6px;">Pitches & Prices</h4>
+      <div *ngIf="selectedCourt?.pricePerPitch; else noPrices">
+        <div *ngFor="let p of selectedCourt?.pitches">
+          <div style="display:flex; justify-content:space-between; padding:6px 0;">
+            <div>{{ p }}</div>
+            <div>Rs {{ selectedCourt?.pricePerPitch?.[p] ?? '—' }}</div>
+          </div>
+        </div>
+      </div>
+      <ng-template #noPrices>
+        <div style="color:#666;">No per-pitch prices provided.</div>
+      </ng-template>
+    </div>
+
+    <div style="margin-top: 12px;">
+      <h4 style="margin: 8px 0 6px;">What we offer</h4>
+      <div class="offers-row">
+        <ng-container *ngIf="selectedCourt?.offers?.length; else noOffers">
+          <span class="offer-chip" *ngFor="let off of selectedCourt?.offers">
+            <span class="offer-icon" aria-hidden="true">{{ getOfferIcon(off) }}</span>
+            <span class="offer-text">{{ off }}</span>
+          </span>
+        </ng-container>
+        <ng-template #noOffers>
+          <span style="color: #666; font-size: 13px;">No additional info available.</span>
+        </ng-template>
+      </div>
+    </div>
+
+    <div style="margin-top: 12px;">
+      <h4 style="margin: 8px 0 6px;">About Us</h4>
+      <p style="color: #444; line-height: 1.45;">
+        {{ selectedCourt?.about ?? 'No description provided for this court.' }}
+      </p>
+    </div>
+  </div>
+</dx-popup>

@@ -1,17 +1,21 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { GetDatabyDatasourceService } from '../../services/get-data/get-databy-datasource.service';
+import{AuthLoginLogoutService} from '../../services/auth/auth.login-logout.service'
+import { Router } from '@angular/router';
+import { SaveBookingsService } from '../../services/bookings/save-bookings.service';
 
 interface Booking {
   id: number;
   courtName: string;
-  date: string;      // e.g. "2025-08-20"
-  time: string;      // e.g. "07:00 PM"
-  duration: string;  // e.g. "90 mins"
+  date: string;
+  time: string;
+  duration: string;
   location: string;
-  price?: number;
-  image?: string;
-  status?: 'upcoming' | 'completed';
+  price: number;
+  image: string;
+  status: 'upcoming' | 'completed';
 }
 
 @Component({
@@ -22,106 +26,178 @@ interface Booking {
   styleUrls: ['./my-account.component.css']
 })
 export class MyAccountComponent implements OnInit {
-  // Read-only user profile (display-only)
+  // User info (to be filled from API)
   user = {
-    name: 'John Doe',
-    age: 28,
-    contact: '+92 300 1234567',
-    email: 'johndoe@example.com',
+    name: '',
+    age: 0,
+    contact: '',
+    email: '',
+    about: ''
   };
 
-  // Only password + team forms are used
-  passwordForm!: FormGroup;
   teamForm!: FormGroup;
-
-  // Bookings data
   upcomingBookings: Booking[] = [];
   pastBookings: Booking[] = [];
-
-  // UI state
   showTeamModal = false;
-  pwdMessage = { text: '', type: '' as 'success' | 'error' | '' };
+  userId?: number;
+  roleId?: number;
+  userRoleName: any;
 
-  constructor(private fb: FormBuilder) {}
+  constructor(private fb: FormBuilder,private router: Router,private saveBookingsService: SaveBookingsService ,public AuthLoginLogoutService :AuthLoginLogoutService, private getDataService: GetDatabyDatasourceService) {}
 
   ngOnInit(): void {
-    // password form
-    this.passwordForm = this.fb.group({
-      currentPassword: ['', [Validators.required, Validators.minLength(6)]],
-      newPassword: ['', [Validators.required, Validators.minLength(6)]],
-      confirmPassword: ['', [Validators.required]]
-    });
-
-    // team request form
-    this.teamForm = this.fb.group({
-      message: ['', [Validators.required, Validators.minLength(10)]],
-      phone: [this.user.contact, Validators.required]
-    });
-
-    // load profile from localStorage if present (display-only)
-    const saved = localStorage.getItem('myAccountProfile');
+    const saved = localStorage.getItem('loggedInUser');
     if (saved) {
       try {
         const p = JSON.parse(saved);
-        this.user = { ...this.user, ...p };
-      } catch { /* ignore parse errors */ }
+        this.userId = p.userId;
+        this.roleId = p.roleId
+      } catch {}
     }
 
-    // Example bookings (demo)
-    this.upcomingBookings = [
-      { id: 1, courtName: 'Alpha Arena', date: '2025-08-20', time: '06:00 PM', duration: '90 mins', location: 'Gulberg', price: 2700, image: 'assets/alphaarena-1.jpg', status: 'upcoming' },
-      { id: 2, courtName: 'Beta Grounds', date: '2025-08-25', time: '08:00 PM', duration: '60 mins', location: 'DHA', price: 1800, image: 'assets/betaground-1.jpg', status: 'upcoming' }
-    ];
-    this.pastBookings = [
-      { id: 11, courtName: 'Omega Turf', date: '2025-07-21', time: '06:00 PM', duration: '60 mins', location: 'Nazimabad', price: 1900, image: 'assets/omegaturf-1.jpg', status: 'completed' }
-    ];
+    // init team form
+    this.teamForm = this.fb.group({
+      phone: ['', Validators.required],
+      message: ['', [Validators.required, Validators.minLength(10)]]
+    });
+    this.getUserRoleDetails()
+  }
+  getUserRoleDetails(){
+  this.getDataService.getData(4).subscribe({
+        next: (apiData: any[] | null | undefined) => {
+          const roleData = Array.isArray(apiData) ? apiData : [];
+          if (!roleData.length) return;
+          const userRole = roleData.find(r => r.RoleID === this.roleId);
+          this.userRoleName = userRole.RoleName; 
+
+        if (this.userRoleName == 'User') {
+          this.loadUserData();
+        } 
+        else if(this.userRoleName == 'Owner'){
+          this.lodeOwnerData()
+          this.isOwner = true
+        }else{
+          this.getAdminData()
+        }
+        }
+          });
+  }
+  getAdminData(){
+console.log("Admin")
+  }
+  loadUserData(): void {
+    if (!this.userId) return;
+
+    const whereclause = `u.userid = ${this.userId} and b.isactive = 1`;
+
+    this.getDataService.getData(3, whereclause).subscribe({
+      next: (apiData: any[] | null | undefined) => {
+        const data = Array.isArray(apiData) ? apiData : [];
+        if (!data.length) return;
+
+        // Fill user info (from first record)
+        const first = data[0];
+        this.user = {
+          name: first.FullName,
+          age: 28, // you can extend API to send age if available
+          contact: first.Phone,
+          email: first.Email,
+          about: first.about
+        };
+
+        // Map bookings
+        const today = new Date();
+        const bookings = data.map((item, index) => {
+          const bookingDate = new Date(item.bookingdate);
+          const status: 'upcoming' | 'completed' =
+            bookingDate >= today ? 'upcoming' : 'completed';
+
+          return {
+            id: index + 1,
+            courtName: item.NAME,
+            date: bookingDate.toISOString().split('T')[0],
+            time: `${item.starttime} - ${item.endtime}`,
+            duration: this.calcDuration(item.starttime, item.endtime),
+            location: item.location,
+            price: item.price,
+            image: item.mainimage,
+            status
+          } as Booking;
+        });
+
+        this.upcomingBookings = bookings.filter(b => b.status === 'upcoming');
+        this.pastBookings = bookings.filter(b => b.status === 'completed');
+      },
+      error: err => {
+        console.error('Error fetching account data:', err);
+      }
+    });
+  }
+  owner: any = null;
+ownerCourts: any[] = [];
+isOwner?: boolean  =false
+lodeOwnerData() {
+  if (!this.userId) return;
+  const whereclause = `co.userid = ${this.userId} `;
+  
+  this.getDataService.getData(5, whereclause).subscribe({
+    next: (apiData: any[] | null | undefined) => {
+      const ownerData = Array.isArray(apiData) ? apiData : [];
+      if (!ownerData.length) return;
+
+      // extract owner info (from first record)
+      const first = ownerData[0];
+      this.owner = {
+        fullname: first.fullname,
+        email: first.email,
+        phone: first.phone,
+        cnic: first.cnic,
+        about: first.about
+      };
+
+      // map courts owned
+      this.ownerCourts = ownerData.map(c => ({
+        courtId: c.courtid,
+        name: c.CourtName,
+        location: c.location,
+        opening: c.openingtime,
+        closing: c.closingtime,
+        image: c.mainimage,
+        rating: c.rating
+      }));
+    },
+    error: err => {
+      console.error("Error fetching owner data:", err);
+    }
+  });
+}
+
+
+  private calcDuration(start: string, end: string): string {
+    const [sh, sm] = start.split(':').map(Number);
+    const [eh, em] = end.split(':').map(Number);
+    const startMins = sh * 60 + sm;
+    const endMins = eh * 60 + em;
+    const diff = endMins - startMins;
+    return `${diff} mins`;
   }
 
-  // Change password (local placeholder)
-  changePassword(): void {
-    this.pwdMessage = { text: '', type: '' };
-
-    if (this.passwordForm.invalid) {
-      this.pwdMessage = { text: 'Please complete the form correctly.', type: 'error' };
-      return;
-    }
-
-    const { currentPassword, newPassword, confirmPassword } = this.passwordForm.value;
-    if (newPassword !== confirmPassword) {
-      this.pwdMessage = { text: 'New password and confirmation do not match.', type: 'error' };
-      return;
-    }
-
-    // If you use local users store, verify and update it; otherwise simulate success
-    const users = JSON.parse(localStorage.getItem('users') || '[]');
-    const idx = users.findIndex((u: any) => u.email === this.user.email);
-
-    if (idx === -1) {
-      // no persisted user found — show success to proceed with flow
-      this.passwordForm.reset();
-      this.pwdMessage = { text: 'Password accepted locally. (Will sync with backend later.)', type: 'success' };
-      return;
-    }
-
-    if (users[idx].password !== currentPassword) {
-      this.pwdMessage = { text: 'Current password is incorrect.', type: 'error' };
-      return;
-    }
-
-    users[idx].password = newPassword;
-    localStorage.setItem('users', JSON.stringify(users));
-    this.passwordForm.reset();
-    this.pwdMessage = { text: 'Password updated (local).', type: 'success' };
-  }
-
-  // Cancel upcoming booking (local demo)
   cancelUpcoming(bookingId: number): void {
-    if (!confirm('Are you sure you want to cancel this booking? There will be no Refund!!')) return;
-    this.upcomingBookings = this.upcomingBookings.filter(b => b.id !== bookingId);
-    // TODO: call backend to cancel
+    if (!confirm('Are you sure you want to cancel this booking? There will be no refund!')) return;
+  
+    this.saveBookingsService.cancelBooking(bookingId).subscribe({
+      next: () => {
+        this.upcomingBookings = this.upcomingBookings.filter(b => b.id !== bookingId);
+        alert('Booking cancelled successfully');
+      },
+      error: (err:any) => {
+        console.error(err);
+        alert('Failed to cancel booking');
+      }
+    });
   }
+  
 
-  // Team modal actions
   toggleTeamModal(open = true) {
     this.showTeamModal = open;
     if (!open) {
@@ -131,10 +207,9 @@ export class MyAccountComponent implements OnInit {
 
   sendTeamRequest(): void {
     if (this.teamForm.invalid) {
-      alert('Please provide a message (min 10 chars) and contact number.');
+      alert('Please provide a valid phone and message (min 10 chars).');
       return;
     }
-    // store or send to backend later
     console.log('Team request:', this.teamForm.value);
     this.toggleTeamModal(false);
     alert('Team request submitted. We will contact you soon.');
@@ -142,5 +217,12 @@ export class MyAccountComponent implements OnInit {
 
   get hasNoBookings(): boolean {
     return this.upcomingBookings.length === 0 && this.pastBookings.length === 0;
+  }
+  addCourt(){
+    // this.router.navigate(['/my-account']);
+    this.router.navigate(['/add-court'])
+  }
+  logout() {
+    this.AuthLoginLogoutService.logout();
   }
 }

@@ -29,13 +29,14 @@ type Court = {
 const STORAGE_KEY = 'playease_courts';
 
 @Component({
-  selector: 'app-dashboard',
+  selector: 'app-add-court',
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, DxButtonModule, DxFileUploaderModule, DxPopupModule, DxGalleryModule],
-  templateUrl: './dashboard.component.html',
-  styleUrls: ['./dashboard.component.css']
+
+  templateUrl: './add-court.component.html',
+  styleUrl: './add-court.component.css'
 })
-export class DashboardComponent implements OnInit, OnDestroy {
+export class AddCourtComponent {
   form!: FormGroup;
   subscriptions: Subscription[] = [];
   courts: Court[] = [];

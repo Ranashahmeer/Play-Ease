@@ -7,6 +7,9 @@ import { BookingsComponent } from './components/bookings/bookings.component';
 import { ContactUsComponent } from './components/contact-us/contact-us.component';
 import { MyAccountComponent } from './components/my-account/my-account.component';
 import { OurServicesComponent } from './components/our-services/our-services.component';
+import { AddCourtComponent } from './components/add-court/add-court.component';
+
+import { AuthGuard } from './auth.guard';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/home', pathMatch: 'full' }, // Redirect to login
@@ -20,9 +23,10 @@ export const routes: Routes = [
   },
   { path: 'login', component: LoginComponent },         // Login route
   { path: 'home', component: HomeComponent },
-  { path: 'bookings', component: BookingsComponent },
+  { path: 'bookings', component: BookingsComponent, canActivate: [AuthGuard] },
   { path: 'contact-us', component: ContactUsComponent },
-  { path: 'my-account', component: MyAccountComponent },
+  { path: 'my-account', component: MyAccountComponent, canActivate: [AuthGuard]  },
   { path: 'our-services', component: OurServicesComponent },
+  { path: 'add-court', component: AddCourtComponent },
   { path: '**', redirectTo: 'dashboard' }, // Fallback route
 ];

@@ -131,30 +131,32 @@ export class LoginComponent implements OnInit, AfterViewInit, OnDestroy {
   handleLogin(): void {
     this.loginForm.markAllAsTouched();
     if (!this.loginForm.valid) return;
-
+  
     const { email, password, role } = this.loginForm.value;
-    const users = JSON.parse(localStorage.getItem('users') || '[]');
-    const foundUser = users.find((u: any) => u.email === email && u.password === password && u.role === role);
-
-    if (foundUser) {
-      localStorage.setItem('isLoggedIn','true');
-      localStorage.setItem('loggedInUser', JSON.stringify(foundUser));
-      alert('Login successful!');
-      try { this.dialogRef?.close(); } catch {}
-      // navigate if needed (keeps original behavior)
-      if (role === 'admin') this.router.navigate(['/admin']);
-      else if (role === 'player') this.router.navigate(['/player']);
-      else if (role === 'owner') this.router.navigate(['/owner']);
-    } else {
-      alert('Invalid email / password / role.');
-    }
+  
+    this.authService.login({ email, password, role }).subscribe({
+      next: (res) => {
+        // assuming your .NET API returns success + user info
+        localStorage.setItem('isLoggedIn', 'true');
+        localStorage.setItem('loggedInUser', JSON.stringify(res));
+        alert('Login successful!');
+        try { this.dialogRef?.close(); } catch {}
+        this.router.navigate(['/my-account']);
+        
+      },
+      error: (err) => {
+        console.error(err);
+        alert('Invalid email / password / role.');
+      }
+    });
   }
+  
 
   // SIGNUP handler
   handleSignup(): void {
     this.signupAttempted = true;
     this.signupForm.markAllAsTouched();
-
+  
     if (!this.isSignupValid) {
       if (this.signupForm.errors && (this.signupForm.errors as any).passwordMismatch) {
         alert('Passwords do not match.');
@@ -163,33 +165,39 @@ export class LoginComponent implements OnInit, AfterViewInit, OnDestroy {
       }
       return;
     }
-
+  
     const accountType = this.signupForm.get('accountType')!.value as 'player'|'owner';
     const age = Number(this.signupForm.get('age')!.value);
+  
     if (accountType === 'player' && age < 10) { alert('Players must be at least 10.'); return; }
     if (accountType === 'owner' && age < 18) { alert('Owners must be at least 18.'); return; }
-
-    const name = String(this.signupForm.get('name')!.value || '').trim();
-    const phone = String(this.signupForm.get('phone')!.value || '').trim();
-    const email = String(this.signupForm.get('email')!.value || '').trim().toLowerCase();
-    const password = this.signupForm.get('password')!.value;
-    const cnic = String(this.signupForm.get('cnic')!.value || '').trim();
-
-    const users = JSON.parse(localStorage.getItem('users') || '[]');
-    if (users.some((u:any) => u.email === email)) { alert('Email already exists.'); return; }
-
-    const newUser: any = { role: accountType === 'player' ? 'player' : 'owner', name, age, phone, email, password };
-    if (accountType === 'owner') newUser.cnic = cnic;
-    users.push(newUser);
-    localStorage.setItem('users', JSON.stringify(users));
-
-    alert('Signup successful — please login.');
-    this.toggleLogin();
-    this.signupForm.reset({ accountType: 'player' });
-    this.applySignupValidators('player');
-    this.signupAttempted = false;
+  
+    const userPayload = {
+      fullName: String(this.signupForm.get('name')!.value || '').trim(),
+      phone: String(this.signupForm.get('phone')!.value || '').trim(),
+      email: String(this.signupForm.get('email')!.value || '').trim().toLowerCase(),
+      password: this.signupForm.get('password')!.value,
+      age: this.signupForm.get('age')!.value,
+      cnic: this.signupForm.get('cnic')!.value,
+      roleID: accountType === 'player' ? 2 : 3 // 2: player, 3: owner
+    };
+  
+    this.authService.register(userPayload).subscribe({
+      next: (res:any) => {
+        alert('Signup successful — please login.');
+        this.toggleLogin();
+        this.signupForm.reset({ accountType: 'player' });
+        this.applySignupValidators('player');
+        this.signupAttempted = false;
+      },
+      error: (err:any) => {
+        console.error('Signup error:', err);
+        if (err?.error?.message) alert(err.error.message);
+        else alert('Signup failed. Please try again.');
+      }
+    });
   }
-
+  
   // UI helpers
   closePopup(): void { try { this.dialogRef?.close(); } catch {} }
   toggleSignup($event?: Event): void { if ($event) $event.preventDefault(); this.isLogin = false; this.cdr.detectChanges(); }

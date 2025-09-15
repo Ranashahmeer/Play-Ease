@@ -11,6 +11,15 @@
     </ul>
     <div class="action-buttons">
       <button class="book-now" (click)="RedirectToBooking()">Book Now!</button>
-      <button class="login" (click)="RedirectToLogin()">Login</button>
+      <!-- Show Login if NOT logged in -->
+<button *ngIf="!isLoggedIn" class="book-now" (click)="RedirectToLogin()">Login</button>
+
+<!-- Show username + Logout if logged in -->
+<div *ngIf="isLoggedIn" class="logged-in-menu">
+  <span>Welcome, {{ loggedInUser?.fullName || 'User' }}</span>
+  <!-- <button mat-button (click)="logout()">Logout</button> -->
+</div>
+
+      <!-- <button class="login" (click)="RedirectToLogin()">Login</button> -->
     </div>
   </nav>

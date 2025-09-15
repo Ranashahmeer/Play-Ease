@@ -14,4 +14,8 @@ export class SaveBookingsService {
   createBooking(booking: SaveBookings): Observable<any> {
     return this.http.post(`${this.baseUrl}/create`, booking);
   }
+
+  cancelBooking(id: number) {
+    return this.http.put(`${this.baseUrl}/cancel/${id}`, {});
+  }
 }

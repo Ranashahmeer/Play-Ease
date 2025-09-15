@@ -1,5 +1,5 @@
-import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { Component, Inject, OnInit, PLATFORM_ID } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import {
   DxDateBoxModule,
@@ -75,8 +75,11 @@ export class BookingsComponent implements OnInit {
   // allCourts: Court[] = []; 
   courts: Court[] = []; 
   ownerPaymentMethods: any;
-
-  constructor(private fb: FormBuilder,private saveBookingsService: SaveBookingsService,private GetDatabyDatasourceService: GetDatabyDatasourceService) {}
+  isBrowser = false;
+  userId: any;
+  constructor(private fb: FormBuilder,private saveBookingsService: SaveBookingsService,private GetDatabyDatasourceService: GetDatabyDatasourceService,@Inject(PLATFORM_ID) platformId: Object) {
+    this.isBrowser = isPlatformBrowser(platformId);
+  }
 
   ngOnInit(): void {  
     this.form = this.fb.group({
@@ -494,6 +497,14 @@ calculateEndTime(start: string, duration: number): string {
       return;
     }
     console.log(this.selectedCourt)
+    const saved = localStorage.getItem('loggedInUser');
+    if (saved) {
+      try {
+        const p = JSON.parse(saved);
+        console.log(p)
+        this.userId = p.userId
+      } catch { /* ignore parse errors */ }
+    }
        const bookingDate = this.toKey(this.selectedBookingDate); 
 const selectedPitch = this.selectedCourt?.pitches.find(
   (p: any) => p.pitchtype === this.selectedPitchSize
@@ -506,7 +517,7 @@ const selectedPitch = this.selectedCourt?.pitches.find(
     courtId: this.selectedCourt?.courtId,
     courtPitchId: 1,//courtPitchId,
     ownerId: this.selectedCourt?.OwnerId,
-    userId: 1,
+    userId: this.userId,
     paymentMethodId: 1,
     paymentProof: this.paymentProofFile.name,
     bookingDate: bookingDate,
@@ -514,17 +525,6 @@ const selectedPitch = this.selectedCourt?.pitches.find(
     endTime: endTime,
     price: this.getComputedPrice()
   };
-
-         console.log('bookingData : ',body) 
-    //       {
-    //   court: this.selectedCourt?.name,
-    //   date: this.toKey(this.selectedBookingDate),
-    //   time: this.selectedBookingTime,
-    //   pitch: this.selectedPitchSize,
-    //   duration: this.form.get('matchDuration')?.value,
-    //   amount: this.getComputedPrice(),
-    //   fileName: this.paymentProofFile.name
-    // });
 
     this.saveBookingsService.createBooking(body).subscribe({
       next: (res:any) => {

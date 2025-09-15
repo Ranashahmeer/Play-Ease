@@ -1,7 +1,7 @@
-<h1>app-dashboard</h1>
+
 <div class="owner-container">
   <div class="owner-form">
-    <h2>{{ editingId ? 'Edit Service / Court' : 'Create a Service (Court)' }}</h2>
+    <h2>{{ editingId ? 'Edit Service / Court' : 'Add Court' }}</h2>
 
     <form [formGroup]="form" (ngSubmit)="saveCourt()">
       <label>Name *</label>
@@ -124,7 +124,7 @@
   </div>
 </div>
 
-<dx-popup
+<!-- <dx-popup
   [(visible)]="popupVisible"
   [showTitle]="false"
   [width]="640"
@@ -207,4 +207,4 @@
       </p>
     </div>
   </div>
-</dx-popup>
+</dx-popup> -->

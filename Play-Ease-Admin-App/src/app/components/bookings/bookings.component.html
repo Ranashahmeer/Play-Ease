@@ -81,10 +81,10 @@
 
   <!-- Court Cards -->
   <main class="courts-area">
-    <div class="search-bar" [formGroup]="form">
+    <!-- <div class="search-bar" [formGroup]="form">
       <input type="text" formControlName="searchQuery" placeholder="Search for a stadium, facility, or class..." />
       <button type="button" (click)="updateVisibleCourts()">Search</button>
-    </div>
+    </div> -->
 
     <div *ngIf="noCourtsMessage && manualFilteredCourts.length === 0" class="no-courts-message">
       {{ noCourtsMessage }}
@@ -331,13 +331,13 @@
       <hr>
 
       <h4 style="margin-bottom:6px;">Upload Payment Proof (JPG / PNG) *</h4>
-
+      <ng-container *ngIf="isBrowser">
       <dx-file-uploader
         [accept]="'image/png,image/jpeg'"
         [multiple]="false"
         (onValueChanged)="onFileUpload($event)">
       </dx-file-uploader>
-
+    </ng-container>
       <div *ngIf="paymentProofPreviewUrl" style="margin-top:10px;">
         <p style="margin:4px 0 6px;"><strong>Preview</strong></p>
         <img [src]="paymentProofPreviewUrl" alt="payment proof" style="max-width:100%; border-radius:6px; border:1px solid #eee;">

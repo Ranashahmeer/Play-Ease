@@ -17,24 +17,46 @@ import { MatIconModule } from '@angular/material/icon';     // Example
   ],
   templateUrl: './navbar.component.html',
   styleUrls: ['./navbar.component.css']
-})
-export class NavbarComponent {
+})export class NavbarComponent {
+  isLoggedIn = false;
+  loggedInUser: any = null;
 
   constructor(
     private router: Router,
     private dialog: MatDialog
   ) { }
 
+  ngOnInit(): void {
+    this.checkLoginStatus();
+  }
+
+  checkLoginStatus() {
+    this.isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
+    this.loggedInUser = this.isLoggedIn ? JSON.parse(localStorage.getItem('loggedInUser') || '{}') : null;
+  }
+
   RedirectToBooking() {
     this.router.navigate(['/bookings']);
   }
 
   RedirectToLogin() {
-    this.dialog.open(LoginComponent, {
+    const dialogRef = this.dialog.open(LoginComponent, {
       width: '1100px',
       height: '600px',
       panelClass: 'custom-login-dialog'
     });
+
+    // after login close, refresh status
+    dialogRef.afterClosed().subscribe(() => {
+      this.checkLoginStatus();
+    });
+  }
+
+  logout() {
+    localStorage.removeItem('isLoggedIn');
+    localStorage.removeItem('loggedInUser');
+    this.checkLoginStatus();
+    this.router.navigate(['/']);
   }
 
   navigateTo(route: string) {

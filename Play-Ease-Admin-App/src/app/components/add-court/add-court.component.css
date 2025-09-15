@@ -1,0 +1,117 @@
+.owner-container {
+    display: flex;
+    gap: 20px;
+    padding: 20px;
+    font-family: sans-serif;
+  }
+  
+  .owner-form {
+    width: 48%;
+    background: #ffffff;
+    padding: 16px;
+    border-radius: 8px;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.06);
+  }
+  
+  .owner-form h2 { margin-top: 0; }
+  
+  .owner-form label { display:block; margin-top:10px; font-weight:600; }
+  .owner-form input, .owner-form textarea {
+    width:100%;
+    padding:8px 10px;
+    border-radius:6px;
+    border:1px solid #ddd;
+    box-sizing: border-box;
+  }
+  
+  .row { display:flex; gap:8px; align-items:center; }
+  
+  .chip-row { display:flex; gap:8px; flex-wrap:wrap; margin-top:6px; }
+  .chip {
+    background:#f9f9f9; padding:10px; border-radius:10px; display:inline-flex; align-items:center; gap:12px; position:relative;
+  }
+  
+  /* pitch-specific chip */
+  .pitch-chip { align-items:flex-start; }
+  
+  /* small remove button on chip */
+  .remove-pitch-btn {
+    background: transparent;
+    border: none;
+    font-size: 18px;
+    cursor: pointer;
+    padding: 6px 8px;
+    border-radius: 8px;
+    color: #b00020;
+  }
+  
+  /* invalid price input */
+  .invalid-price {
+    outline: none;
+    border-color: #d32f2f !important;
+    box-shadow: 0 0 0 3px rgba(211,47,47,0.06);
+  }
+  
+  /* price preview text */
+  .price-preview {
+    font-weight: 700;
+    color: #1a7f3a;
+  }
+  
+  /* inline field-level error text */
+  .field-error {
+    color: #d32f2f;
+    font-size: 12px;
+    margin-top: 4px;
+  }
+  
+  /* image previews */
+  .image-preview-row { display:flex; gap:10px; flex-wrap:wrap; margin-top:10px; }
+  .img-thumb { position:relative; width:140px; }
+  .img-thumb img { width:100%; height:90px; object-fit:cover; border-radius:6px; border:1px solid #eee; }
+  .main-badge {
+    position:absolute; top:6px; left:6px; background:#1a7f3a; color:white; padding:3px 6px; border-radius:6px; font-size:12px;
+  }
+  
+  /* list of saved courts */
+  .owner-list {
+    width: 52%;
+  }
+  .court-card {
+    display:flex; gap:12px; align-items:center; background:#fafafa; padding:12px; border-radius:8px; margin-bottom:12px; cursor:pointer;
+  }
+  .court-card img { width:120px; height:80px; object-fit:cover; border-radius:6px; }
+  .court-card .info { flex:1; }
+  .court-card .actions { display:flex; flex-direction:column; gap:8px; }
+  
+  /* page-level warning */
+  .page-warning {
+    margin-top: 10px;
+    padding: 10px;
+    border-radius: 8px;
+    background: #fff4e5;
+    border: 1px solid #ffd8a8;
+    color: #a64a00;
+    font-weight: 600;
+  }
+  
+  /* popup custom header reuse */
+  .popup-custom-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    width: 100%;
+    box-sizing: border-box;
+    padding: 10px 12px 8px;
+    border-bottom: 1px solid #eee;
+    background: white;
+    position: sticky;
+    top: 0;
+    z-index: 5;
+  }
+  
+  .popup-header-left { flex: 1 1 auto; min-width: 0; }
+  .popup-court-name { margin: 0; font-size: 18px; line-height: 1.15; word-break: break-word; white-space: normal; }
+  .popup-subinfo { font-size: 13px; color: #666; margin-top: 6px; }
+  .popup-close-btn { flex: 0 0 auto; align-self: flex-start; background: transparent; border: none; font-size: 22px; line-height: 1; width: 36px; height: 36px; border-radius: 6px; cursor: pointer; color: #555; display: inline-flex; justify-content: center; align-items: center; }
+  

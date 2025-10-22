@@ -69,6 +69,26 @@ main {
   background-size: 200% 200%;
   z-index: 0;
 }
+/* ✅ Fix for Get Started button visibility */
+.get-started-btn {
+  position: relative;
+  z-index: 2; /* ensures it's above the dark overlay */
+  padding: 14px 30px;
+  font-size: 18px;
+  font-weight: 600;
+  color: #fff;
+  background: #41B783; /* PlayEase green */
+  border: none;
+  border-radius: 30px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: 20px;
+}
+
+.get-started-btn:hover {
+  background: #007a33;
+  transform: scale(1.05);
+}
 
 .hero h1 {
   position: relative;

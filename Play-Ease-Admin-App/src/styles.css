@@ -33,3 +33,20 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
   background: #fff !important;
   color: #111 !important;
 }
+
+/* ✅ Prevent background scroll when popup is open */
+body.modal-open {
+  overflow: hidden !important;
+  position: fixed;
+  width: 100%;
+}
+
+/* Optional — smooth scrolling across app */
+html {
+  scroll-behavior: smooth;
+}
+/* ✅ Custom backdrop for login popup */
+.custom-backdrop {
+  background: rgba(0, 0, 0, 0.7) !important;
+  backdrop-filter: blur(4px);
+}

@@ -1,16 +1,16 @@
-:root {
+ :root {
   --left-green: #007a33;
   --left-green-2: #00612a;
   --muted: #53645f;
   --bg-white: #ffffff;
   --card-shadow: 0 20px 40px rgba(12,30,24,0.06);
   --radius: 12px;
-  --max-w: 980px;
+  --max-w: 780px;
 }
 
 /* popup container */
 .popup-container {
-  width: 100%;
+  width: auto;
   max-width: var(--max-w);
   border-radius: var(--radius);
   overflow: hidden;
@@ -22,8 +22,8 @@
 /* grid */
 .modal-grid {
   display: grid;
-  grid-template-columns: 36% 64%;
-  min-height: 420px;
+  grid-template-columns: 32% 68%;
+  min-height: 480px;
 }
 
 /* brand side */
@@ -176,4 +176,17 @@ input:focus, select:focus {
   .input-row { flex-direction: column; }
   .segmented { justify-content: center; width: 100%; }
   .seg-item { flex: 1; }
+}
+/* --- Center popup overlay --- */
+:host {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
 }

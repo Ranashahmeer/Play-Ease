@@ -1,9 +1,8 @@
 import { Component, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder } from '@angular/forms';
 import { Router } from '@angular/router';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
-import { LoginComponent } from '../login/login.component'; // <-- adjust path if needed
+import { LoginComponent } from '../login/login.component';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 
@@ -16,37 +15,51 @@ import { MatIconModule } from '@angular/material/icon';
   schemas: [CUSTOM_ELEMENTS_SCHEMA]
 })
 export class HomeComponent {
-  constructor(
-    private formBuilder: FormBuilder,
-    private router: Router,
-    private dialog: MatDialog
-  ) {}
+  isLoggedIn = false;
 
-  // Open the same login dialog the navbar uses
+  constructor(private router: Router, private dialog: MatDialog) {}
+  
+  ngOnInit() {
+    this.isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
+  }
+  // ✅ Opens the same login popup as navbar
   openLoginPopup() {
-    this.dialog.open(LoginComponent, {
-      width: '1100px',
-      height: '600px'
-    });
+  // 🛑 Prevent opening multiple dialogs
+  if (this.dialog.openDialogs.length > 0) return;
+
+  document.body.classList.add('modal-open');
+
+  const dialogRef = this.dialog.open(LoginComponent, {
+    width: '800px',
+    height: '750px',
+    panelClass: 'custom-login-dialog',
+    backdropClass: 'custom-backdrop',
+    disableClose: true
+  });
+
+  dialogRef.afterClosed().subscribe(() => {
+    document.body.classList.remove('modal-open');
+  });
+}
+
+  // ✅ For "Get Started" button
+  getStarted() {
+    this.openLoginPopup(); // same login popup
   }
 
-  // Optional: keep your navigateTo if you use it elsewhere
+  // ✅ Optional if you still have other buttons on home page
   navigateTo(route: string) {
     this.router.navigate([route]);
   }
 
-  // removed scroll code because you removed horizontal scrolling; keep if needed
+  // (optional scroll controls if you still use features section)
   scrollLeft() {
     const container = document.querySelector('.features') as HTMLElement;
-    if (!container) return;
-    const scrollAmount = -260;
-    container.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+    if (container) container.scrollBy({ left: -260, behavior: 'smooth' });
   }
 
   scrollRight() {
     const container = document.querySelector('.features') as HTMLElement;
-    if (!container) return;
-    const scrollAmount = 260;
-    container.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+    if (container) container.scrollBy({ left: 260, behavior: 'smooth' });
   }
 }

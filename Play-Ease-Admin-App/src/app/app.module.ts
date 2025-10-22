@@ -1,4 +1,5 @@
 import { NgModule } from '@angular/core';
+import { HttpClientModule } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms'; 
 import { BrowserModule } from '@angular/platform-browser';
@@ -8,7 +9,7 @@ import { NavbarComponent } from './components/navbar-header/navbar.component';  
 import { BookingsComponent } from './components/bookings/bookings.component';
 import { NextBookingsComponent } from './components/next-bookings/next-bookings.component';
 import { DxButtonModule,DxPopupModule,DxDropDownBoxModule,DxListModule,DxFileUploaderModule, 
-  DxDateBoxModule, DxSelectBoxModule, DxSliderComponent, DxTagBoxModule, 
+  DxDateBoxModule, DxSelectBoxModule, DxSliderModule, DxTagBoxModule, 
   DxTextBoxModule, DxGalleryModule } from 'devextreme-angular';
 
 @NgModule({
@@ -22,11 +23,12 @@ import { DxButtonModule,DxPopupModule,DxDropDownBoxModule,DxListModule,DxFileUpl
   imports: [
     BrowserModule,
     CommonModule,
-    DxDateBoxModule,DxButtonModule,DxTagBoxModule,DxSliderComponent,DxPopupModule,
+    DxDateBoxModule,DxButtonModule,DxTagBoxModule,DxSliderModule,DxPopupModule,
     DxSelectBoxModule,DxGalleryModule,DxFileUploaderModule,DxDropDownBoxModule,
     DxTextBoxModule,DxListModule,
     FormsModule,
     ReactiveFormsModule,
+    HttpClientModule  
     // any other modules you need
   ],
   providers: [],

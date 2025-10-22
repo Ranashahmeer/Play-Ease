@@ -17,6 +17,8 @@
 <!-- Show username + Logout if logged in -->
 <div *ngIf="isLoggedIn" class="logged-in-menu">
   <span>Welcome, {{ loggedInUser?.fullName || 'User' }}</span>
+  <button class="logout" (click)="logout()">Logout</button>
+
   <!-- <button mat-button (click)="logout()">Logout</button> -->
 </div>
 

@@ -6,7 +6,8 @@
         <section class="hero">
           <h1>Welcome to <span>PlayEase</span>!</h1>
           <p>Book your favorite sports facilities in just a few clicks!</p>
-          <button class="cta-btn" (click)="openLoginPopup()">Get Started</button>
+          <button class="get-started-btn" (click)="getStarted()"[disabled]="isLoggedIn">Get Started</button>
+
 
         </section>
 

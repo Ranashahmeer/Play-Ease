@@ -1,4 +1,6 @@
 import { Component, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
+import { Inject, PLATFORM_ID } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
@@ -16,15 +18,24 @@ import { MatIconModule } from '@angular/material/icon';
 })
 export class HomeComponent {
   isLoggedIn = false;
+  isBrowser = false;
 
-  constructor(private router: Router, private dialog: MatDialog) {}
+  constructor(private router: Router, private dialog: MatDialog,@Inject(PLATFORM_ID) private platformId: Object) {}
   
   ngOnInit() {
-    this.isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
-  }
+    this.isBrowser = isPlatformBrowser(this.platformId);
+
+    if (this.isBrowser && typeof localStorage !== 'undefined') {
+      const storedValue = localStorage.getItem('isLoggedIn');
+      this.isLoggedIn = storedValue === 'true';
+    } else {
+      this.isLoggedIn = false;
+    }
+}
   // ✅ Opens the same login popup as navbar
   openLoginPopup() {
-  // 🛑 Prevent opening multiple dialogs
+  if (!this.isBrowser) return;
+    // 🛑 Prevent opening multiple dialogs
   if (this.dialog.openDialogs.length > 0) return;
 
   document.body.classList.add('modal-open');
@@ -54,11 +65,13 @@ export class HomeComponent {
 
   // (optional scroll controls if you still use features section)
   scrollLeft() {
+    if (!this.isBrowser) return;
     const container = document.querySelector('.features') as HTMLElement;
     if (container) container.scrollBy({ left: -260, behavior: 'smooth' });
+    
   }
-
   scrollRight() {
+    if (!this.isBrowser) return;
     const container = document.querySelector('.features') as HTMLElement;
     if (container) container.scrollBy({ left: 260, behavior: 'smooth' });
   }

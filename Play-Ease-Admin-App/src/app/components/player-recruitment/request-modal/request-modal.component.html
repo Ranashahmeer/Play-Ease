@@ -1,0 +1,110 @@
+<div class="modal-overlay active" (click)="onOverlayClick($event)">
+  <div class="modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2 class="modal-title">Request New Members</h2>
+      <button class="btn-close" (click)="closeModal()">&times;</button>
+    </div>
+    <form (ngSubmit)="onSubmit()" #requestForm="ngForm">
+      <div class="form-group">
+        <label class="form-label">Match Name *</label>
+        <input 
+          type="text" 
+          class="form-input" 
+          [(ngModel)]="matchName"
+          name="matchName"
+          required 
+          placeholder="e.g., Saturday Morning Football">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Location *</label>
+        <input 
+          type="text" 
+          class="form-input" 
+          [(ngModel)]="location"
+          name="location"
+          required 
+          placeholder="e.g., Greenfield Park">
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Date *</label>
+          <input 
+            type="date" 
+            class="form-input" 
+            [(ngModel)]="matchDate"
+            name="matchDate"
+            [min]="minDate"
+            required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Number of Players *</label>
+          <input 
+            type="number" 
+            class="form-input" 
+            [(ngModel)]="numPlayers"
+            name="numPlayers"
+            required 
+            min="1" 
+            placeholder="e.g., 3">
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Start Time *</label>
+          <input 
+            type="time" 
+            class="form-input" 
+            [(ngModel)]="startTime"
+            name="startTime"
+            required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">End Time *</label>
+          <input 
+            type="time" 
+            class="form-input" 
+            [(ngModel)]="endTime"
+            name="endTime"
+            required>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Player Roles Required *</label>
+        <input 
+          type="text" 
+          class="form-input" 
+          [(ngModel)]="roles"
+          name="roles"
+          required 
+          placeholder="e.g., Forward, Midfielder, Goalkeeper">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Contribution Price (PKR) *</label>
+        <input 
+          type="number" 
+          class="form-input" 
+          [(ngModel)]="price"
+          name="price"
+          required 
+          min="0" 
+          placeholder="e.g., 500">
+      </div>
+
+      <button 
+        type="submit" 
+        class="btn-submit"
+        [disabled]="!requestForm.form.valid">
+        Post Request
+      </button>
+    </form>
+  </div>
+</div>
+
+<div class="notification" [class.active]="showNotification">
+  <p class="notification-text">{{ notificationText }}</p>
+</div>

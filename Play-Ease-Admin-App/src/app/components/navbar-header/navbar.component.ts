@@ -1,4 +1,5 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, Inject, PLATFORM_ID } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { Router } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
 import { LoginComponent } from '../login/login.component';
@@ -17,21 +18,24 @@ export class NavbarComponent implements OnInit {
   isLoggedIn = false;
   loggedInUser: any = null;
 
-  constructor(private router: Router, private dialog: MatDialog) {}
+  constructor(private router: Router, private dialog: MatDialog,@Inject(PLATFORM_ID) private platformId: Object) {}
 
   ngOnInit(): void {
-    this.checkLoginStatus();
+    if (isPlatformBrowser(this.platformId)) {
+      this.checkLoginStatus();
 
     // 🔹 Also listen to localStorage changes (if user logs in from popup)
-    window.addEventListener('storage', () => this.checkLoginStatus());
+      window.addEventListener('storage', () => this.checkLoginStatus());
+    }
   }
-
   // 🔹 Check login status
   checkLoginStatus() {
-    this.isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
-    this.loggedInUser = this.isLoggedIn
-      ? JSON.parse(localStorage.getItem('loggedInUser') || '{}')
-      : null;
+    if (isPlatformBrowser(this.platformId)) {
+      this.isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
+      this.loggedInUser = this.isLoggedIn
+        ? JSON.parse(localStorage.getItem('loggedInUser') || '{}')
+        : null;
+    }
   }
 
   // 🔹 Open Login Popup

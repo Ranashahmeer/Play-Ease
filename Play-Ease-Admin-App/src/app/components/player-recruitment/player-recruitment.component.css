@@ -1,0 +1,98 @@
+/* Animated Background */
+.bg-animation {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+  overflow: hidden;
+  background: linear-gradient(135deg, #f0fdf4 0%, #ffffff 50%, #f0f9ff 100%);
+}
+
+.football {
+  position: absolute;
+  width: 40px;
+  height: 40px;
+  opacity: 0.25;
+  animation: float 20s infinite ease-in-out;
+}
+
+.football:nth-child(3) { top: 10%; left: 10%; animation-delay: 0s; animation-duration: 25s; }
+.football:nth-child(4) { top: 60%; left: 80%; animation-delay: 5s; animation-duration: 30s; }
+.football:nth-child(5) { top: 80%; left: 20%; animation-delay: 10s; animation-duration: 22s; }
+.football:nth-child(6) { top: 30%; left: 70%; animation-delay: 15s; animation-duration: 28s; }
+.football:nth-child(7) { top: 50%; left: 50%; animation-delay: 8s; animation-duration: 26s; }
+.football:nth-child(8) { top: 20%; left: 40%; animation-delay: 12s; animation-duration: 24s; }
+
+@keyframes float {
+  0%, 100% { transform: translate(0, 0) rotate(0deg); }
+  25% { transform: translate(30px, -30px) rotate(90deg); }
+  50% { transform: translate(-20px, 20px) rotate(180deg); }
+  75% { transform: translate(40px, 10px) rotate(270deg); }
+}
+
+.wave {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 200%;
+  height: 150px;
+  background: linear-gradient(90deg, 
+    rgba(0, 69, 38, 0.03) 0%, 
+    rgba(0, 107, 61, 0.05) 50%, 
+    rgba(0, 69, 38, 0.03) 100%);
+  animation: wave 15s linear infinite;
+}
+
+.wave:nth-child(2) {
+  bottom: 10px;
+  opacity: 0.5;
+  animation-duration: 18s;
+  animation-direction: reverse;
+}
+
+@keyframes wave {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  padding-left: 80px;
+  padding-right: 120px;
+  margin-top: 0 !important; /* remove large top spacing */
+  padding-top: 10px; /* control small spacing */
+}
+
+.recruitment-page {
+  min-height: 100vh;
+  padding-top: 10px;
+  padding-bottom: 60px;
+}
+
+.page-title {
+  font-size: 42px;
+  font-weight: 900;
+  color: #1a1a1a;
+  margin: 0;
+}
+
+.btn-make-request {
+  padding: 14px 32px;
+  background: linear-gradient(135deg, #004526 0%, #006b3d 100%);
+  border: none;
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 16px;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: all 0.3s;
+  margin: 0;
+}
+
+.btn-make-request:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 69, 38, 0.5);
+}

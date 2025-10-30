@@ -1,6 +1,6 @@
 import { Routes } from '@angular/router';
 import { BookingsComponent } from './components/bookings/bookings.component';
-
+import { PlayerRecruitmentComponent } from './components/player-recruitment/player-recruitment.component';
 import { SelectedCourtComponent } from './components/selected-court/selected-court.component';
 import { NextBookingsComponent } from './components/next-bookings/next-bookings.component';
 
@@ -15,5 +15,5 @@ export const serverRoutes: Routes = [
   { path: 'book-now', component: BookingsComponent },
   { path: 'next-page', component: NextBookingsComponent },
   { path: 'court/:name', component: SelectedCourtComponent },
-
+  { path: 'player-recruitment', component: PlayerRecruitmentComponent },
 ];

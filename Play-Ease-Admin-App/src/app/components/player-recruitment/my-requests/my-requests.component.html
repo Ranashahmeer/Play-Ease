@@ -1,0 +1,110 @@
+<section class="my-requests-section">
+  <h2 class="section-title">My Requests</h2>
+  <p class="section-subtitle">View and manage applicants for your posted match requests</p>
+
+  <div id="myRequestsList">
+    <article 
+      class="request-card" 
+      *ngFor="let request of requests"
+      [attr.data-match-date]="request.date"
+      [attr.data-match-time]="request.endTime">
+      <header class="request-header">
+        <h3 class="request-title">{{ request.title }}</h3>
+        <span class="request-badge">{{ getApplicantCount(request) }}</span>
+      </header>
+      <div class="request-details">
+        <div class="detail-item">
+          <svg class="icon" viewBox="0 0 24 24">
+            <path d="M19 4h-1V2h-2v2H8V2H6v2H5a2 2 0 00-2 2v12a2 2 0 002 2h14a2 2 0 002-2V6a2 2 0 00-2-2zm0 14H5V10h14z" fill="currentColor"></path>
+          </svg>
+          {{ formatDate(request.date) }}
+        </div>
+        <div class="detail-item">
+          <svg class="icon" viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" fill="none"></circle>
+            <path d="M12 6v6l4 2" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"></path>
+          </svg>
+          {{ formatTime(request.startTime) }} - {{ formatTime(request.endTime) }}
+        </div>
+        <div class="detail-item">
+          <svg class="icon" viewBox="0 0 24 24">
+            <path d="M12 2a7 7 0 017 7c0 5-7 13-7 13S5 14 5 9a7 7 0 017-7z" fill="currentColor"></path>
+          </svg>
+          {{ request.location }}
+        </div>
+        <div class="detail-item">
+          <svg class="icon" viewBox="0 0 24 24">
+            <path d="M12 2a5 5 0 1 1-5 5 5 5 0 0 1 5-5Zm0 9a9 9 0 0 1 9 9v1H3v-1a9 9 0 0 1 9-9Z" fill="currentColor"></path>
+          </svg>
+          {{ request.roles }}
+        </div>
+        <div class="detail-item">
+          <svg class="icon" viewBox="0 0 24 24">
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1.41 16.09V20h-2.67v-1.93c-1.71-.36-3.16-1.46-3.27-3.4h1.96c.1 1.05.82 1.87 2.65 1.87 1.96 0 2.4-.98 2.4-1.59 0-.83-.44-1.61-2.67-2.14-2.48-.6-4.18-1.62-4.18-3.67 0-1.72 1.39-2.84 3.11-3.21V4h2.67v1.95c1.86.45 2.79 1.86 2.85 3.39H14.3c-.05-1.11-.64-1.87-2.22-1.87-1.5 0-2.4.68-2.4 1.64 0 .84.65 1.39 2.67 1.91s4.18 1.39 4.18 3.91c-.01 1.83-1.38 2.83-3.12 3.16z" fill="currentColor"></path>
+          </svg>
+          PKR {{ request.price }}
+        </div>
+      </div>
+
+      <div class="applicants-list" *ngIf="request.applicants && request.applicants.length > 0">
+        <div class="applicant-item" *ngFor="let applicant of request.applicants">
+          <div class="applicant-info">
+            <span class="applicant-name">{{ applicant.userName }}</span>
+            <span class="applicant-position">{{ applicant.role }}</span>
+          </div>
+          <div class="applicant-actions">
+            <button 
+              class="btn-accept"
+              [class.accepted]="applicant.status === 'accepted'"
+              [disabled]="applicant.status !== 'pending'"
+              (click)="acceptApplicant(request, applicant)">
+              {{ applicant.status === 'accepted' ? 'Accepted' : 'Accept' }}
+            </button>
+            <button 
+              class="btn-reject"
+              [class.rejected]="applicant.status === 'rejected'"
+              [disabled]="applicant.status !== 'pending'"
+              (click)="rejectApplicant(request, applicant)">
+              {{ applicant.status === 'rejected' ? 'Rejected' : 'Reject' }}
+            </button>
+            <button 
+              class="btn-chat"
+              [class.active]="applicant.status === 'accepted'"
+              (click)="startChat(applicant.userName, applicant.role)">
+              Chat
+            </button>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <div class="empty-state" *ngIf="requests.length === 0">
+      You haven't posted any match requests yet.
+    </div>
+  </div>
+</section>
+
+<!-- Chat Popup -->
+<div class="chat-popup" [class.active]="showChat">
+  <div class="chat-header">
+    <div>Chat with {{ currentChatApplicant }}</div>
+    <button class="btn-close" (click)="closeChat()">&times;</button>
+  </div>
+  <div class="chat-messages">
+    <div 
+      class="chat-message"
+      [class.system]="message.type === 'system'"
+      [class.you]="message.type === 'you'"
+      [class.them]="message.type === 'them'"
+      *ngFor="let message of chatMessages">
+      {{ message.text }}
+    </div>
+  </div>
+  <div class="chat-input">
+    <input 
+      [(ngModel)]="chatInput"
+      (keypress)="handleChatKeyPress($event)"
+      placeholder="Type a message..."/>
+    <button class="chat-send-btn" (click)="sendMessage()">Send</button>
+  </div>
+</div>

@@ -8,6 +8,11 @@ import { LoginComponent } from './components/login/login.component';  // Import 
 import { NavbarComponent } from './components/navbar-header/navbar.component';  // Import NavbarComponent
 import { BookingsComponent } from './components/bookings/bookings.component';
 import { NextBookingsComponent } from './components/next-bookings/next-bookings.component';
+import { PlayerRecruitmentComponent } from './components/player-recruitment/player-recruitment.component';
+import { RequestModalComponent } from './components/player-recruitment/request-modal/request-modal.component';
+import { AvailableRequestsComponent } from './components/player-recruitment/available-requests/available-requests.component';
+import { MyRequestsComponent } from './components/player-recruitment/my-requests/my-requests.component';
+
 import { DxButtonModule,DxPopupModule,DxDropDownBoxModule,DxListModule,DxFileUploaderModule, 
   DxDateBoxModule, DxSelectBoxModule, DxSliderModule, DxTagBoxModule, 
   DxTextBoxModule, DxGalleryModule } from 'devextreme-angular';
@@ -18,7 +23,11 @@ import { DxButtonModule,DxPopupModule,DxDropDownBoxModule,DxListModule,DxFileUpl
     LoginComponent,  // Declare LoginComponent here
     NavbarComponent, // Declare NavbarComponent here
     BookingsComponent, 
-    NextBookingsComponent
+    NextBookingsComponent,
+    PlayerRecruitmentComponent,
+    RequestModalComponent,
+    AvailableRequestsComponent,
+    MyRequestsComponent
   ],
   imports: [
     BrowserModule,

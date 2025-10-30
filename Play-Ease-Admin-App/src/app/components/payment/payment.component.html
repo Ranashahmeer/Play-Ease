@@ -1,0 +1,72 @@
+<dx-popup
+  [(visible)]="paymentPopupVisible"
+  [showTitle]="false"
+  [width]="520"
+  [height]="'auto'"
+  [dragEnabled]="false"
+>
+  <div *dxTemplate="let data of 'content'">
+    <div class="payment-header">
+      <button class="back-arrow" (click)="goBackToBooking()" title="Back to booking">◀</button>
+      <div class="payment-title">
+        <div class="payment-title-text">Payment Review</div>
+        <div class="reservation-line" *ngIf="reservationExpiresAt && !reservationExpired">
+          <small>Reservation active — pay within <strong>{{ reservationRemaining }}</strong></small>
+        </div>
+        <div class="reservation-expired" *ngIf="reservationExpired">
+          <small style="color:#b00020">Reservation expired — please go back and re-select slots.</small>
+        </div>
+      </div>
+    </div>
+
+    <div style="padding: 16px; max-height: 75vh; overflow:auto;">
+      <h4>Bill Summary</h4>
+      <div class="bill-row"><strong>Court:</strong> {{ selectedCourt?.name }}</div>
+      <div class="bill-row"><strong>Pitch:</strong> {{ selectedPitchSize }}</div>
+      <div class="bill-row"><strong>Date:</strong> {{ toKey(selectedBookingDate) }}</div>
+      <div class="bill-row"><strong>Time:</strong> {{ selectedBookingTime }}</div>
+      <div class="bill-row"><strong>Duration:</strong> {{ form.get('matchDuration')?.value }} mins</div>
+      <div class="bill-row"><strong>Amount:</strong> Rs {{ getComputedPrice() }}</div>
+
+      <hr>
+
+      <h4>Payment Options</h4>
+
+      <div class="payment-method">
+        <div *ngIf="ownerPaymentMethods?.length">
+          <h3 class="font-bold">Payment Methods</h3>
+          <div *ngFor="let method of ownerPaymentMethods" class="mb-2">
+            <p><strong>{{ method.MethodName }}</strong></p>
+            <p>Account Title: {{ method.AccountTitle }}</p>
+            <p>Account Number: {{ method.AccountNumber }}</p>
+            <p *ngIf="method.BankName">Bank: {{ method.BankName }}</p>
+            <hr>
+          </div>
+        </div>
+      </div>
+
+      <hr>
+
+      <h4 style="margin-bottom:6px;">Upload Payment Proof (JPG / PNG) *</h4>
+      <ng-container *ngIf="isBrowser">
+        <dx-file-uploader
+          [accept]="'image/png,image/jpeg'"
+          [multiple]="false"
+          (onValueChanged)="onFileUpload($event)">
+        </dx-file-uploader>
+      </ng-container>
+      <div *ngIf="paymentProofPreviewUrl" style="margin-top:10px;">
+        <p style="margin:4px 0 6px;"><strong>Preview</strong></p>
+        <img [src]="paymentProofPreviewUrl" alt="payment proof" style="max-width:100%; border-radius:6px; border:1px solid #eee;">
+      </div>
+
+      <div style="display:flex; gap:8px; margin-top:14px;">
+        <dx-button text="Cancel" (onClick)="closePaymentPopup()"></dx-button>
+        <dx-button text="Submit Payment Proof" type="success" stylingMode="contained"
+          (onClick)="submitPaymentProof()"
+          [disabled]="!paymentProofFile || reservationExpired">
+        </dx-button>
+      </div>
+    </div>
+  </div>
+</dx-popup>

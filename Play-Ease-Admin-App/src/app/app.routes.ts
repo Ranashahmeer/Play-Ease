@@ -8,6 +8,7 @@ import { ContactUsComponent } from './components/contact-us/contact-us.component
 import { MyAccountComponent } from './components/my-account/my-account.component';
 import { OurServicesComponent } from './components/our-services/our-services.component';
 import { AddCourtComponent } from './components/add-court/add-court.component';
+import { PlayerRecruitmentComponent } from './components/player-recruitment/player-recruitment.component';
 
 import { AuthGuard } from './auth.guard';
 
@@ -28,5 +29,6 @@ export const routes: Routes = [
   { path: 'my-account', component: MyAccountComponent, canActivate: [AuthGuard]  },
   { path: 'our-services', component: OurServicesComponent },
   { path: 'add-court', component: AddCourtComponent },
+  { path: 'player-recruitment', component: PlayerRecruitmentComponent },
   { path: '**', redirectTo: 'dashboard' }, // Fallback route
 ];

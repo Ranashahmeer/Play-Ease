@@ -24,6 +24,7 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
 
 /* Force left brand panel color inside mat dialog */
 .custom-login-dialog .brand-side {
+  
   background: linear-gradient(180deg, #007a33, #00612a) !important;
   color: white !important;
 }

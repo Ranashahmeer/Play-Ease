@@ -46,7 +46,9 @@ export class BookingsComponent {
   onSearch(searchTerm: string) {
     this.courtListRef.filterCourts(searchTerm);
   }
-
+  ngAfterViewInit() {
+    console.log("courtListRef loaded:", this.courtListRef);
+  } 
   toggleFilters() {
     this.filtersOpened = !this.filtersOpened;
   }

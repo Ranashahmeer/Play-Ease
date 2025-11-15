@@ -12,7 +12,7 @@ import { FormGroup, ReactiveFormsModule } from '@angular/forms';
 export class SearchbarComponent {
 
   @Input() form!: FormGroup;
-  @Output() search = new EventEmitter<void>();
+  @Output() search = new EventEmitter<string>();
   @Output() toggleFilters = new EventEmitter<void>();
 
   onSearch() {

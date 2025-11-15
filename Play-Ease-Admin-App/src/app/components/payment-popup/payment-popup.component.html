@@ -1,0 +1,37 @@
+<dx-popup [(visible)]="visible" [width]="520" [height]="'auto'" [showTitle]="false" [dragEnabled]="false">
+  <div *dxTemplate="let data of 'content'">
+    <div class="payment-header">
+      <div class="payment-title">
+        <div class="payment-title-text">Payment Review</div>
+        <div class="reservation-line" *ngIf="!reservationExpired">
+          <small>Reservation active — pay within <strong>{{ reservationRemaining }}</strong></small>
+        </div>
+        <div class="reservation-expired" *ngIf="reservationExpired">
+          <small>Reservation expired — please go back and re-select slots.</small>
+        </div>
+      </div>
+    </div>
+
+    <div style="padding:16px; max-height:75vh; overflow:auto;">
+      <h4>Payment Options</h4>
+      <div *ngFor="let method of ownerPaymentMethods">
+        <p><strong>{{ method.MethodName }}</strong></p>
+        <p>Account Title: {{ method.AccountTitle }}</p>
+        <p>Account Number: {{ method.AccountNumber }}</p>
+        <p *ngIf="method.BankName">Bank: {{ method.BankName }}</p>
+        <hr>
+      </div>
+
+      <dx-file-uploader [accept]="'image/png,image/jpeg'" [multiple]="false" (onValueChanged)="onFileUpload($event)"></dx-file-uploader>
+      <div *ngIf="paymentProofPreviewUrl">
+        <p><strong>Preview</strong></p>
+        <img [src]="paymentProofPreviewUrl" style="max-width:100%; border-radius:6px; border:1px solid #eee;">
+      </div>
+
+      <div style="display:flex; gap:8px; margin-top:14px;">
+        <dx-button text="Cancel" (onClick)="cancel()"></dx-button>
+        <dx-button text="Submit Payment Proof" type="success" [disabled]="!paymentProofFile || reservationExpired" (onClick)="submitPaymentProof()"></dx-button>
+      </div>
+    </div>
+  </div>
+</dx-popup>

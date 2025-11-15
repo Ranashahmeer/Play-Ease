@@ -1,0 +1,51 @@
+.filter-box {
+  position: absolute;
+  top: 50px; /* adjust depending on searchbar */
+  right: 20px;
+  width: 320px;
+  padding: 20px;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+  z-index: 100;
+  animation: fadeIn 0.25s ease-in-out;
+}
+
+.filter-box h3 {
+  margin-top: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: #333;
+  margin-bottom: 12px;
+}
+
+.filter-box label {
+  display: block;
+  font-weight: 600;
+  font-size: 13px;
+  margin-top: 12px;
+  margin-bottom: 6px;
+  color: #444;
+}
+
+.duration-buttons {
+  display: flex;
+  gap: 8px;
+  margin: 6px 0 12px;
+}
+
+.action-buttons {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 16px;
+  gap: 10px;
+}
+
+.dx-button {
+  width: 100%;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}

@@ -52,6 +52,9 @@ export class HomeComponent {
     document.body.classList.remove('modal-open');
   });
 }
+ openCourtDetails(court: any) {
+    this.router.navigate(['/court-details', court.id]);
+  }
 
   // ✅ For "Get Started" button
   getStarted() {

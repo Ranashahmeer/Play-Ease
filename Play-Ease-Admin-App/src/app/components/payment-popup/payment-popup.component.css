@@ -1,0 +1,98 @@
+.payment-popup-content {
+  padding: 18px;
+  font-family: sans-serif;
+}
+
+/* HEADER */
+.payment-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: linear-gradient(90deg, #dff6e9, #c7ead8);
+  padding: 12px;
+  border-radius: 8px;
+  margin-bottom: 18px;
+}
+
+.back-arrow {
+  border: none;
+  background: transparent;
+  padding: 6px;
+  border-radius: 6px;
+  font-size: 20px;
+  cursor: pointer;
+  color: #1a7f3a;
+  transition: 0.2s ease;
+}
+
+.back-arrow:hover {
+  background: rgba(0,0,0,0.05);
+}
+
+.payment-title-text {
+  font-size: 17px;
+  font-weight: 700;
+  color: #1a632e;
+}
+
+/* BILLING */
+.bill-section {
+  background: #fafafa;
+  border: 1px solid #e2e2e2;
+  padding: 14px;
+  border-radius: 10px;
+  margin-bottom: 22px;
+}
+
+.bill-row {
+  display: flex;
+  justify-content: space-between;
+  margin: 6px 0;
+  font-size: 15px;
+}
+
+.bill-total {
+  font-weight: 700;
+  color: #1a7f3a;
+  font-size: 17px;
+}
+
+/* Payment Methods */
+.payment-method {
+  background: #ffffff;
+  border: 1px solid #dcdcdc;
+  padding: 12px;
+  border-radius: 10px;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.payment-method:hover {
+  background: #f3f3f3;
+}
+
+.payment-method.selected {
+  border-color: #41b783;
+  background: #e9f9f2;
+}
+
+/* PAY BUTTON */
+.pay-button {
+  width: 100%;
+  padding: 14px;
+  border-radius: 10px;
+  border: none;
+  font-weight: 700;
+  background: #41b783;
+  color: white;
+  font-size: 15px;
+  cursor: pointer;
+}
+
+.pay-button:hover {
+  background: #2e8f61;
+}

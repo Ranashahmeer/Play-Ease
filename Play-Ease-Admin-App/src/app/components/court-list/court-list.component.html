@@ -1,0 +1,33 @@
+<div *ngIf="noCourtsMessage && courts.length === 0" class="no-courts-message">
+  {{ noCourtsMessage }}
+</div>
+
+<div *ngIf="!noCourtsMessage && visibleCourts.length === 0" class="no-courts-message">
+  No courts found. Try changing filters or clearing them.
+</div>
+
+<div class="courts-wrapper">
+  <div class="court-card" *ngFor="let court of visibleCourts" (click)="openCourt(court)">
+    <img [src]="court.image" alt="Court Image" />
+    <div class="court-info">
+      <h4>{{ court.name }}</h4>
+      <p>{{ court.location }}</p>
+      <p>Rating: {{ court.rating }}</p>
+      <p class="price-tag">Booking price: Rs {{ court.minPrice }}</p>
+
+      <!-- New Attributes
+      <p><strong>Available Dates:</strong> {{ court.availableDates?.join(', ') || 'N/A' }}</p>
+      <p><strong>Time Slots:</strong> {{ court.availableTimes?.join(', ') || 'N/A' }}</p>
+      <p><strong>Match Durations:</strong> {{ court.matchDurations?.join(', ') || 'N/A' }} mins</p>
+      <p><strong>Pitch Sizes:</strong> {{ court.pitchSizes?.join(', ') || 'N/A' }}</p>
+      <p><strong>Distance:</strong> {{ court.distance || 'N/A' }} km</p> -->
+
+      <p class="hours-line"><strong>Hours:</strong> {{ court.openingTime }} — {{ court.closingTime }}</p>
+    </div>
+  </div>
+</div>
+
+<div style="display:flex; gap:10px; margin-top:20px;">
+  <button class="next-button" (click)="prevPage()" *ngIf="currentPage > 1">Previous</button>
+  <button class="next-button" (click)="nextPage()" *ngIf="hasNextPage()">Next</button>
+</div>

@@ -1,0 +1,42 @@
+<div class="bookings-container" *ngIf="courtDetails">
+  <h2>{{ courtDetails.name }}</h2>
+  <p>{{ courtDetails.location }} | Rating: {{ courtDetails.rating }}</p>
+
+  <!-- Gallery -->
+  <dx-gallery [dataSource]="courtDetails.galleryImages" [height]="260"></dx-gallery>
+
+  <!-- Duration buttons -->
+  <div class="popup-duration-buttons">
+    <dx-button text="60 mins" [type]="form.get('matchDuration')?.value===60?'success':'default'" (onClick)="form.patchValue({matchDuration:60}); recomputeAvailability()"></dx-button>
+    <dx-button text="90 mins" [type]="form.get('matchDuration')?.value===90?'success':'default'" (onClick)="form.patchValue({matchDuration:90}); recomputeAvailability()"></dx-button>
+    <dx-button text="120 mins" [type]="form.get('matchDuration')?.value===120?'success':'default'" (onClick)="form.patchValue({matchDuration:120}); recomputeAvailability()"></dx-button>
+  </div>
+
+  <!-- Pitch buttons -->
+  <div class="pitch-buttons-row">
+    <dx-button *ngFor="let p of courtDetails.pitches"
+      [text]="p.pitchtype"
+      [type]="selectedPitchSize===p.pitchtype?'success':'default'"
+      (onClick)="selectPitch(p)">
+    </dx-button>
+  </div>
+
+  <!-- Date & Time -->
+  <dx-date-box [value]="selectedBookingDate" type="date" (onValueChanged)="onBookingDateChanged($event)"></dx-date-box>
+  <dx-drop-down-box [dataSource]="timeSlotItems" [value]="selectedBookingTime" displayExpr="text" valueExpr="text">
+    <div *dxTemplate="let dd of 'content'">
+      <dx-list [dataSource]="timeSlotItems" (onItemClick)="onTimeItemClick($event, ddBox)">
+        <div *dxTemplate="let item of 'item'">{{ item.text }}</div>
+      </dx-list>
+    </div>
+  </dx-drop-down-box>
+
+  <p *ngIf="bookedForDay.length>0"><em>Booked for {{ selectedBookingDate | date:'shortDate' }}:</em> {{ bookedForDay.join(', ') }}</p>
+  <p *ngIf="allSlotsDisabled" style="color:#d32f2f;">No time slots available for this date.</p>
+
+  <h3>Total Price: Rs {{ getComputedPrice() }}</h3>
+
+  <dx-button text="Proceed to Payment" type="success" (onClick)="proceedToPayment()"></dx-button>
+</div>
+
+<app-payment-popup [(visible)]="paymentPopupVisible"></app-payment-popup>

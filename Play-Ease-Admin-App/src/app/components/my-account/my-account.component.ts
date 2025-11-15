@@ -95,9 +95,9 @@ console.log("Admin")
         const data = Array.isArray(apiData) ? apiData : [];
         if (!data.length) return;
 
-        // Fill user info (from first record)
-        const first = data[0];
-        this.user = {
+        //Fill user info (from first record)
+         const first = data[0];
+         this.user = {
           name: first.FullName,
           age: 28, // you can extend API to send age if available
           contact: first.Phone,
@@ -168,7 +168,7 @@ lodeOwnerData() {
     },
     error: err => {
       console.error("Error fetching owner data:", err);
-    }
+    }   
   });
 }
 

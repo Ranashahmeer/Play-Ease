@@ -1,11 +1,12 @@
  :root {
-  --left-green: #007a33;
-  --left-green-2: #00612a;
+  --left-green:  #004526;
+  --left-green-2: #006b3d;
   --muted: #53645f;
   --bg-white: #ffffff;
   --card-shadow: 0 20px 40px rgba(12,30,24,0.06);
   --radius: 12px;
   --max-w: 780px;
+   background: linear-gradient(135deg, #004526 0%, #006b3d 100%); 
 }
 
 /* popup container */
@@ -29,7 +30,8 @@
 /* brand side */
 .brand-side {
   padding: 34px 22px;
-  background: linear-gradient(180deg, var(--left-green), var(--left-green-2));
+  
+  background: linear-gradient(90deg, var(--left-green), var(--left-green-2)); 
   color: #fff;
   display: flex;
   flex-direction: column;
@@ -93,7 +95,7 @@
 
 /* form layout */
 .form { width: 100%; box-sizing: border-box; }
-.input-group { margin-bottom: 12px; text-align: left; }
+.input-group { width: 100%;margin-bottom: 12px; text-align: left;box-sizing: border-box; }
 label { display: block; margin-bottom: 6px; font-weight: 600; font-size: 13px; color: #33403d; }
 .input-row { display: flex; gap: 12px; }
 .input-group.small { flex: 1; }
@@ -104,6 +106,7 @@ input, select {
   border: 1px solid #76faa2;
   font-size: 14px;
   background: #fff;
+   box-sizing: border-box;  
   transition: border 0.12s, box-shadow 0.12s;
 }
 input:focus, select:focus {
@@ -131,17 +134,21 @@ input:focus, select:focus {
   border-radius: 10px;
   cursor: pointer;
   font-weight: 700;
-  color: #2c7a3b;
-  background: transparent;
+         /* light grey background */
+  border: 1px solid #d0d0d0;
+  color: #004526;
+  background: transparent; 
   transition: background .12s, color .12s, transform .08s;
   user-select: none;
 }
 .seg-item:hover { transform: translateY(-3px); }
 .active-role {
   background: linear-gradient(180deg, var(--left-green), var(--left-green-2));
-  color: #141313 !important;
+ /* color: #141313 !important; */
+ color: #fff !important;
+   
   transform: translateY(-2px);
-  box-shadow: 0 8px 18px rgba(0,122,51,0.12);
+  box-shadow: 0 8px 18pxrgba(0, 69, 38, 0.5);
 }
 
 /* error text */
@@ -165,7 +172,7 @@ input:focus, select:focus {
   opacity: 0.6;
   cursor: not-allowed;
 }
-.btn-green { background: linear-gradient(180deg, #00b341, #00832c); color: #fff; }
+.btn-green { background: linear-gradient(180deg,var(--left-green), var(--left-green-2)); color: #fff; }
 
 /* responsive */
 @media (max-width: 860px) {
@@ -189,4 +196,6 @@ input:focus, select:focus {
   align-items: center;
   justify-content: center;
   z-index: 1000;
+  --left-green:  #004526;
+  --left-green-2: #006b3d;
 }

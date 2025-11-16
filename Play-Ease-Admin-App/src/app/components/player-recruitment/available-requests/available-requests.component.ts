@@ -1,6 +1,7 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { GetDatabyDatasourceService } from '../../../services/get-data/get-databy-datasource.service';
 
 export interface MatchRequest {
   id: number;
@@ -26,7 +27,13 @@ export interface MatchRequest {
 })
 export class AvailableRequestsComponent {
   @Input() requests: MatchRequest[] = [];
-  @Output() applicationSubmitted = new EventEmitter<{ matchId: number; role: string }>();
+ @Output() applicationSubmitted = new EventEmitter<{
+  matchId: number;
+  userId: number;
+  userName: string;
+  role: string;
+}>();
+
 
   showRoleModal = false;
   selectedMatch: MatchRequest | null = null;
@@ -34,6 +41,52 @@ export class AvailableRequestsComponent {
   appliedRequests = new Set<number>();
   showNotification = false;
   notificationText = '';
+  userId!: number;
+  fullname: any;
+  constructor( private getDataService: GetDatabyDatasourceService) {}
+
+  ngOnInit(): void {
+    this.matchesData()
+    const saved = localStorage.getItem('loggedInUser');
+    if (saved) {
+      try {
+        const p = JSON.parse(saved);
+        this.fullname=p.fullName
+      } catch {}
+    }
+  }
+
+
+  matchesData(): void {
+  this.getDataService.getData(7, '').subscribe({
+    next: (apiData: any[] | null | undefined) => {
+      const data = Array.isArray(apiData) ? apiData : [];
+      if (!data.length) return;
+      // Map API data to MatchRequest interface
+      this.requests = data.map(item => ({
+      id: item.Id ?? 0,
+      title: item.Title ?? 'Untitled Match',
+      date: item.Date ?? '',
+      startTime: item.StartTime ?? '',
+      endTime: item.EndTime ?? '',
+      location: item.Location ?? '',
+      roles: item.Roles ?? '',
+      numPlayers: item.NumPlayers ?? 0,
+      price: item.Price ?? 0,
+      organizer: item.Organizer ?? 'Unknown',
+      organizerId: item.OrganizerId ?? 0,
+      isOwn: item.OrganizerId === this.userId,
+      createdAt: item.CreatedAt ?? ''
+}));
+    },
+    error: err => {
+      console.error('Error fetching match data:', err);
+    }
+  });
+}
+
+
+
 
   applyToRequest(request: MatchRequest): void {
     this.selectedMatch = request;
@@ -51,9 +104,12 @@ export class AvailableRequestsComponent {
     if (this.selectedMatch) {
       this.appliedRequests.add(this.selectedMatch.id);
       this.applicationSubmitted.emit({
-        matchId: this.selectedMatch.id,
-        role: role
-      });
+      matchId: this.selectedMatch.id,
+      userId: this.userId,
+      userName: this.fullname,  // We'll define it below
+      role: role
+    });
+
       this.closeRoleModal();
       this.displayNotification(`Application submitted for ${role} position!`);
     }

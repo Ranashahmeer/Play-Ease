@@ -11,6 +11,7 @@ import { MatchService, Applicant , CreateMatchDto } from '../../services/match.s
 
 // Use the service interfaces directly - no need to redefine them
 import { MatchRequest } from '../../services/match.service';
+import { GetDatabyDatasourceService } from '../../services/get-data/get-databy-datasource.service';
 
 export interface MyRequest extends MatchRequest {
   applicants: Applicant[];
@@ -41,16 +42,16 @@ export class PlayerRecruitmentComponent implements OnInit, OnDestroy {
   // Current logged-in user info
   currentUserId: number = 0;
   currentUserName: string = '';
+  userId: any;
 
   constructor(
     private matchService: MatchService,
-    private authService: AuthService  // ✅ Inject AuthService
+    private authService: AuthService ,private getDataService: GetDatabyDatasourceService // ✅ Inject AuthService
   ) {}
 
   async ngOnInit(): Promise<void> {
   // ✅ Wait until user info is set before loading requests
   await this.initializeUser();
-  console.log('✅ User initialized:', this.currentUserId, this.currentUserName);
 
   this.loadAllRequests();
 
@@ -72,7 +73,6 @@ export class PlayerRecruitmentComponent implements OnInit, OnDestroy {
     this.currentUserId = this.authService.getUserId();
     this.currentUserName = this.authService.getUserName();
     
-    console.log('Current User:', this.currentUserId, this.currentUserName);
     
     // Fallback to old storage if AuthService returns 0
     if (this.currentUserId === 0) {
@@ -104,23 +104,44 @@ private async initializeUser(): Promise<void> {
 
   // Load all requests from backend and filter them
   private loadAllRequests(): void {
-    this.matchService.getAllRequests().subscribe({
-      next: (requests) => {
-        console.log('✅ Loaded requests from backend:', requests);
-        console.log('Current User ID:', this.currentUserId);
-        // Debug: Check each request's organizerId
-      requests.forEach(req => {
-        console.log(`Match "${req.title}" - OrganizerID: ${req.organizerId}, Current User: ${this.currentUserId}, Match: ${req.organizerId === this.currentUserId}`);
-      });
-      
-        this.allRequests = requests;
-        this.filterRequests();
-      },
-      error: (error) => {
-        console.error('❌ Error loading requests:', error);
-      }
-    });
-  }
+  this.getDataService.getData(7, '').subscribe({
+    next: (apiData: any[] | null | undefined) => {
+      const data = Array.isArray(apiData) ? apiData : [];
+      if (!data.length) return;
+
+      // Map API data
+      this.allRequests = data.map(item => ({
+        id: item.Id ?? 0,
+        title: item.Title ?? 'Untitled Match',
+        date: item.Date ?? '',
+        startTime: item.StartTime ?? '',
+        endTime: item.EndTime ?? '',
+        location: item.Location ?? '',
+        roles: item.Roles ?? '',
+        numPlayers: item.NumPlayers ?? 0,
+        price: item.Price ?? 0,
+        organizer: item.Organizer ?? 'Unknown',
+        organizerId: item.OrganizerId ?? 0,
+        isOwn: item.OrganizerId === this.currentUserId,
+        createdAt: item.CreatedAt ?? '',
+        applicants: Array.isArray(item.Applicants) ? item.Applicants.map((a: { id: any; userId: any; userName: any; role: any; status: any; }) => ({
+          id: a.id,
+          userId: a.userId,
+          userName: a.userName,
+          role: a.role,
+          status: a.status
+        })) : []
+      })) as MyRequest[];
+
+      // Filter into available and my requests
+      this.filterRequests();
+    },
+    error: err => {
+      console.error('Error fetching match data:', err);
+    }
+  });
+}
+
 
 private filterRequests(): void {
   // ✅ AVAILABLE REQUESTS: Matches not created by current user
@@ -129,36 +150,12 @@ private filterRequests(): void {
   // ✅ MY REQUESTS: Matches created by current user
   const myRequestsData = this.allRequests.filter((r: any) => r.organizerId === this.currentUserId);
 
-  // ✅ Explicitly type as MyRequest and initialize applicants
-  this.myRequests = myRequestsData.map((r: any) => ({
-    ...(r as MyRequest),
-    applicants: []
-  }));
+// Directly assign myRequests including applicants from API
+this.myRequests = myRequestsData.map(r => r as MyRequest);
 
-  // ✅ Load applicants after a short delay
-  setTimeout(() => {
-    this.myRequests.forEach(r => this.loadApplicantsForRequest(r.id));
-  }, 100);
+// No need to call loadApplicantsForRequest anymore
 
-  console.log('Available Requests:', this.availableRequests);
-  console.log('My Requests:', this.myRequests);
 }
-
-
-  // Load applicants for a specific request
-  private loadApplicantsForRequest(requestId: number): void {
-    this.matchService.getApplicants(requestId).subscribe({
-      next: (applicants: Applicant[]) => {
-        const request = this.myRequests.find(r => r.id === requestId);
-        if (request) {
-          request.applicants = applicants;
-        }
-      },
-      error: (error) => {
-        console.error('Error loading applicants:', error);
-      }
-    });
-  }
 
   openRequestModal(): void {
     if (!this.authService.isLoggedIn()) {

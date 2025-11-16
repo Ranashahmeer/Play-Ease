@@ -1,6 +1,7 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { GetDatabyDatasourceService } from '../../../services/get-data/get-databy-datasource.service';
 
 // Import from parent component which already has the correct types
 export interface MatchRequest {
@@ -45,6 +46,35 @@ export class MyRequestsComponent {
   currentChatApplicant = '';
   chatMessages: { type: string; text: string }[] = [];
   chatInput = '';
+
+constructor( private getDataService: GetDatabyDatasourceService) {}
+
+  ngOnInit(): void {
+    this.getApplicantData();
+  }
+getApplicantData(): void {
+  this.getDataService.getData(8, "").subscribe({
+    next: (apiData: any[]) => {
+      if (!apiData || !apiData.length) return;
+
+      const rawJson = apiData[0]["JSON_F52E2B61-18A1-11d1-B105-00805F49916B"];
+
+      if (!rawJson) {
+        console.error("No JSON returned from SQL");
+        return;
+      }
+
+      // 🚀 Parse real data (matches + applicants)
+      const matches = JSON.parse(rawJson);
+
+      // 🚀 Assign parsed data to your component
+      this.requests = matches;
+    },
+    error: err => console.error("Error:", err)
+  });
+}
+
+
 
   acceptApplicant(request: MyRequest, applicant: Applicant): void {
     this.applicantStatusChanged.emit({

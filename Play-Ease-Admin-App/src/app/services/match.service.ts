@@ -48,43 +48,43 @@ export interface Application {
   providedIn: 'root'
 })
 export class MatchService {
-  private apiUrl = "https://localhost:7267/api";
+  private apiUrl = "http://localhost:5000/api";
 
   constructor(private http: HttpClient) {}
 
   // Get all match requests
   getAllRequests(): Observable<MatchRequest[]> {
-    return this.http.get<MatchRequest[]>(`${this.apiUrl}/Matches`);
+    return this.http.get<MatchRequest[]>(`${this.apiUrl}/Applicants`);
   }
 
   // Get available requests (excluding user's own requests)
   getAvailableRequests(userId: number): Observable<MatchRequest[]> {
-    return this.http.get<MatchRequest[]>(`${this.apiUrl}/Matches/available/${userId}`);
+    return this.http.get<MatchRequest[]>(`${this.apiUrl}/Applicants/available/${userId}`);
   }
 
   // Get user's own requests
   getMyRequests(userId: number): Observable<MatchRequest[]> {
-    return this.http.get<MatchRequest[]>(`${this.apiUrl}/Matches/my/${userId}`);
+    return this.http.get<MatchRequest[]>(`${this.apiUrl}/Applicants/my/${userId}`);
   }
 
   // ✅ FIXED: Create a new match request - accepts CreateMatchDto
   createRequest(request: CreateMatchDto): Observable<MatchRequest> {
-    return this.http.post<MatchRequest>(`${this.apiUrl}/Matches`, request);
+    return this.http.post<MatchRequest>(`${this.apiUrl}/Applicants`, request);
   }
 
   // Get applicants for a specific match
   getApplicants(matchId: number): Observable<Applicant[]> {
-    return this.http.get<Applicant[]>(`${this.apiUrl}/Matches/${matchId}/applicants`);
+    return this.http.get<Applicant[]>(`${this.apiUrl}/Applicants/${matchId}/applicants`);
   }
 
   // Apply to a match
   applyToMatch(application: Application): Observable<any> {
-    return this.http.post(`${this.apiUrl}/Matches/apply`, application);
+    return this.http.post(`${this.apiUrl}/Applicants/apply`, application);
   }
 
   // Update applicant status (accept/reject)
   updateApplicantStatus(data: { requestId: number; applicantId: number; status: string }): Observable<any> {
-    return this.http.put(`${this.apiUrl}/Matches/${data.requestId}/applicants/${data.applicantId}`, {
+    return this.http.put(`${this.apiUrl}/Applicants/${data.requestId}/applicants/${data.applicantId}`, {
       status: data.status
     });
   }

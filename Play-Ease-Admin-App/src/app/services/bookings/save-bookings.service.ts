@@ -7,7 +7,7 @@ import { SaveBookings } from '../../models/setupModels';
   providedIn: 'root'
 })
 export class SaveBookingsService {
-  private baseUrl = 'https://localhost:7267/api/SaveBookings'; 
+  private baseUrl = 'http://localhost:5000/api/SaveBookings'; 
 
   constructor(private http: HttpClient) {}
 

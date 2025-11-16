@@ -1,9 +1,12 @@
 import { Component, EventEmitter, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { RequestPlayerService } from '../../../services/request-player.service';
+import { HttpErrorResponse } from '@angular/common/http';
+
 
 export interface MatchRequest {
-  id: number;
+  // id: number;
   title: string;
   date: string;
   startTime: string;
@@ -15,6 +18,7 @@ export interface MatchRequest {
   organizer: string;
   organizerId: number;
   isOwn?: boolean;
+  createdAt:string;
 }
 
 @Component({
@@ -28,6 +32,8 @@ export class RequestModalComponent {
   @Output() close = new EventEmitter<void>();
   @Output() requestSubmitted = new EventEmitter<MatchRequest>();
 
+  userId?: number;
+  roleId?: number;
   matchName = '';
   location = '';
   matchDate = '';
@@ -39,8 +45,22 @@ export class RequestModalComponent {
   minDate = '';
   showNotification = false;
   notificationText = '';
+  fullname?: string;
 
-  constructor() {
+ ngOnInit(): void {
+    const saved = localStorage.getItem('loggedInUser');
+    if (saved) {
+      try {
+        const p = JSON.parse(saved);
+        this.userId = p.userId;
+        this.fullname=p.fullName
+        this.roleId = p.roleId
+      } catch {}
+    }
+  }
+
+
+  constructor(private requestService: RequestPlayerService) {
     const today = new Date();
     this.minDate = today.toISOString().split('T')[0];
   }
@@ -62,25 +82,37 @@ export class RequestModalComponent {
     }
 
     // ✅ FIXED: Don't send ID, let backend generate it
-    const request: MatchRequest = {
-      id: 0, // Backend will auto-generate
+     const request: MatchRequest = {
       title: this.matchName,
-      date: this.matchDate, // Keep as string, backend will parse
+      date: this.matchDate,
       startTime: this.startTime,
       endTime: this.endTime,
       location: this.location,
       roles: this.roles,
       numPlayers: this.numPlayers,
       price: this.price,
-      organizer: '', // Will be set by parent component
-      organizerId: 0, // Will be set by parent component
-      isOwn: true
+      organizer: this.fullname!,
+      organizerId: this.userId!,
+      createdAt: new Date().toISOString()
     };
 
     console.log('📤 Submitting request from modal:', request);
+        this.requestService.createMatch(request).subscribe({
+      next: (res) => {
+        console.log('✅ Match created successfully:', res);
+        this.displayNotification('Match request posted successfully!');
+        this.resetForm();
+        this.close.emit(); // optional: close modal
+      },
+      error: (err: HttpErrorResponse) => {
+        console.error('❌ Error creating match:', err);
+        this.displayNotification('Error posting match. Please try again.');
+      }
+    });
+
     this.requestSubmitted.emit(request);
-    this.resetForm();
-    this.displayNotification('Match request posted successfully!');
+    // this.resetForm();
+    // this.displayNotification('Match request posted successfully!');
   }
 
   private resetForm(): void {

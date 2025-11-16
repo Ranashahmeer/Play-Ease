@@ -7,7 +7,7 @@ import { CommonModule } from '@angular/common';
   standalone: true,
   imports: [CommonModule,ReactiveFormsModule],
   templateUrl: './filter-drawer.component.html',
-  styleUrl: './filter-drawer.component.css'
+  styleUrls: ['./filter-drawer.component.css']
 })
 export class FilterDrawerComponent {
 

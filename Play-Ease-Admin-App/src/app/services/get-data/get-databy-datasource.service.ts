@@ -6,11 +6,12 @@ import { Observable } from 'rxjs';
   providedIn: 'root'
 })
 export class GetDatabyDatasourceService {
-  private apiUrl = 'http://localhost:5000/api/GetDataFromDatasource/GetDataByDataSource';
+  private apiUrl = 'http://localhost:5105/api/GetDataFromDatasource/GetDataByDataSource';
 
   constructor(private http: HttpClient) {}
 
   getData(dataSourceId: number, whereClause: string = ''): Observable<any> {
+
     const params = new HttpParams()
       .set('dataSourceId', dataSourceId)
       .set('whereClause', whereClause);

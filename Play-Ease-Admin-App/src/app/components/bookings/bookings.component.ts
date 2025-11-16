@@ -57,6 +57,10 @@ export class BookingsComponent {
     console.log('Filters applied', this.form.value);
     this.filtersOpened = false;
     // You can add additional filtering logic here for courtListRef
+    this.courtListRef.filterCourts(
+    this.form.value.searchQuery,
+    this.form.value
+  );
   }
 
   onClearFilters() {

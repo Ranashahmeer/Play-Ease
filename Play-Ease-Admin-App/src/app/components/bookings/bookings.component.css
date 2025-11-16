@@ -23,3 +23,12 @@ app-filter-drawer {
 app-court-list {
   width: 100%;
 }
+
+/* Booking Records component at bottom */
+app-booking-records {
+  width: 100%;
+  max-width: 900px;   /* matches searchbar width */
+  margin: 0 auto;     /* center it */
+  display: block;
+}
+

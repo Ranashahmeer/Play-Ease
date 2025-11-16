@@ -1,0 +1,123 @@
+.right-col {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;   
+  max-width: 420px;     /* spacing between Upcoming / History / empty state */
+}
+
+/* Bookings panels */
+.bookings-panel {
+  background: white;
+  border-radius: 14px;
+  padding: 18px;
+  box-shadow: 0 6px 24px rgba(15,23,42,0.06);
+  transition: all 0.2s ease;
+}
+.bookings-panel:hover {
+  box-shadow: 0 10px 30px rgba(15,23,42,0.1);
+}
+
+/* Booking cards */
+.booking-card {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid #f1f5f9;
+  margin-bottom: 12px;
+  background: linear-gradient(180deg,#fff,#f9fdfb);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.booking-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.05);
+}
+.booking-card .thumb {
+  width: 90px;
+  height: 64px;
+  object-fit: cover;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+}
+.booking-card .info { flex: 1; }
+.booking-card .title {
+  font-weight: 700;
+  margin-bottom: 6px;
+  color: #0f172a;
+}
+.booking-card .meta {
+  color: #6b7280;
+  font-size: 13px;
+}
+.booking-card .actions {
+  text-align: right;
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  align-items:flex-end;
+}
+
+/* Price and status */
+.price { 
+  font-weight: 800; 
+  color: #0f172a; 
+}
+.status.done { 
+  color:#475569; 
+  font-weight:700; 
+}
+
+/* Empty states */
+.empty, .empty-big {
+  text-align:center;
+  color:#6b7280;
+  padding: 20px;
+  font-size: 15px;
+}
+
+/* Courts panel */
+.courts-panel h2 {
+  margin-bottom: 10px;
+  font-size: 20px;
+}
+
+/* Court cards */
+.court-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 10px;
+  border-radius: 10px;
+  background: #fff;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.05);
+  margin-bottom: 10px;
+  transition: transform 0.2s;
+}
+.court-card:hover { transform: translateY(-2px); }
+
+.court-thumb {
+  width: 100px;
+  height: 70px;
+  border-radius: 8px;
+  object-fit: cover;
+}
+
+.court-info { flex: 1; }
+
+.court-name {
+  font-weight: 700;
+  font-size: 16px;
+  margin-bottom: 4px;
+}
+
+.court-meta {
+  font-size: 13px;
+  color: #6b7280;
+}
+
+.court-rating {
+  font-weight: 600;
+  color: #2563eb;
+  margin-top: 6px;
+}

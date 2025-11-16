@@ -5,6 +5,7 @@ import { Router } from '@angular/router';
 import { SearchbarComponent } from '../searchbar/searchbar.component';
 import { FilterDrawerComponent } from '../filter-drawer/filter-drawer.component';
 import { CourtListComponent } from '../court-list/court-list.component';
+import { BookingRecordsComponent } from '../booking-records/booking-records.component';
 
 @Component({
   selector: 'app-bookings',
@@ -14,7 +15,8 @@ import { CourtListComponent } from '../court-list/court-list.component';
     ReactiveFormsModule,
     SearchbarComponent,
     FilterDrawerComponent,
-    CourtListComponent
+    CourtListComponent,
+    BookingRecordsComponent
   ],
   templateUrl: './bookings.component.html',
   styleUrls: ['./bookings.component.css']

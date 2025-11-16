@@ -12,6 +12,7 @@ import { PlayerRecruitmentComponent } from './components/player-recruitment/play
 import { RequestModalComponent } from './components/player-recruitment/request-modal/request-modal.component';
 import { AvailableRequestsComponent } from './components/player-recruitment/available-requests/available-requests.component';
 import { MyRequestsComponent } from './components/player-recruitment/my-requests/my-requests.component';
+import { AdminDashboardComponent } from './components/admin-dashboard/admin-dashboard.component';
 
 import { DxButtonModule,DxPopupModule,DxDropDownBoxModule,DxListModule,DxFileUploaderModule, 
   DxDateBoxModule, DxSelectBoxModule, DxSliderModule, DxTagBoxModule, 
@@ -27,7 +28,8 @@ import { DxButtonModule,DxPopupModule,DxDropDownBoxModule,DxListModule,DxFileUpl
     PlayerRecruitmentComponent,
     RequestModalComponent,
     AvailableRequestsComponent,
-    MyRequestsComponent
+    MyRequestsComponent,
+    AdminDashboardComponent
   ],
   imports: [
     BrowserModule,

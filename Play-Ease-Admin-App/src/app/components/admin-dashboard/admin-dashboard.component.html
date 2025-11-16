@@ -1,0 +1,192 @@
+<div class="bg-animation">
+  <div class="wave"></div>
+  <div class="wave"></div>
+  <svg class="football" viewBox="0 0 100 100" *ngFor="let i of [1,2,3,4,5,6]">
+    <circle cx="50" cy="50" r="45" fill="#006b3d"/>
+    <path d="M50 5 L65 35 L95 35 L70 55 L80 85 L50 65 L20 85 L30 55 L5 35 L35 35 Z" fill="#ffffff"/>
+  </svg>
+</div>
+
+<main class="admin-page">
+  <header class="page-header">
+    <h1 class="page-title">Admin Dashboard</h1>
+  </header>
+
+  <!-- Tabs -->
+  <section class="tabs-section">
+    <div class="tabs-container">
+      <button 
+        class="tab-btn" 
+        [class.active]="activeTab === 'users'"
+        (click)="switchTab('users')">
+        <svg class="tab-icon" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/>
+        </svg>
+        User Management
+      </button>
+      
+      <button 
+        class="tab-btn" 
+        [class.active]="activeTab === 'bookings'"
+        (click)="switchTab('bookings')">
+        <svg class="tab-icon" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zM9 14H7v-2h2v2zm4 0h-2v-2h2v2zm4 0h-2v-2h2v2zm-8 4H7v-2h2v2zm4 0h-2v-2h2v2zm4 0h-2v-2h2v2z"/>
+        </svg>
+        Booking Oversight
+      </button>
+
+      <button 
+        class="tab-btn" 
+        [class.active]="activeTab === 'courts'"
+        (click)="switchTab('courts')">
+        <svg class="tab-icon" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M21 10h-2V4.5C19 3.12 17.88 2 16.5 2S14 3.12 14 4.5V10h-2V7.5C12 6.12 10.88 5 9.5 5S7 6.12 7 7.5V10H5c-1.1 0-2 .9-2 2v9h18v-9c0-1.1-.9-2-2-2z"/>
+        </svg>
+        Upload/Edit Courts
+      </button>
+    </div>
+  </section>
+
+  <!-- Search and Filter Section -->
+  <section class="search-filter-section" *ngIf="activeTab !== 'courts'">
+    <div class="search-box">
+      <svg class="search-icon" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
+      </svg>
+      <input 
+        type="text" 
+        class="search-input" 
+        [(ngModel)]="searchQuery"
+        (ngModelChange)="applyFilters()"
+        placeholder="Search...">
+    </div>
+
+    <select class="filter-select" [(ngModel)]="selectedFilter" (ngModelChange)="applyFilters()">
+      <option value="all">All</option>
+      <option *ngIf="activeTab === 'users'" value="player">Players Only</option>
+      <option *ngIf="activeTab === 'users'" value="courtOwner">Court Owners Only</option>
+      <option *ngIf="activeTab === 'bookings'" value="confirmed">Payment Confirmed</option>
+      <option *ngIf="activeTab === 'bookings'" value="pending">Payment Pending</option>
+      <option *ngIf="activeTab === 'bookings'" value="completed">Completed</option>
+    </select>
+  </section>
+
+  <!-- Users Table -->
+  <section class="content-section" *ngIf="activeTab === 'users'">
+    <h2 class="section-title">User Management</h2>
+    <p class="section-subtitle">Manage players and court owners</p>
+
+    <div class="table-container">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Phone</th>
+            <th>Role</th>
+            <th>Joined Date</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let user of filteredUsers">
+            <td class="user-name">{{ user.name }}</td>
+            <td>{{ user.email }}</td>
+            <td>{{ user.phone }}</td>
+            <td>
+              <span class="badge" [ngClass]="getRoleBadgeClass(user.role)">
+                {{ user.role === 'player' ? 'Player' : 'Court Owner' }}
+              </span>
+            </td>
+            <td>{{ formatDate(user.joinedDate) }}</td>
+            <td>
+              <button 
+                class="btn-action btn-delete"
+                (click)="openDeleteUserModal(user)"
+                title="Delete User">
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
+                </svg>
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="empty-state" *ngIf="filteredUsers.length === 0">
+        No users found.
+      </div>
+    </div>
+  </section>
+
+  <!-- Bookings Table -->
+  <section class="content-section" *ngIf="activeTab === 'bookings'">
+    <h2 class="section-title">Booking Oversight</h2>
+    <p class="section-subtitle">Monitor all court bookings</p>
+
+    <div class="table-container">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Booking ID</th>
+            <th>Court Name</th>
+            <th>Player Name</th>
+            <th>Date</th>
+            <th>Time</th>
+            <th>Price</th>
+            <th>Payment Status</th>
+            <th>Booked On</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let booking of filteredBookings">
+            <td class="booking-id">#{{ booking.id }}</td>
+            <td>{{ booking.courtName }}</td>
+            <td>{{ booking.playerName }}</td>
+            <td>{{ formatDate(booking.date) }}</td>
+            <td>{{ booking.time }}</td>
+            <td class="price-cell">PKR {{ booking.price }}</td>
+            <td>
+              <span class="badge" [ngClass]="getStatusBadgeClass(booking.paymentStatus)">
+                {{ booking.paymentStatus | titlecase }}
+              </span>
+            </td>
+            <td>{{ formatDate(booking.bookedDate) }}</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="empty-state" *ngIf="filteredBookings.length === 0">
+        No bookings found.
+      </div>
+    </div>
+  </section>
+
+  <!-- Courts Management Section -->
+  <section class="content-section courts-section" *ngIf="activeTab === 'courts'">
+    <app-add-court></app-add-court>
+  </section>
+</main>
+
+<!-- Delete User Confirmation Modal -->
+<div class="modal-overlay" [class.active]="showUserDeleteModal" (click)="closeDeleteUserModal()">
+  <div class="modal small-modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2 class="modal-title">Delete User</h2>
+      <button class="btn-close" (click)="closeDeleteUserModal()">&times;</button>
+    </div>
+    <div class="modal-content">
+      <p>Are you sure you want to delete <strong>{{ selectedUser?.name }}</strong>?</p>
+      <p class="warning-text">This action cannot be undone.</p>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" (click)="closeDeleteUserModal()">Cancel</button>
+      <button class="btn-confirm-delete" (click)="confirmDeleteUser()">Delete</button>
+    </div>
+  </div>
+</div>
+
+<!-- Notification -->
+<div class="notification" [class.active]="showNotification">
+  <p class="notification-text">{{ notificationText }}</p>
+</div>

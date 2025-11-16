@@ -1,6 +1,7 @@
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { Component, OnInit, OnDestroy, PLATFORM_ID, Inject } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+
 import {
   DxButtonModule,
   DxFileUploaderModule,
@@ -13,6 +14,8 @@ type Court = {
   id?: string;
   name: string;
   location?: string;
+  ownerName?: string;
+  ownerCnic?: string;
   rating?: number;
   pitches: string[];
   price: number;
@@ -32,7 +35,6 @@ const STORAGE_KEY = 'playease_courts';
   selector: 'app-add-court',
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, DxButtonModule, DxFileUploaderModule, DxPopupModule, DxGalleryModule],
-
   templateUrl: './add-court.component.html',
   styleUrl: './add-court.component.css'
 })
@@ -51,12 +53,20 @@ export class AddCourtComponent {
   popupVisible = false;
   selectedCourt: Court | null = null;
   isBrowser = false;
-  constructor(private fb: FormBuilder,@Inject(PLATFORM_ID) platformId: Object) {  this.isBrowser = isPlatformBrowser(platformId);}
+  
+  constructor(
+    private fb: FormBuilder,
+    @Inject(PLATFORM_ID) platformId: Object
+  ) {
+    this.isBrowser = isPlatformBrowser(platformId);
+  }
 
   ngOnInit(): void {
     this.form = this.fb.group({
       name: ['', Validators.required],
       location: [''],
+      ownerName: ['', Validators.required],
+      ownerCnic: ['', [Validators.required, Validators.pattern(/^\d{5}-\d{7}-\d{1}$/)]],
       openingTime: [''],
       closingTime: [''],
       about: ['']
@@ -102,6 +112,8 @@ export class AddCourtComponent {
         id: this.generateId(),
         name: 'Sample Arena',
         location: 'Gulberg',
+        ownerName: 'Ahmed Khan',
+        ownerCnic: '42101-1234567-1',
         rating: 4.4,
         pitches: ['5x5', '7x7'],
         pricePerPitch: { '5x5': 2000, '7x7': 2500 },
@@ -194,6 +206,8 @@ export class AddCourtComponent {
     this.form.reset({
       name: '',
       location: '',
+      ownerName: '',
+      ownerCnic: '',
       openingTime: '',
       closingTime: '',
       about: ''
@@ -213,6 +227,8 @@ export class AddCourtComponent {
     this.form.patchValue({
       name: c.name,
       location: c.location ?? '',
+      ownerName: c.ownerName ?? '',
+      ownerCnic: c.ownerCnic ?? '',
       openingTime: c.openingTime ?? '',
       closingTime: c.closingTime ?? '',
       about: c.about ?? ''
@@ -228,9 +244,15 @@ export class AddCourtComponent {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  onEditClick(c: Court, ev: any) { try { ev?.event?.stopPropagation?.(); } catch {} this.editCourt(c); }
+  onEditClick(c: Court, ev: any) { 
+    try { ev?.event?.stopPropagation?.(); } catch {} 
+    this.editCourt(c); 
+  }
 
-  onDeleteClick(c: Court, ev: any) { try { ev?.event?.stopPropagation?.(); } catch {} this.deleteCourt(c); }
+  onDeleteClick(c: Court, ev: any) { 
+    try { ev?.event?.stopPropagation?.(); } catch {} 
+    this.deleteCourt(c); 
+  }
 
   deleteCourt(c: Court) {
     if (!c.id) return;
@@ -243,15 +265,27 @@ export class AddCourtComponent {
   saveCourt() {
     this.submitted = true;
     const missing: string[] = [];
-    if (!this.form.value.name || this.form.get('name')?.invalid) missing.push('Name');
-    if (!this.pitches || this.pitches.length === 0) missing.push('At least one pitch (add via "Add pitch")');
+    
+    if (!this.form.value.name || this.form.get('name')?.invalid) 
+      missing.push('Court Name');
+    if (!this.form.value.ownerName || this.form.get('ownerName')?.invalid) 
+      missing.push('Owner Name');
+    if (!this.form.value.ownerCnic || this.form.get('ownerCnic')?.invalid) 
+      missing.push('Owner CNIC (format: xxxxx-xxxxxxx-x)');
+    if (!this.pitches || this.pitches.length === 0) 
+      missing.push('At least one pitch (add via "Add pitch")');
     else {
       for (const p of this.pitches) {
         const v = this.pricePerPitch[p];
-        if (!Number.isFinite(v) || Number.isNaN(v)) missing.push(`Price for pitch "${p}"`);
+        if (!Number.isFinite(v) || Number.isNaN(v)) 
+          missing.push(`Price for pitch "${p}"`);
       }
     }
-    if (missing.length > 0) { alert(`Please fill the following fields before saving:\n• ${missing.join('\n• ')}`); return; }
+    
+    if (missing.length > 0) { 
+      alert(`Please fill the following fields before saving:\n• ${missing.join('\n• ')}`); 
+      return; 
+    }
 
     const cleaned: Record<string, number> = {};
     for (const p of this.pitches) cleaned[p] = Math.round(this.pricePerPitch[p]);
@@ -262,6 +296,8 @@ export class AddCourtComponent {
       id: this.editingId ?? undefined,
       name: this.form.value.name,
       location: this.form.value.location,
+      ownerName: this.form.value.ownerName,
+      ownerCnic: this.form.value.ownerCnic,
       rating: this.editingId ? this.originalRating : undefined,
       pitches: [...this.pitches],
       pricePerPitch: Object.keys(cleaned).length ? cleaned : undefined,
@@ -291,15 +327,24 @@ export class AddCourtComponent {
     this.startCreateNew();
   }
 
-  getPreviewImage(c: Court) { return c.image || (c.images && c.images[0]) || 'assets/placeholder-court.png'; }
+  getPreviewImage(c: Court) { 
+    return c.image || (c.images && c.images[0]) || 'assets/placeholder-court.png'; 
+  }
 
-  openCourtDetails(c: Court) { this.selectedCourt = c; this.popupVisible = true; }
+  openCourtDetails(c: Court) { 
+    this.selectedCourt = c; 
+    this.popupVisible = true; 
+  }
 
-  closePopup() { this.popupVisible = false; this.selectedCourt = null; }
+  closePopup() { 
+    this.popupVisible = false; 
+    this.selectedCourt = null; 
+  }
 
   get galleryImages(): string[] {
     if (!this.selectedCourt) return [];
-    if (this.selectedCourt.images && this.selectedCourt.images.length) return this.selectedCourt.images;
+    if (this.selectedCourt.images && this.selectedCourt.images.length) 
+      return this.selectedCourt.images;
     return this.selectedCourt.image ? [this.selectedCourt.image] : [];
   }
 
@@ -311,6 +356,8 @@ export class AddCourtComponent {
     if (key.includes('shower')) return '🚿';
     if (key.includes('light')) return '💡';
     if (key.includes('change') || key.includes('changing')) return '🧍‍♂️';
+    if (key.includes('water')) return '💧';
+    if (key.includes('cafe') || key.includes('food')) return '☕';
     return '⭐';
   }
 

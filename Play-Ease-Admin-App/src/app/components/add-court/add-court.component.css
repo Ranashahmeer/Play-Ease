@@ -1,117 +1,709 @@
+/* Owner Container */
 .owner-container {
-    display: flex;
-    gap: 20px;
-    padding: 20px;
-    font-family: sans-serif;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 30px;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+/* Form Section */
+.owner-form {
+  background: white;
+  border-radius: 12px;
+  padding: 30px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  height: fit-content;
+  position: sticky;
+  top: 20px;
+}
+
+.owner-form h2 {
+  font-size: 28px;
+  font-weight: 900;
+  color: #1a1a1a;
+  margin-bottom: 24px;
+  border-bottom: 3px solid #004526;
+  padding-bottom: 12px;
+}
+
+.owner-form form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.owner-form label {
+  font-size: 14px;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin-bottom: 6px;
+  display: block;
+}
+
+.owner-form input[type="text"],
+.owner-form input[type="number"],
+.owner-form textarea {
+  width: 100%;
+  padding: 12px 16px;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 15px;
+  font-family: inherit;
+  transition: border-color 0.3s;
+  box-sizing: border-box;
+}
+
+.owner-form input[type="text"]:focus,
+.owner-form input[type="number"]:focus,
+.owner-form textarea:focus {
+  outline: none;
+  border-color: #004526;
+}
+
+.owner-form textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+/* Owner Info Section */
+.owner-info-section {
+  background: rgba(0, 69, 38, 0.05);
+  border-left: 4px solid #004526;
+  padding: 16px;
+  border-radius: 8px;
+  margin: 16px 0;
+}
+
+.owner-info-section label {
+  margin-bottom: 4px;
+}
+
+/* Field Error */
+.field-error {
+  color: #ef4444;
+  font-size: 13px;
+  font-weight: 600;
+  margin-top: 4px;
+}
+
+.page-warning {
+  background: rgba(239, 68, 68, 0.1);
+  border-left: 4px solid #ef4444;
+  padding: 12px 16px;
+  border-radius: 6px;
+  color: #ef4444;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+/* Chips */
+.chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  background: rgba(0, 69, 38, 0.1);
+  color: #004526;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.pitch-chip {
+  background: rgba(37, 99, 235, 0.1);
+  color: #2563eb;
+  padding: 12px 16px;
+  border-radius: 8px;
+  position: relative;
+}
+
+.chip button,
+.remove-pitch-btn {
+  background: transparent;
+  border: none;
+  color: inherit;
+  font-size: 20px;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 0;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: background 0.2s;
+}
+
+.chip button:hover,
+.remove-pitch-btn:hover {
+  background: rgba(0, 0, 0, 0.1);
+}
+
+.invalid-price {
+  border-color: #ef4444 !important;
+}
+
+.price-preview {
+  font-size: 13px;
+  color: #10b981;
+  font-weight: 700;
+}
+
+/* Image Upload */
+.image-preview-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.img-thumb {
+  position: relative;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  overflow: hidden;
+  padding: 8px;
+  background: white;
+}
+
+.img-thumb img {
+  width: 100%;
+  height: 100px;
+  object-fit: cover;
+  border-radius: 6px;
+}
+
+.main-badge {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: linear-gradient(135deg, #004526 0%, #006b3d 100%);
+  color: white;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+/* List Section */
+.owner-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.owner-list h3 {
+  font-size: 24px;
+  font-weight: 900;
+  color: #1a1a1a;
+  margin-bottom: 12px;
+}
+
+.court-card {
+  background: white;
+  border: 2px solid #e0e0e0;
+  border-radius: 12px;
+  overflow: hidden;
+  transition: all 0.3s;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.court-card:hover {
+  border-color: #004526;
+  box-shadow: 0 8px 30px rgba(0, 69, 38, 0.15);
+  transform: translateY(-2px);
+}
+
+.court-card img {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+}
+
+.court-card .info {
+  padding: 20px;
+}
+
+.court-card .info h4 {
+  font-size: 20px;
+  font-weight: 800;
+  color: #1a1a1a;
+  margin-bottom: 8px;
+}
+
+.court-card .info p {
+  font-size: 14px;
+  color: #4a4a4a;
+  margin: 4px 0;
+}
+
+.court-card .info small {
+  font-size: 13px;
+  color: #6a6a6a;
+}
+
+.court-card .actions {
+  display: flex;
+  gap: 10px;
+  padding: 16px 20px;
+  border-top: 1px solid #e0e0e0;
+  background: #f9f9f9;
+}
+
+/* DevExtreme Button Overrides */
+::ng-deep .dx-button {
+  border-radius: 8px !important;
+  font-weight: 700 !important;
+  font-size: 14px !important;
+  padding: 10px 20px !important;
+  transition: all 0.3s !important;
+}
+
+::ng-deep .dx-button.dx-button-success {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+  border: none !important;
+}
+
+::ng-deep .dx-button.dx-button-success:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4) !important;
+}
+
+::ng-deep .dx-button-mode-contained {
+  background: linear-gradient(135deg, #004526 0%, #006b3d 100%) !important;
+  color: white !important;
+  border: none !important;
+}
+
+::ng-deep .dx-button-mode-contained:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 6px 20px rgba(0, 69, 38, 0.4) !important;
+}
+
+::ng-deep .dx-button:not(.dx-button-mode-contained):not(.dx-button-success) {
+  background: #e0e0e0 !important;
+  color: #4a4a4a !important;
+  border: none !important;
+}
+
+::ng-deep .dx-button:not(.dx-button-mode-contained):not(.dx-button-success):hover {
+  background: #d0d0d0 !important;
+}
+
+::ng-deep .dx-fileuploader {
+  border: 2px dashed #e0e0e0 !important;
+  border-radius: 8px !important;
+  padding: 20px !important;
+}
+
+::ng-deep .dx-fileuploader:hover {
+  border-color: #004526 !important;
+}
+
+/* Popup Styles */
+::ng-deep .dx-overlay-wrapper.dx-popup-wrapper {
+  z-index: 3000;
+}
+
+::ng-deep .dx-popup-wrapper .dx-overlay-content {
+  border-radius: 16px !important;
+  box-shadow: 0 20px 60px rgba(0, 69, 38, 0.3) !important;
+}
+
+::ng-deep .dx-popup-wrapper .dx-popup-content {
+  padding: 0 !important;
+}
+
+.popup-content {
+  padding: 24px;
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+.popup-custom-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding-bottom: 20px;
+  border-bottom: 2px solid #e0e0e0;
+  margin-bottom: 20px;
+}
+
+.popup-header-left {
+  flex: 1;
+}
+
+.popup-court-name {
+  font-size: 26px;
+  font-weight: 900;
+  color: #1a1a1a;
+  margin: 0 0 8px 0;
+}
+
+.popup-subinfo {
+  font-size: 14px;
+  color: #6a6a6a;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.popup-subinfo svg {
+  width: 16px;
+  height: 16px;
+  fill: #6a6a6a;
+}
+
+.popup-close-btn {
+  background: #f0f0f0;
+  border: none;
+  font-size: 28px;
+  color: #6a6a6a;
+  cursor: pointer;
+  line-height: 1;
+  padding: 0;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.3s;
+  flex-shrink: 0;
+}
+
+.popup-close-btn:hover {
+  background: #e0e0e0;
+  color: #1a1a1a;
+  transform: rotate(90deg);
+}
+
+/* Gallery Section */
+.popup-gallery-section {
+  margin: 20px 0;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+::ng-deep .court-gallery .dx-gallery-indicator {
+  bottom: 12px !important;
+}
+
+::ng-deep .court-gallery .dx-gallery-indicator-item {
+  background: rgba(255, 255, 255, 0.6) !important;
+  width: 10px !important;
+  height: 10px !important;
+  margin: 0 4px !important;
+  transition: all 0.3s !important;
+}
+
+::ng-deep .court-gallery .dx-gallery-indicator-item.dx-gallery-indicator-item-selected {
+  background: white !important;
+  width: 24px !important;
+  border-radius: 5px !important;
+}
+
+/* Price and Hours Section */
+.popup-price-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 20px;
+  background: linear-gradient(135deg, rgba(0, 69, 38, 0.08) 0%, rgba(0, 107, 61, 0.05) 100%);
+  border-radius: 12px;
+  margin: 20px 0;
+  border: 2px solid rgba(0, 69, 38, 0.1);
+}
+
+.price-tag-popup {
+  font-size: 16px;
+  color: #1a1a1a;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.price-tag-popup svg {
+  width: 20px;
+  height: 20px;
+  fill: #004526;
+}
+
+.price-tag-popup .price-amount {
+  font-weight: 900;
+  color: #004526;
+  font-size: 20px;
+}
+
+.hours-line-popup {
+  font-size: 14px;
+  color: #4a4a4a;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.hours-line-popup svg {
+  width: 18px;
+  height: 18px;
+  fill: #6a6a6a;
+}
+
+/* Detail Sections */
+.popup-section {
+  margin: 24px 0;
+}
+
+.popup-section-title {
+  font-size: 18px;
+  font-weight: 800;
+  color: #1a1a1a;
+  margin: 0 0 12px 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.popup-section-title svg {
+  width: 20px;
+  height: 20px;
+  fill: #004526;
+}
+
+/* Owner Info in Popup */
+.owner-info-popup {
+  background: rgba(168, 85, 247, 0.08);
+  border-left: 4px solid #a855f7;
+  padding: 16px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+.owner-info-popup .info-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  font-size: 14px;
+}
+
+.owner-info-popup .info-row:last-child {
+  margin-bottom: 0;
+}
+
+.owner-info-popup .info-label {
+  font-weight: 700;
+  color: #6a6a6a;
+}
+
+.owner-info-popup .info-value {
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+/* Pitches Grid */
+.pitches-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 12px;
+}
+
+.pitch-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  background: white;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  transition: all 0.3s;
+}
+
+.pitch-item:hover {
+  border-color: #004526;
+  transform: translateX(4px);
+}
+
+.pitch-name {
+  font-weight: 700;
+  color: #1a1a1a;
+  font-size: 15px;
+}
+
+.pitch-price {
+  font-weight: 700;
+  color: #004526;
+  font-size: 15px;
+}
+
+/* Offers */
+.offers-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.offer-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: rgba(0, 69, 38, 0.1);
+  color: #004526;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 600;
+  border: 2px solid rgba(0, 69, 38, 0.2);
+  transition: all 0.3s;
+}
+
+.offer-chip:hover {
+  background: rgba(0, 69, 38, 0.15);
+  transform: scale(1.05);
+}
+
+.offer-icon {
+  font-size: 18px;
+}
+
+.offer-text {
+  font-size: 14px;
+}
+
+/* About Section */
+.about-text {
+  color: #4a4a4a;
+  line-height: 1.7;
+  font-size: 15px;
+  padding: 16px;
+  background: #f9f9f9;
+  border-radius: 8px;
+  border-left: 4px solid #004526;
+}
+
+.no-data-text {
+  color: #6a6a6a;
+  font-size: 14px;
+  font-style: italic;
+  padding: 12px;
+  text-align: center;
+  background: #f9f9f9;
+  border-radius: 8px;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .owner-container {
+    grid-template-columns: 1fr;
   }
-  
+
   .owner-form {
-    width: 48%;
-    background: #ffffff;
-    padding: 16px;
-    border-radius: 8px;
-    box-shadow: 0 6px 18px rgba(0,0,0,0.06);
-  }
-  
-  .owner-form h2 { margin-top: 0; }
-  
-  .owner-form label { display:block; margin-top:10px; font-weight:600; }
-  .owner-form input, .owner-form textarea {
-    width:100%;
-    padding:8px 10px;
-    border-radius:6px;
-    border:1px solid #ddd;
-    box-sizing: border-box;
-  }
-  
-  .row { display:flex; gap:8px; align-items:center; }
-  
-  .chip-row { display:flex; gap:8px; flex-wrap:wrap; margin-top:6px; }
-  .chip {
-    background:#f9f9f9; padding:10px; border-radius:10px; display:inline-flex; align-items:center; gap:12px; position:relative;
-  }
-  
-  /* pitch-specific chip */
-  .pitch-chip { align-items:flex-start; }
-  
-  /* small remove button on chip */
-  .remove-pitch-btn {
-    background: transparent;
-    border: none;
-    font-size: 18px;
-    cursor: pointer;
-    padding: 6px 8px;
-    border-radius: 8px;
-    color: #b00020;
-  }
-  
-  /* invalid price input */
-  .invalid-price {
-    outline: none;
-    border-color: #d32f2f !important;
-    box-shadow: 0 0 0 3px rgba(211,47,47,0.06);
-  }
-  
-  /* price preview text */
-  .price-preview {
-    font-weight: 700;
-    color: #1a7f3a;
-  }
-  
-  /* inline field-level error text */
-  .field-error {
-    color: #d32f2f;
-    font-size: 12px;
-    margin-top: 4px;
-  }
-  
-  /* image previews */
-  .image-preview-row { display:flex; gap:10px; flex-wrap:wrap; margin-top:10px; }
-  .img-thumb { position:relative; width:140px; }
-  .img-thumb img { width:100%; height:90px; object-fit:cover; border-radius:6px; border:1px solid #eee; }
-  .main-badge {
-    position:absolute; top:6px; left:6px; background:#1a7f3a; color:white; padding:3px 6px; border-radius:6px; font-size:12px;
-  }
-  
-  /* list of saved courts */
-  .owner-list {
-    width: 52%;
-  }
-  .court-card {
-    display:flex; gap:12px; align-items:center; background:#fafafa; padding:12px; border-radius:8px; margin-bottom:12px; cursor:pointer;
-  }
-  .court-card img { width:120px; height:80px; object-fit:cover; border-radius:6px; }
-  .court-card .info { flex:1; }
-  .court-card .actions { display:flex; flex-direction:column; gap:8px; }
-  
-  /* page-level warning */
-  .page-warning {
-    margin-top: 10px;
-    padding: 10px;
-    border-radius: 8px;
-    background: #fff4e5;
-    border: 1px solid #ffd8a8;
-    color: #a64a00;
-    font-weight: 600;
-  }
-  
-  /* popup custom header reuse */
-  .popup-custom-header {
-    display: flex;
-    align-items: flex-start;
-    gap: 12px;
-    width: 100%;
-    box-sizing: border-box;
-    padding: 10px 12px 8px;
-    border-bottom: 1px solid #eee;
-    background: white;
-    position: sticky;
+    position: relative;
     top: 0;
-    z-index: 5;
   }
-  
-  .popup-header-left { flex: 1 1 auto; min-width: 0; }
-  .popup-court-name { margin: 0; font-size: 18px; line-height: 1.15; word-break: break-word; white-space: normal; }
-  .popup-subinfo { font-size: 13px; color: #666; margin-top: 6px; }
-  .popup-close-btn { flex: 0 0 auto; align-self: flex-start; background: transparent; border: none; font-size: 22px; line-height: 1; width: 36px; height: 36px; border-radius: 6px; cursor: pointer; color: #555; display: inline-flex; justify-content: center; align-items: center; }
-  
+}
+
+@media (max-width: 768px) {
+  .owner-form,
+  .owner-list {
+    padding: 20px;
+  }
+
+  .owner-form h2 {
+    font-size: 24px;
+  }
+
+  .image-preview-row {
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  }
+
+  .court-card .actions {
+    flex-direction: column;
+  }
+
+  ::ng-deep .dx-button {
+    width: 100% !important;
+  }
+
+  .popup-content {
+    padding: 16px;
+  }
+
+  .popup-price-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .pitches-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .popup-court-name {
+    font-size: 22px;
+  }
+}
+/* Gallery */
+::ng-deep .court-gallery .dx-gallery-indicator {
+  bottom: 10px !important;
+}
+
+::ng-deep .court-gallery .dx-gallery-indicator-item {
+  background: rgba(255, 255, 255, 0.5) !important;
+  width: 8px !important;
+  height: 8px !important;
+}
+
+::ng-deep .court-gallery .dx-gallery-indicator-item.dx-gallery-indicator-item-selected {
+  background: white !important;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .owner-container {
+    grid-template-columns: 1fr;
+  }
+
+  .owner-form {
+    position: relative;
+    top: 0;
+  }
+}
+
+@media (max-width: 768px) {
+  .owner-form,
+  .owner-list {
+    padding: 20px;
+  }
+
+  .owner-form h2 {
+    font-size: 24px;
+  }
+
+  .image-preview-row {
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  }
+
+  .court-card .actions {
+    flex-direction: column;
+  }
+
+  ::ng-deep .dx-button {
+    width: 100% !important;
+  }
+}

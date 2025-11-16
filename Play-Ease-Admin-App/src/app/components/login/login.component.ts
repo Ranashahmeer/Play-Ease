@@ -129,28 +129,51 @@ export class LoginComponent implements OnInit, AfterViewInit, OnDestroy {
 
   // LOGIN handler
   handleLogin(): void {
-    this.loginForm.markAllAsTouched();
-    if (!this.loginForm.valid) return;
-  
-    const { email, password, role } = this.loginForm.value;
-  
-    this.authService.login({ email, password, role }).subscribe({
-      next: (res) => {
-        // assuming your .NET API returns success + user info
-        localStorage.setItem('isLoggedIn', 'true');
-        localStorage.setItem('loggedInUser', JSON.stringify(res));
-        alert('Login successful!');
-        try { this.dialogRef?.close(); } catch {}
-        this.router.navigate(['/my-account']);
-        
-      },
-      error: (err) => {
-        console.error(err);
-        alert('Invalid email / password / role.');
-      }
-    });
+  this.loginForm.markAllAsTouched();
+  if (!this.loginForm.valid) return;
+
+  const { email, password, role } = this.loginForm.value;
+
+  this.authService.login({ email, password, role }).subscribe({
+  next: (res: any) => {
+  console.log("Backend response:", res);
+
+  // Map backend field names to frontend model
+  const user = {
+    userID: res.userId,
+    fullName: res.fullName,
+    email: res.email,
+    roleID: res.roleId   // backend sends roleId (lowercase d)
+  };
+
+  console.log("Mapped user:", user);
+
+  if (!user.roleID) {
+    alert("Invalid user role.");
+    return;
   }
-  
+
+  // save session
+  localStorage.setItem("isLoggedIn", "true");
+  localStorage.setItem("loggedInUser", JSON.stringify(user));
+
+  // redirect by role
+  if (user.roleID === 1) {
+    this.router.navigate(['/admin-dashboard']).then(() => this.dialogRef?.close());
+  } 
+  else if (user.roleID === 2 || user.roleID === 3) {
+    this.router.navigate(['/my-account']).then(() => this.dialogRef?.close());
+  } 
+  else {
+    this.router.navigate(['/home']).then(() => this.dialogRef?.close());
+  }
+
+  alert("Login successful!");
+}
+
+  });
+}
+
 
   // SIGNUP handler
   handleSignup(): void {

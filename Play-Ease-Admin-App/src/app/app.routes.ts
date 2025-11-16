@@ -8,6 +8,7 @@ import { MyAccountComponent } from './components/my-account/my-account.component
 import { OurServicesComponent } from './components/our-services/our-services.component';
 import { AddCourtComponent } from './components/add-court/add-court.component';
 import { PlayerRecruitmentComponent } from './components/player-recruitment/player-recruitment.component';
+import { AdminDashboardComponent } from './components/admin-dashboard/admin-dashboard.component';
 
 
 import { AuthGuard } from './auth.guard';
@@ -30,5 +31,6 @@ export const routes: Routes = [
   { path: 'our-services', component: OurServicesComponent },
   { path: 'add-court', component: AddCourtComponent },
   { path: 'player-recruitment', component: PlayerRecruitmentComponent },
+  {path: 'admin-dashboard', component: AdminDashboardComponent},
   { path: '**', redirectTo: 'dashboard' }, // Fallback route
 ];

@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
 import { GetDatabyDatasourceService } from '../../services/get-data/get-databy-datasource.service';
 import { CourtAdapter } from '../../adapters/court.adapter';
-
+import { Pitch } from '../../models/setupModels';
 @Component({
   selector: 'app-court-list',
   standalone: true,
@@ -36,7 +36,11 @@ export class CourtListComponent implements OnInit {
         const apiData = Array.isArray(data) ? data : [];
         this.allCourts = apiData.map(item => adapter.fromApi(item));
         this.courts = [...this.allCourts];
+        console.log('Adapted courts for pitchSizes check:', this.allCourts.map(c => ({ name: c.name, pitchSizes: c.pitchSizes })));
+
+        console.log('Adapted courts:', this.allCourts);
       },
+      
       error: (err) => {
         console.error('Error loading courts:', err);
         this.allCourts = [];
@@ -81,21 +85,25 @@ filterCourts(searchText: string, filters?: any) {
     }
 
     // ---------- PITCH SIZES ----------
-    let matchesPitch = true;
-    if (filters.selectedPitchSizes?.length) {
-      matchesPitch = filters.selectedPitchSizes.some((size: string) =>
-        court.pitchSizes?.includes(size)
-      );
-    }
+    
+  let matchesPitch = true;
+if (filters.selectedPitchSizes?.length) {
+  matchesPitch = filters.selectedPitchSizes.some((size: string) =>
+    court.pitches?.some((p: Pitch) => p.pitchtype === size)
+  );
+}
 
     // ---------- DISTANCE ----------
     let matchesDistance = true;
     if (filters.distance != null && filters.distance > 0) {
       matchesDistance = court.distance <= filters.distance;
     }
-
+    console.log('Filtered courts:', this.courts);
+    console.log('Court:', court.name, court.pitchSizes, 'Matches pitch?', matchesPitch);
+    console.log(this.allCourts);
     return matchesText && matchesDate && matchesTime && matchesDuration && matchesPitch && matchesDistance;
   });
+  console.log('Filtered courts:', this.courts);
 }
 
   get visibleCourts() {

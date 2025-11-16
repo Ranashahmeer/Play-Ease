@@ -21,6 +21,7 @@ export class CourtAdapter implements Adapter<Court> {
       images: this.parseImages(item.images),
       offers: this.parseOffers(item.offers),
       pitches: this.parsePitches(item.pitches),
+      
       bookedSlots: this.parseBookedSlots(item.bookedslots),
       OwnerId: item.OwnerID
     };

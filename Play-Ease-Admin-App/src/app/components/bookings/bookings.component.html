@@ -6,15 +6,16 @@
   (search)="onSearch(form.get('searchQuery')?.value)">
 </app-searchbar>
 
-<!-- <app-filter-drawer
+ <app-filter-drawer
+ *ngIf="filtersOpened"
   [form]="form"
-  [timeOptionsSidebar]="timeOptionsSidebar"
+  [timeOptions]="timeOptionsSidebar"
   [minDate]="minDate"
   (applyFilters)="onApplyFilters()"
   (clearFilters)="onClearFilters()"
   (useCurrentLocation)="onUseLocation()"
   (selectTime)="onTimeSelect($event)">
-</app-filter-drawer> -->
+</app-filter-drawer>
 
   <!-- Court List -->
   <app-court-list

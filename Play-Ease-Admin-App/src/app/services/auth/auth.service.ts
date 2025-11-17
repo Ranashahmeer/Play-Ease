@@ -16,7 +16,7 @@ export interface User {
   providedIn: 'root'
 })
 export class AuthService {
-  private baseUrl = 'http://localhost:5105/api/Login';
+  private baseUrl = 'http://localhost:5000/api/Login';
 
   constructor(private http: HttpClient) {}
 
@@ -36,11 +36,12 @@ export class AuthService {
   }
 
   // ✅ Store user info in localStorage
-  setUser(user: User): void {
-    localStorage.setItem('currentUser', JSON.stringify(user));
-    localStorage.setItem('userId', user.userID.toString());
-    localStorage.setItem('userName', user.fullName);
+setUser(data: any) {
+  if (typeof window !== "undefined") {
+    localStorage.setItem("loggedInUser", JSON.stringify(data));
   }
+}
+
 
   // ✅ Get current user
   getCurrentUser(): User | null {
@@ -49,14 +50,21 @@ export class AuthService {
   }
 
   // ✅ Get user ID
-  getUserId(): number {
-    return parseInt(localStorage.getItem('userId') || '0');
+getUserId(): number {
+  if (typeof window !== 'undefined') {
+    const id = localStorage.getItem('userId');
+    return id ? Number(id) : 0;   // return 0 if null
   }
+  return 0;  // server-side rendering fallback
+}
 
-  // ✅ Get user name
-  getUserName(): string {
-    return localStorage.getItem('userName') || '';
+
+getUserName(): string {
+  if (typeof window !== 'undefined') {
+    return localStorage.getItem('userName') || "";
   }
+  return "";
+}
 
   // ✅ Check if user is logged in
   isLoggedIn(): boolean {

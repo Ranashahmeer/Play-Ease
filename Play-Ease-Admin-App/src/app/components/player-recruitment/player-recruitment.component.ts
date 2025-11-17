@@ -1,5 +1,5 @@
-import { CommonModule } from '@angular/common';
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { Component, OnInit, OnDestroy, PLATFORM_ID, Inject } from '@angular/core';
 import { NavbarComponent } from '../navbar-header/navbar.component';
 import { AvailableRequestsComponent } from './available-requests/available-requests.component';
 import { MyRequestsComponent } from './my-requests/my-requests.component';
@@ -46,7 +46,7 @@ export class PlayerRecruitmentComponent implements OnInit, OnDestroy {
 
   constructor(
     private matchService: MatchService,
-    private authService: AuthService ,private getDataService: GetDatabyDatasourceService // ✅ Inject AuthService
+    private authService: AuthService ,private getDataService: GetDatabyDatasourceService,@Inject(PLATFORM_ID) private platformId: Object // ✅ Inject AuthService
   ) {}
 
   async ngOnInit(): Promise<void> {
@@ -70,27 +70,52 @@ export class PlayerRecruitmentComponent implements OnInit, OnDestroy {
 
   // ✅ FIXED: Get current logged-in user from AuthService
   private getCurrentUser(): void {
-    this.currentUserId = this.authService.getUserId();
-    this.currentUserName = this.authService.getUserName();
-    
-    
-    // Fallback to old storage if AuthService returns 0
-    if (this.currentUserId === 0) {
-      const user = JSON.parse(localStorage.getItem('loggedInUser') || '{}');
-      this.currentUserId = user.userID || user.userId || user.id || 0;
-      this.currentUserName = user.fullName || user.name || '';
-      
-      // Store in AuthService for future use
-      if (this.currentUserId !== 0) {
-        this.authService.setUser({
-          userID: this.currentUserId,
-          fullName: this.currentUserName,
-          email: user.email || '',
-          roleID: user.roleID || user.roleId || 0
-        });
-      }
-    }
+  // ❗ Only run in the browser
+  if (!isPlatformBrowser(this.platformId)) {
+    console.warn("SSR: skipping localStorage access");
+    return;
   }
+
+  const saved = localStorage.getItem("loggedInUser");
+  if (saved) {
+    try {
+      const p = JSON.parse(saved);
+      this.currentUserId = p.userID ?? 0;
+      this.currentUserName = p.fullName ?? "";
+    } catch (err) {
+      console.error("Failed to parse loggedInUser:", err);
+      this.currentUserId = 0;
+      this.currentUserName = "";
+    }
+  } else {
+    this.currentUserId = 0;
+    this.currentUserName = "";
+  }
+
+  // ❗ Fallback if AuthService has no user
+  // if (this.currentUserId === 0) {
+  //   // still inside browser check
+  //   const fallbackUserRaw = localStorage.getItem('loggedInUser') || '{}';
+  //   try {
+  //     const user = JSON.parse(fallbackUserRaw);
+  //     this.currentUserId = user.userId || user.id || 0;
+  //     this.currentUserName = user.fullName || user.name || '';
+
+  //     // Store in AuthService for future use
+  //     if (this.currentUserId !== 0) {
+  //       this.authService.setUser({
+  //         userId: this.currentUserId,
+  //         fullName: this.currentUserName,
+  //         email: user.email || '',
+  //         roleId: user.roleId || 0
+  //       });
+  //     }
+  //   } catch (err) {
+  //     console.error("Fallback parsing failed:", err);
+  //   }
+  // }
+}
+
 // ✅ Add this helper function BELOW getCurrentUser()
 private async initializeUser(): Promise<void> {
   this.getCurrentUser();
@@ -124,13 +149,12 @@ private async initializeUser(): Promise<void> {
         organizerId: item.OrganizerId ?? 0,
         isOwn: item.OrganizerId === this.currentUserId,
         createdAt: item.CreatedAt ?? '',
-        applicants: Array.isArray(item.Applicants) ? item.Applicants.map((a: { id: any; userId: any; userName: any; role: any; status: any; }) => ({
-          id: a.id,
-          userId: a.userId,
-          userName: a.userName,
-          role: a.role,
-          status: a.status
-        })) : []
+       applicants: Array.isArray(item.Applicants) 
+    ? item.Applicants 
+    : item.Applicants 
+        ? JSON.parse(item.Applicants) 
+        : []
+
       })) as MyRequest[];
 
       // Filter into available and my requests
@@ -144,18 +168,15 @@ private async initializeUser(): Promise<void> {
 
 
 private filterRequests(): void {
-  // ✅ AVAILABLE REQUESTS: Matches not created by current user
-  this.availableRequests = this.allRequests.filter((r: any) => r.organizerId !== this.currentUserId);
+  // AVAILABLE REQUESTS: Matches not created by current user
+  this.availableRequests = this.allRequests.filter(r => r.organizerId !== this.currentUserId);
 
-  // ✅ MY REQUESTS: Matches created by current user
-  const myRequestsData = this.allRequests.filter((r: any) => r.organizerId === this.currentUserId);
-
-// Directly assign myRequests including applicants from API
-this.myRequests = myRequestsData.map(r => r as MyRequest);
-
-// No need to call loadApplicantsForRequest anymore
-
+  // MY REQUESTS: Only matches created by the current logged-in user
+  this.myRequests = this.allRequests
+    .filter(r => r.organizerId === this.currentUserId)
+    .map(r => r as MyRequest); // includes applicants
 }
+
 
   openRequestModal(): void {
     if (!this.authService.isLoggedIn()) {
@@ -194,7 +215,6 @@ this.myRequests = myRequestsData.map(r => r as MyRequest);
 
   this.matchService.createRequest(matchData).subscribe({
     next: (response: MatchRequest) => {
-      console.log('✅ Request created successfully:', response);
       alert('Match request created successfully!');
       this.loadAllRequests();
       this.closeRequestModal();

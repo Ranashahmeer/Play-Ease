@@ -2,6 +2,9 @@ import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { GetDatabyDatasourceService } from '../../../services/get-data/get-databy-datasource.service';
+import { isPlatformBrowser } from '@angular/common';
+import { Inject, PLATFORM_ID } from '@angular/core';
+
 
 export interface MatchRequest {
   id: number;
@@ -43,50 +46,9 @@ export class AvailableRequestsComponent {
   notificationText = '';
   userId!: number;
   fullname: any;
-  constructor( private getDataService: GetDatabyDatasourceService) {}
+  constructor( private getDataService: GetDatabyDatasourceService,@Inject(PLATFORM_ID) private platformId: Object) {}
 
-  ngOnInit(): void {
-    this.matchesData()
-    const saved = localStorage.getItem('loggedInUser');
-    if (saved) {
-      try {
-        const p = JSON.parse(saved);
-        this.fullname=p.fullName
-      } catch {}
-    }
-  }
-
-
-  matchesData(): void {
-  this.getDataService.getData(7, '').subscribe({
-    next: (apiData: any[] | null | undefined) => {
-      const data = Array.isArray(apiData) ? apiData : [];
-      if (!data.length) return;
-      // Map API data to MatchRequest interface
-      this.requests = data.map(item => ({
-      id: item.Id ?? 0,
-      title: item.Title ?? 'Untitled Match',
-      date: item.Date ?? '',
-      startTime: item.StartTime ?? '',
-      endTime: item.EndTime ?? '',
-      location: item.Location ?? '',
-      roles: item.Roles ?? '',
-      numPlayers: item.NumPlayers ?? 0,
-      price: item.Price ?? 0,
-      organizer: item.Organizer ?? 'Unknown',
-      organizerId: item.OrganizerId ?? 0,
-      isOwn: item.OrganizerId === this.userId,
-      createdAt: item.CreatedAt ?? ''
-}));
-    },
-    error: err => {
-      console.error('Error fetching match data:', err);
-    }
-  });
-}
-
-
-
+  
 
   applyToRequest(request: MatchRequest): void {
     this.selectedMatch = request;

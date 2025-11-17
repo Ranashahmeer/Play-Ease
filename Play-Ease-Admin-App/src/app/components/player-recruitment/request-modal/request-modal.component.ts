@@ -52,9 +52,9 @@ export class RequestModalComponent {
     if (saved) {
       try {
         const p = JSON.parse(saved);
-        this.userId = p.userId;
+        this.userId = p.userID;
         this.fullname=p.fullName
-        this.roleId = p.roleId
+        this.roleId = p.roleID
       } catch {}
     }
   }

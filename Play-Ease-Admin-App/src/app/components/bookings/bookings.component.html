@@ -1,26 +1,27 @@
 <div class="booking-container">
+  <app-searchbar
+    [form]="form"
+    (toggleFilters)="filtersOpened = !filtersOpened"
+    (search)="onSearch(form.get('searchQuery')?.value)"
+  >
+  </app-searchbar>
 
-<app-searchbar
-  [form]="form"
-  (toggleFilters)="filtersOpened = !filtersOpened"
-  (search)="onSearch(form.get('searchQuery')?.value)">
-</app-searchbar>
-
- <app-filter-drawer
- *ngIf="filtersOpened"
-  [form]="form"
-  [timeOptions]="timeOptionsSidebar"
-  [minDate]="minDate"
-  (applyFilters)="onApplyFilters()"
-  (clearFilters)="onClearFilters()"
-  (useCurrentLocation)="onUseLocation()"
-  (selectTime)="onTimeSelect($event)">
-</app-filter-drawer>
+  <app-filter-drawer
+    *ngIf="filtersOpened"
+    [form]="form"
+    [timeOptions]="timeOptionsSidebar"
+    [minDate]="minDate"
+    (applyFilters)="onApplyFilters()"
+    (clearFilters)="onClearFilters()"
+    (useCurrentLocation)="onUseLocation()"
+    (selectTime)="onTimeSelect($event)"
+  >
+  </app-filter-drawer>
 
   <!-- Court List -->
   <app-court-list
     #courtListRef
     (courtClick)="openCourtDetails($event)"
   ></app-court-list>
-
+   <app-booking-records></app-booking-records>
 </div>

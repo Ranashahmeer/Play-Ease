@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit,ViewChild, ElementRef} from '@angular/core';
 import { GetDatabyDatasourceService } from '../../services/get-data/get-databy-datasource.service';
 import { CourtAdapter } from '../../adapters/court.adapter';
 import { Pitch } from '../../models/setupModels';
@@ -11,21 +11,26 @@ import { Pitch } from '../../models/setupModels';
   styleUrl: './court-list.component.css'
 })
 export class CourtListComponent implements OnInit {
-
+   @ViewChild('scrollContainer') scrollContainer!: ElementRef;
   allCourts: any[] = [];       // All courts fetched from API
   courts: any[] = [];          // Filtered courts
 
   @Input() noCourtsMessage = '';
   @Input() currentPage = 1;
-  @Input() pageSize = 5;
+  @Input() pageSize = 5; 
 
-  @Output() pageChange = new EventEmitter<number>();
+  /* @Output() pageChange = new EventEmitter<number>(); */
   @Output() courtClick = new EventEmitter<any>();
-
+ showLeftArrow = false;
+  showRightArrow = true;
   constructor(private dataService: GetDatabyDatasourceService) {}
 
   ngOnInit() {
     this.loadCourts();
+  }
+  
+   ngAfterViewInit() {
+    setTimeout(() => this.updateArrows(), 200);
   }
 
   loadCourts() {
@@ -106,12 +111,33 @@ if (filters.selectedPitchSizes?.length) {
   console.log('Filtered courts:', this.courts);
 }
 
-  get visibleCourts() {
+   get visibleCourts() {
     const start = (this.currentPage - 1) * this.pageSize;
     return this.courts.slice(start, start + this.pageSize);
+  } 
+scrollLeft() {
+    const el = this.scrollContainer.nativeElement;
+    el.scrollBy({ left: -350, behavior: 'smooth' });
   }
 
-  nextPage() {
+  scrollRight() {
+    const el = this.scrollContainer.nativeElement;
+    el.scrollBy({ left: 350, behavior: 'smooth' });
+  }
+
+  onScroll() {
+    this.updateArrows();
+  }
+
+  updateArrows() {
+    if (!this.scrollContainer) return;
+
+    const el = this.scrollContainer.nativeElement;
+
+    this.showLeftArrow = el.scrollLeft > 20;
+    this.showRightArrow = el.scrollLeft + el.clientWidth < el.scrollWidth - 20;
+  }
+  /* nextPage() {
     this.pageChange.emit(this.currentPage + 1);
   }
 
@@ -122,7 +148,7 @@ if (filters.selectedPitchSizes?.length) {
   hasNextPage(): boolean {
     return this.currentPage * this.pageSize < this.courts.length;
   }
-
+ */
   openCourt(court: any) {
     this.courtClick.emit(court);
   }

@@ -51,8 +51,8 @@ export class BookingRecordsComponent implements OnInit {
     if (saved) {
       try {
         const p = JSON.parse(saved);
-        this.userId = p.userId;
-        this.roleId = p.roleId
+        this.userId = p.userID;
+        this.roleId = p.roleID
       } catch {}
     }
 

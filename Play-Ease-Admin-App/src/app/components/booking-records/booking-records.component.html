@@ -1,4 +1,4 @@
-<div class="right-col">
+<!-- <div class="right-col">
   <div class="bookings-panel">
     <h3>Upcoming Bookings</h3>
     <div *ngIf="upcomingBookings.length; else noUpcoming">
@@ -21,9 +21,11 @@
         </div>
       </div>
     </div>
-    <ng-template #noUpcoming
-      ><div class="empty">No upcoming bookings yet.</div></ng-template
-    >
+    <ng-template #noUpcoming>
+       <div class="bookings-container">
+        <div class="empty">No upcoming bookings yet.</div>
+      </div>
+      </ng-template>
   </div>
 
   <div class="bookings-panel">
@@ -56,9 +58,74 @@
   </div>
 </div>
 
-<div *ngIf="this.isOwner" class="owner-section">
+<div *ngIf="this.isOwner" class="owner-section"> -->
+
+<div class="right-col">
+  <div class="bookings-panel">
+    <h3>Upcoming Bookings</h3>
+    <div class="bookings-container" *ngIf="upcomingBookings.length; else noUpcoming">
+      <div class="booking-card" *ngFor="let b of upcomingBookings">
+        <img
+          class="thumb"
+          [src]="b.image || 'assets/placeholder-court.jpg'"
+          alt="court"
+        />
+        <div class="info">
+          <div class="title">{{ b.courtName }}</div>
+          <div class="meta">{{ b.date }} • {{ b.time }} • {{ b.duration }}</div>
+          <div class="meta small">{{ b.location }}</div>
+        </div>
+        <div class="actions">
+          <div class="price">Rs {{ b.price }}</div>
+          <button class="btn btn-danger" (click)="cancelUpcoming(b.id)">
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+    <ng-template #noUpcoming>
+      <div class="bookings-container">
+        <div class="empty">No upcoming bookings yet.</div>
+      </div>
+    </ng-template>
+  </div>
+
+  <div class="bookings-panel">
+    <h3>Booking History</h3>
+    <div class="bookings-container" *ngIf="pastBookings.length; else noPast">
+      <div class="booking-card" *ngFor="let b of pastBookings">
+        <img
+          class="thumb"
+          [src]="b.image || 'assets/placeholder-court.jpg'"
+          alt="court"
+        />
+        <div class="info">
+          <div class="title">{{ b.courtName }}</div>
+          <div class="meta">{{ b.date }} • {{ b.time }} • {{ b.duration }}</div>
+          <div class="meta small">{{ b.location }}</div>
+        </div>
+        <div class="actions">
+          <div class="price">Rs {{ b.price }}</div>
+          <div class="status done">Completed</div>
+        </div>
+      </div>
+    </div>
+    <ng-template #noPast>
+      <div class="bookings-container">
+        <div class="empty">No booking history yet.</div>
+      </div>
+    </ng-template>
+  </div>
+
+  <div *ngIf="hasNoBookings" class="bookings-panel">
+    <div class="bookings-container">
+      <div class="empty">No bookings yet. Book a court to see it here.</div>
+    </div>
+  </div>
+</div>
+
   <!-- Courts Owned -->
-  <div class="courts-panel">
+ <!--  <div class="courts-panel">
     <h2>Your Courts</h2>
     <div *ngIf="!ownerCourts.length" class="empty">
       You don’t own any courts yet.
@@ -75,4 +142,23 @@
       </div>
     </div>
   </div>
+</div> -->
+<div *ngIf=this.isOwner class="owner-section">
+ <div class="courts-panel">
+  <h2>Your Courts</h2>
+  <div *ngIf="!ownerCourts.length" class="empty">
+    You don't own any courts yet.
+  </div>
+
+  <div *ngFor="let court of ownerCourts" class="court-card">
+    <img [src]="court.image" alt="{{ court.name }}" class="court-thumb" />
+    <div class="court-info">
+      <div class="court-name">{{ court.name }}</div>
+      <div class="court-meta">
+        📍 {{ court.location }} | ⏰ {{ court.opening }} - {{ court.closing }}
+      </div>
+      <div class="court-rating">⭐ {{ court.rating }}</div>
+    </div>
+  </div>
+ </div>
 </div>

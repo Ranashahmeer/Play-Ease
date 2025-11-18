@@ -87,7 +87,7 @@ export class BookingsComponent {
   }
 
   openCourtDetails(court: any) {
-    this.router.navigate(['/court-details', court.id]);
+    this.router.navigate(['/court-booking', court.courtId]);
   }
   
 }

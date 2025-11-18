@@ -2,15 +2,12 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
-import {
-  DxDateBoxModule,
-  DxButtonModule,DxGalleryModule,DxFileUploaderModule,DxListModule,
-  DxTagBoxModule,
-  DxSliderModule,DxDropDownBoxModule,DxPopupModule
-} from 'devextreme-angular';
+import { DxDateBoxModule, DxButtonModule, DxGalleryModule, DxFileUploaderModule, DxListModule, DxTagBoxModule, DxSliderModule, DxDropDownBoxModule, DxPopupModule, DxCalendarComponent } from 'devextreme-angular';
 import{CourtListComponent} from '../court-list/court-list.component';
 import { PaymentPopupComponent } from "../payment-popup/payment-popup.component";
-
+import { GetDatabyDatasourceService } from '../../services/get-data/get-databy-datasource.service';
+import { CourtAdapter } from '../../adapters/court.adapter';
+ 
 
 @Component({
   selector: 'app-court-booking',
@@ -18,7 +15,8 @@ import { PaymentPopupComponent } from "../payment-popup/payment-popup.component"
    imports: [
     CommonModule, ReactiveFormsModule, DxDateBoxModule, DxButtonModule, DxListModule, DxTagBoxModule, DxSliderModule, DxGalleryModule, DxGalleryModule, DxFileUploaderModule, DxPopupModule, DxDropDownBoxModule,
     CourtListComponent,
-    PaymentPopupComponent
+    PaymentPopupComponent,
+    DxCalendarComponent
 ],
   templateUrl: './court-booking.component.html',
   styleUrl: './court-booking.component.css'
@@ -34,11 +32,12 @@ export class CourtBookingComponent implements OnInit {
   bookedForDay: string[] = [];
   allSlotsDisabled = false;
   paymentPopupVisible: boolean = false;
-ddBox: any;
+  ddBox: any;
+  selectedCourt: any[] = [];  
 
   constructor(
     private fb: FormBuilder,
-    private route: ActivatedRoute,
+    private route: ActivatedRoute,private dataService: GetDatabyDatasourceService,
     private router: Router
   ) {
     this.form = this.fb.group({
@@ -53,14 +52,23 @@ ddBox: any;
     this.fetchCourtDetails();
   }
 
-  fetchCourtDetails() {
-    // Fetch court info from service by this.courtId
-    // Example:
-    // this.courtService.getCourtById(this.courtId).subscribe(res => {
-    //   this.courtDetails = res;
-    //   this.recomputeAvailability();
-    // });
-  }
+fetchCourtDetails() {
+  const whereclause = `c.CourtID = ${this.courtId}`;
+  this.dataService.getData(1, whereclause).subscribe({
+    next: (data: any[]) => {
+      const adapter = new CourtAdapter();
+      const apiData = Array.isArray(data) ? data : [];
+      this.courtDetails = apiData.length > 0 ? adapter.fromApi(apiData[0]) : null;
+      if (!this.courtDetails) {
+        console.warn('Court not found for ID:', this.courtId);
+      }
+    },
+    error: (err) => {
+      console.error('Error loading courts:', err);
+    }
+  });
+}
+
 
   selectPitch(pitch: any) {
     this.selectedPitchSize = pitch.pitchtype;

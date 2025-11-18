@@ -12,6 +12,7 @@ import { AdminDashboardComponent } from './components/admin-dashboard/admin-dash
 
 
 import { AuthGuard } from './auth.guard';
+import { CourtBookingComponent } from './components/court-booking/court-booking.component';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/home', pathMatch: 'full' }, // Redirect to login
@@ -32,5 +33,6 @@ export const routes: Routes = [
   { path: 'add-court', component: AddCourtComponent },
   { path: 'player-recruitment', component: PlayerRecruitmentComponent },
   {path: 'admin-dashboard', component: AdminDashboardComponent},
+  { path: 'court-booking/:courtId', component: CourtBookingComponent },
   { path: '**', redirectTo: 'dashboard' }, // Fallback route
 ];

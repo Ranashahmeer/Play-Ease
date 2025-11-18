@@ -162,13 +162,13 @@ export class LoginComponent implements OnInit, AfterViewInit, OnDestroy {
     this.router.navigate(['/admin-dashboard']).then(() => this.dialogRef?.close());
   } 
   else if (user.roleID === 2 || user.roleID === 3) {
-    this.router.navigate(['/my-account']).then(() => this.dialogRef?.close());
+    this.router.navigate(['/bookings']).then(() => this.dialogRef?.close());
   } 
   else {
     this.router.navigate(['/home']).then(() => this.dialogRef?.close());
   }
 
-  alert("Login successful!");
+  // alert("Login successful!");
 }
 
   });

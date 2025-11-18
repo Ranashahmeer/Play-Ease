@@ -35,7 +35,7 @@ export class CourtListComponent implements OnInit {
 
   loadCourts() {
     // Use dataSourceId = 1 (assuming 1 = courts)
-    this.dataService.getData(1).subscribe({
+    this.dataService.getData(1,'').subscribe({
       next: (data: any[]) => {
         const adapter = new CourtAdapter();
         const apiData = Array.isArray(data) ? data : [];

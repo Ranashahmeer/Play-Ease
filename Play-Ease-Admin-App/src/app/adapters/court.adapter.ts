@@ -9,7 +9,7 @@ export class CourtAdapter implements Adapter<Court> {
 
     return {
       courtId: item.courtid,
-      name: item.name,
+      name: item.NAME,
       location: item.location,
       rating: Number(item.rating) || 0,
       openingTime: item.openingtime,

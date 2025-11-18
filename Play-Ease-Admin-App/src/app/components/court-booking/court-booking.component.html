@@ -1,42 +1,86 @@
-<div class="bookings-container" *ngIf="courtDetails">
-  <h2>{{ courtDetails.name }}</h2>
-  <p>{{ courtDetails.location }} | Rating: {{ courtDetails.rating }}</p>
+<div class="booking-page" *ngIf="courtDetails">
+  <!-- Header Card -->
+  <div class="booking-header-card">
+    <div class="booking-image">
+      <img [src]="courtDetails.image" alt="{{ courtDetails.name || 'Court' }}" />
+      <div class="rating-badge">⭐ {{ courtDetails.rating || '-' }}</div>
+    </div>
+    <div class="booking-info">
+      <h2>{{ courtDetails.name || 'Court Name' }}</h2>
+      <p>{{ courtDetails.location || 'Location' }}</p>
+      <p *ngIf="courtDetails.offers?.length">Offers: {{ courtDetails.offers.join(', ') }}</p>
+      <p class="price-large">Rs {{ getComputedPrice() }}</p>
+    </div>
+  </div>
 
   <!-- Gallery -->
-  <dx-gallery [dataSource]="courtDetails.galleryImages" [height]="260"></dx-gallery>
-
-  <!-- Duration buttons -->
-  <div class="popup-duration-buttons">
-    <dx-button text="60 mins" [type]="form.get('matchDuration')?.value===60?'success':'default'" (onClick)="form.patchValue({matchDuration:60}); recomputeAvailability()"></dx-button>
-    <dx-button text="90 mins" [type]="form.get('matchDuration')?.value===90?'success':'default'" (onClick)="form.patchValue({matchDuration:90}); recomputeAvailability()"></dx-button>
-    <dx-button text="120 mins" [type]="form.get('matchDuration')?.value===120?'success':'default'" (onClick)="form.patchValue({matchDuration:120}); recomputeAvailability()"></dx-button>
-  </div>
-
-  <!-- Pitch buttons -->
-  <div class="pitch-buttons-row">
-    <dx-button *ngFor="let p of courtDetails.pitches"
-      [text]="p.pitchtype"
-      [type]="selectedPitchSize===p.pitchtype?'success':'default'"
-      (onClick)="selectPitch(p)">
-    </dx-button>
-  </div>
-
-  <!-- Date & Time -->
-  <dx-date-box [value]="selectedBookingDate" type="date" (onValueChanged)="onBookingDateChanged($event)"></dx-date-box>
-  <dx-drop-down-box [dataSource]="timeSlotItems" [value]="selectedBookingTime" displayExpr="text" valueExpr="text">
-    <div *dxTemplate="let dd of 'content'">
-      <dx-list [dataSource]="timeSlotItems" (onItemClick)="onTimeItemClick($event, ddBox)">
-        <div *dxTemplate="let item of 'item'">{{ item.text }}</div>
-      </dx-list>
+  <div class="booking-section" *ngIf="courtDetails.images?.length">
+    <h3>Gallery</h3>
+    <div class="gallery-grid">
+      <img *ngFor="let img of courtDetails.images" [src]="img" />
     </div>
-  </dx-drop-down-box>
+  </div>
 
-  <p *ngIf="bookedForDay.length>0"><em>Booked for {{ selectedBookingDate | date:'shortDate' }}:</em> {{ bookedForDay.join(', ') }}</p>
-  <p *ngIf="allSlotsDisabled" style="color:#d32f2f;">No time slots available for this date.</p>
+  <!-- Match Duration -->
+  <div class="booking-section">
+    <h3>Match Duration</h3>
+    <div class="time-slot-grid">
+      <div class="time-slot-btn" 
+           [class.time-slot-selected]="form.get('matchDuration')?.value===60" 
+           (click)="form.patchValue({matchDuration:60}); recomputeAvailability()">
+        60 mins
+      </div>
+      <div class="time-slot-btn" 
+           [class.time-slot-selected]="form.get('matchDuration')?.value===90" 
+           (click)="form.patchValue({matchDuration:90}); recomputeAvailability()">
+        90 mins
+      </div>
+      <div class="time-slot-btn" 
+           [class.time-slot-selected]="form.get('matchDuration')?.value===120" 
+           (click)="form.patchValue({matchDuration:120}); recomputeAvailability()">
+        120 mins
+      </div>
+    </div>
+  </div>
 
-  <h3>Total Price: Rs {{ getComputedPrice() }}</h3>
+  <!-- Pitch Selection -->
+  <div class="booking-section" *ngIf="courtDetails.pitches?.length">
+    <h3>Select Pitch</h3>
+    <div class="time-slot-grid">
+      <div class="time-slot-btn" 
+           *ngFor="let p of courtDetails.pitches"
+           [class.time-slot-selected]="selectedPitchSize===p.pitchtype"
+           (click)="selectPitch(p)">
+        {{ p.pitchtype }}
+      </div>
+    </div>
+  </div>
 
-  <dx-button text="Proceed to Payment" type="success" (onClick)="proceedToPayment()"></dx-button>
+  <!-- Date Selection -->
+  <div class="booking-section">
+    <h3>Select Date</h3>
+    <dx-calendar [(value)]="selectedBookingDate" (onValueChanged)="onBookingDateChanged($event)"></dx-calendar>
+  </div>
+
+  <!-- Time Slots -->
+  <div class="booking-section">
+    <h3>Select Time</h3>
+    <div class="time-slot-grid">
+      <div class="time-slot-btn" *ngFor="let slot of timeSlotItems"
+           [class.time-slot-selected]="selectedBookingTime===slot.text"
+           [class.disabled]="slot.disabled"
+           (click)="!slot.disabled && (selectedBookingTime=slot.text)">
+        {{ slot.text }}
+      </div>
+    </div>
+    <p *ngIf="bookedForDay.length>0" class="booked-info">
+      <em>Booked for {{ selectedBookingDate | date:'shortDate' }}:</em> {{ bookedForDay.join(', ') }}
+    </p>
+    <p *ngIf="allSlotsDisabled" class="no-slots">No available slots for this date.</p>
+  </div>
+
+  <!-- Proceed to Payment -->
+  <button class="next-button" (click)="proceedToPayment()">Proceed to Payment</button>
 </div>
 
 <app-payment-popup [(visible)]="paymentPopupVisible"></app-payment-popup>

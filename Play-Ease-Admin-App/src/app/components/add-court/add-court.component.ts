@@ -86,7 +86,6 @@ export class AddCourtComponent {
       if (!Array.isArray(parsed)) return [];
       return parsed;
     } catch (err) {
-      console.error('Failed to read courts from localStorage', err);
       return [];
     }
   }
@@ -96,8 +95,7 @@ export class AddCourtComponent {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(arr));
       this.courts = arr;
     } catch (err) {
-      console.error('Failed to write courts to localStorage', err);
-      alert('Failed to save data locally. See console.');
+      // Failed to save data locally
     }
   }
 
@@ -259,7 +257,6 @@ export class AddCourtComponent {
     if (!confirm(`Delete "${c.name}"? This cannot be undone.`)) return;
     const arr = this.loadFromStorage().filter(x => x.id !== c.id);
     this.saveToStorage(arr);
-    alert('Service deleted.');
   }
 
   saveCourt() {
@@ -283,7 +280,6 @@ export class AddCourtComponent {
     }
     
     if (missing.length > 0) { 
-      alert(`Please fill the following fields before saving:\n• ${missing.join('\n• ')}`); 
       return; 
     }
 
@@ -316,12 +312,10 @@ export class AddCourtComponent {
     if (this.editingId) {
       const next = all.map(x => (x.id === this.editingId ? { ...payload, id: this.editingId } : x));
       this.saveToStorage(next);
-      alert('Service updated.');
     } else {
       payload.id = this.generateId();
       all.push(payload);
       this.saveToStorage(all);
-      alert('Service created.');
     }
 
     this.startCreateNew();

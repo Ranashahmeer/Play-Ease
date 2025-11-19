@@ -41,13 +41,9 @@ export class CourtListComponent implements OnInit {
         const apiData = Array.isArray(data) ? data : [];
         this.allCourts = apiData.map(item => adapter.fromApi(item));
         this.courts = [...this.allCourts];
-        console.log('Adapted courts for pitchSizes check:', this.allCourts.map(c => ({ name: c.name, pitchSizes: c.pitchSizes })));
-
-        console.log('Adapted courts:', this.allCourts);
       },
       
       error: (err) => {
-        console.error('Error loading courts:', err);
         this.allCourts = [];
         this.courts = [];
       }
@@ -103,12 +99,8 @@ if (filters.selectedPitchSizes?.length) {
     if (filters.distance != null && filters.distance > 0) {
       matchesDistance = court.distance <= filters.distance;
     }
-    console.log('Filtered courts:', this.courts);
-    console.log('Court:', court.name, court.pitchSizes, 'Matches pitch?', matchesPitch);
-    console.log(this.allCourts);
     return matchesText && matchesDate && matchesTime && matchesDuration && matchesPitch && matchesDistance;
   });
-  console.log('Filtered courts:', this.courts);
 }
 
    get visibleCourts() {

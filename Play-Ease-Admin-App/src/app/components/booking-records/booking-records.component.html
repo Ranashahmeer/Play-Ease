@@ -61,9 +61,10 @@
 <div *ngIf="this.isOwner" class="owner-section"> -->
 
 <div class="right-col">
-  <div class="bookings-panel">
+  <!-- Upcoming Bookings - Only show if there are upcoming bookings -->
+  <div class="bookings-panel" *ngIf="upcomingBookings.length > 0">
     <h3>Upcoming Bookings</h3>
-    <div class="bookings-container" *ngIf="upcomingBookings.length; else noUpcoming">
+    <div class="bookings-container">
       <div class="booking-card" *ngFor="let b of upcomingBookings">
         <img
           class="thumb"
@@ -73,7 +74,13 @@
         <div class="info">
           <div class="title">{{ b.courtName }}</div>
           <div class="meta">{{ b.date }} • {{ b.time }} • {{ b.duration }}</div>
-          <div class="meta small">{{ b.location }}</div>
+          <div class="meta small">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+              <circle cx="12" cy="10" r="3"></circle>
+            </svg>
+            {{ b.location }}
+          </div>
         </div>
         <div class="actions">
           <div class="price">Rs {{ b.price }}</div>
@@ -83,13 +90,9 @@
         </div>
       </div>
     </div>
-    <ng-template #noUpcoming>
-      <div class="bookings-container">
-        <div class="empty">No upcoming bookings yet.</div>
-      </div>
-    </ng-template>
   </div>
 
+  <!-- Booking History -->
   <div class="bookings-panel">
     <h3>Booking History</h3>
     <div class="bookings-container" *ngIf="pastBookings.length; else noPast">
@@ -102,7 +105,13 @@
         <div class="info">
           <div class="title">{{ b.courtName }}</div>
           <div class="meta">{{ b.date }} • {{ b.time }} • {{ b.duration }}</div>
-          <div class="meta small">{{ b.location }}</div>
+          <div class="meta small">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+              <circle cx="12" cy="10" r="3"></circle>
+            </svg>
+            {{ b.location }}
+          </div>
         </div>
         <div class="actions">
           <div class="price">Rs {{ b.price }}</div>
@@ -117,6 +126,7 @@
     </ng-template>
   </div>
 
+  <!-- Show message only if no bookings at all -->
   <div *ngIf="hasNoBookings" class="bookings-panel">
     <div class="bookings-container">
       <div class="empty">No bookings yet. Book a court to see it here.</div>

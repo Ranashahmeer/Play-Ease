@@ -31,7 +31,7 @@ export class CalendarComponent {
   ];
   
   selectMonth(month: string) {
-    alert('Selected Month: ' + month);
+    // Month selected
   }
   
   calendarPlugins = [dayGridPlugin, interactionPlugin, bootstrapPlugin];
@@ -41,6 +41,6 @@ export class CalendarComponent {
   ];
 
   handleDateClick(event: any) {
-    alert('Date selected: ' + event.dateStr);
+    // Date selected
   }
 }

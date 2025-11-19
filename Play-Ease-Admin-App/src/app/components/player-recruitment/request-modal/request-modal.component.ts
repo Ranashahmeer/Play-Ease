@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RequestPlayerService } from '../../../services/request-player.service';
 import { HttpErrorResponse } from '@angular/common/http';
+import { DxDateBoxModule } from 'devextreme-angular';
 
 
 export interface MatchRequest {
@@ -24,7 +25,7 @@ export interface MatchRequest {
 @Component({
   selector: 'app-request-modal',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, DxDateBoxModule],
   templateUrl: './request-modal.component.html',
   styleUrls: ['./request-modal.component.css']
 })
@@ -36,13 +37,13 @@ export class RequestModalComponent {
   roleId?: number;
   matchName = '';
   location = '';
-  matchDate = '';
-  startTime = '';
-  endTime = '';
+  matchDate: Date | null = null;
+  startTime: Date | null = null;
+  endTime: Date | null = null;
   roles = '';
   numPlayers = 1;
   price = 0;
-  minDate = '';
+  minDate: Date = new Date();
   showNotification = false;
   notificationText = '';
   fullname?: string;
@@ -61,8 +62,7 @@ export class RequestModalComponent {
 
 
   constructor(private requestService: RequestPlayerService) {
-    const today = new Date();
-    this.minDate = today.toISOString().split('T')[0];
+    // minDate is set to today
   }
 
   closeModal(): void {
@@ -76,17 +76,25 @@ export class RequestModalComponent {
   }
 
   onSubmit(): void {
-    if (this.endTime <= this.startTime) {
-      alert('⚠️ End time must be after start time!');
+    if (!this.matchDate || !this.startTime || !this.endTime) {
       return;
     }
+
+    if (this.endTime <= this.startTime) {
+      return;
+    }
+
+    // Format date and time for backend
+    const dateStr = this.formatDate(this.matchDate);
+    const startTimeStr = this.formatTime(this.startTime);
+    const endTimeStr = this.formatTime(this.endTime);
 
     // ✅ FIXED: Don't send ID, let backend generate it
      const request: MatchRequest = {
       title: this.matchName,
-      date: this.matchDate,
-      startTime: this.startTime,
-      endTime: this.endTime,
+      date: dateStr,
+      startTime: startTimeStr,
+      endTime: endTimeStr,
       location: this.location,
       roles: this.roles,
       numPlayers: this.numPlayers,
@@ -96,34 +104,42 @@ export class RequestModalComponent {
       createdAt: new Date().toISOString()
     };
 
-    console.log('📤 Submitting request from modal:', request);
-        this.requestService.createMatch(request).subscribe({
+    this.requestService.createMatch(request).subscribe({
       next: (res) => {
-        console.log('✅ Match created successfully:', res);
         this.displayNotification('Match request posted successfully!');
         this.resetForm();
-        this.close.emit(); // optional: close modal
+        // Emit the event to notify parent to refresh data
+        this.requestSubmitted.emit(request);
+        // Close modal after a short delay to show notification
+        setTimeout(() => {
+          this.close.emit();
+        }, 500);
       },
       error: (err: HttpErrorResponse) => {
-        console.error('❌ Error creating match:', err);
         this.displayNotification('Error posting match. Please try again.');
       }
     });
-
-    this.requestSubmitted.emit(request);
-    // this.resetForm();
-    // this.displayNotification('Match request posted successfully!');
   }
 
   private resetForm(): void {
     this.matchName = '';
     this.location = '';
-    this.matchDate = '';
-    this.startTime = '';
-    this.endTime = '';
+    this.matchDate = null;
+    this.startTime = null;
+    this.endTime = null;
     this.roles = '';
     this.numPlayers = 1;
     this.price = 0;
+  }
+
+  private formatDate(date: Date): string {
+    return date.toISOString().split('T')[0];
+  }
+
+  private formatTime(time: Date): string {
+    const hours = time.getHours().toString().padStart(2, '0');
+    const minutes = time.getMinutes().toString().padStart(2, '0');
+    return `${hours}:${minutes}`;
   }
 
   private displayNotification(message: string): void {

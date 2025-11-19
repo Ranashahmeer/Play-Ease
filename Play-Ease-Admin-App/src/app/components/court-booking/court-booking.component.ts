@@ -59,12 +59,9 @@ fetchCourtDetails() {
       const adapter = new CourtAdapter();
       const apiData = Array.isArray(data) ? data : [];
       this.courtDetails = apiData.length > 0 ? adapter.fromApi(apiData[0]) : null;
-      if (!this.courtDetails) {
-        console.warn('Court not found for ID:', this.courtId);
-      }
     },
     error: (err) => {
-      console.error('Error loading courts:', err);
+      // Error loading courts
     }
   });
 }
@@ -126,7 +123,6 @@ fetchCourtDetails() {
 
   proceedToPayment() {
     if (!this.selectedPitchSize || !this.selectedBookingTime) {
-      alert('Please select pitch & time first!');
       return;
     }
     this.paymentPopupVisible = true;

@@ -19,10 +19,7 @@ export const routes: Routes = [
   {
     path: 'dashboard',
     component: DashboardComponent,
-    // children: [
-    //   // { path: '', redirectTo: 'calendar', pathMatch: 'full' }, // Redirect to calendar
-    //   { path: 'calendar', component: CalendarComponent },      // Calendar route
-    // ],
+    canActivate: [AuthGuard],
   },
   { path: 'login', component: LoginComponent },         // Login route
   { path: 'home', component: HomeComponent },
@@ -31,7 +28,7 @@ export const routes: Routes = [
   { path: 'my-account', component: MyAccountComponent, canActivate: [AuthGuard]  },
   { path: 'our-services', component: OurServicesComponent },
   { path: 'add-court', component: AddCourtComponent },
-  { path: 'player-recruitment', component: PlayerRecruitmentComponent },
+  { path: 'player-recruitment', component: PlayerRecruitmentComponent, canActivate: [AuthGuard] },
   {path: 'admin-dashboard', component: AdminDashboardComponent},
   { path: 'court-booking/:courtId', component: CourtBookingComponent },
   { path: '**', redirectTo: 'dashboard' }, // Fallback route

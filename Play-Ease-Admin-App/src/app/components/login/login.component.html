@@ -1,191 +1,406 @@
-<!-- login.component.html -->
-<div class="popup-container"> <!-- no overlay, inline dialog -->
-  <div class="modal-grid" role="dialog" aria-modal="true" aria-labelledby="authTitle">
-
-    <!-- LEFT brand -->
-    <aside class="brand-side" aria-hidden="true">
-      <img src="assets/PlayEase.png" alt="PlayEase Logo" class="brand-logo" />
-      <p class="brand-sub">Book courts, manage schedules, and play smarter.</p>
-      <ul class="brand-features">
-        <li>Fast bookings</li>
-        <li>Verified owners</li>
-        <li>Secure payments</li>
-      </ul>
-      <span class="brand-cta">Join the PlayEase community</span>
+<!-- Modern Login/Signup Component -->
+<div class="login-container">
+  <div class="login-modal" role="dialog" aria-modal="true" aria-labelledby="authTitle">
+    
+    <!-- Brand Side (Left) -->
+    <aside class="brand-panel">
+      <div class="brand-content">
+        <div class="brand-logo-wrapper">
+          <img src="assets/PlayEase.png" alt="PlayEase Logo" class="brand-logo" />
+        </div>
+        <h1 class="brand-title">Welcome to PlayEase</h1>
+        <p class="brand-subtitle">Your gateway to seamless sports court bookings and team management</p>
+        <ul class="brand-features">
+          <li>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+            <span>Instant Bookings</span>
+          </li>
+          <li>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+            </svg>
+            <span>Secure Payments</span>
+          </li>
+          <li>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+              <circle cx="9" cy="7" r="4"></circle>
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+              <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+            </svg>
+            <span>Team Building</span>
+          </li>
+        </ul>
+      </div>
     </aside>
 
-    <!-- RIGHT content -->
-    <section class="content-side">
-      <button class="close-btn" type="button" aria-label="Close" (click)="closePopup()">✕</button>
+    <!-- Content Side (Right) -->
+    <section class="content-panel">
+      <button class="close-button" type="button" aria-label="Close dialog" (click)="closePopup()">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
 
-      <div class="content-header">
-        <h2 id="authTitle">{{ isLogin ? 'Login' : 'Sign Up' }}</h2>
-      </div>
+      <div class="content-wrapper">
+        <div class="content-header">
+          <h2 id="authTitle" class="page-title">{{ isLogin ? 'Welcome Back' : 'Create Account' }}</h2>
+          <p class="page-subtitle">{{ isLogin ? 'Sign in to continue to PlayEase' : 'Join PlayEase and start booking courts today' }}</p>
+        </div>
 
-      <div class="content-body" #contentBody>
-
-        <!-- LOGIN -->
-        <div *ngIf="isLogin; else signupTpl">
-          <form class="form" [formGroup]="loginForm" (ngSubmit)="handleLogin()">
-
-            <div class="input-group">
-              <label for="loginEmail">Email</label>
-              <input id="loginEmail" type="email" formControlName="email" />
-              <div class="field-error" *ngIf="loginControls['email'].touched && loginControls['email'].invalid">
-                <small *ngIf="loginControls['email'].errors?.['required']">Email required</small>
-                <small *ngIf="loginControls['email'].errors?.['email']">Enter valid email</small>
-              </div>
-            </div>
-
-            <div class="input-group">
-              <label for="loginPassword">Password</label>
-              <input id="loginPassword" type="password" formControlName="password" />
-              <div class="field-error" *ngIf="loginControls['password'].touched && loginControls['password'].invalid">
-                <small *ngIf="loginControls['password'].errors?.['required']">Password required</small>
-                <small *ngIf="loginControls['password'].errors?.['minlength']">Min 6 chars</small>
-              </div>
-            </div>
-
-            <!-- Segmented role selector -->
-            <div class="role-group">
-              <label class="role-label">Login as</label>
-              <div class="segmented" role="radiogroup" aria-label="Login role">
-
-                <label class="seg-item" [class.active-role]="loginForm.get('role')?.value==='admin'">
-                  <input type="radio" formControlName="role" value="admin" /> Admin
-                </label>
-
-                <label class="seg-item" [class.active-role]="loginForm.get('role')?.value==='player'">
-                  <input type="radio" formControlName="role" value="player" /> Player
-                </label>
-
-                <label class="seg-item" [class.active-role]="loginForm.get('role')?.value==='owner'">
-                  <input type="radio" formControlName="role" value="owner" /> Owner
-                </label>
-
-              </div>
-            </div>
-
-            <button
-              type="submit"
-              class="primary-btn"
-              [disabled]="!isLoginValid"
-              [class.btn-green]="isLoginValid"
-              [attr.aria-pressed]="isLoginValid">
-              Login
-            </button>
-
-          </form>
-
-          <div class="toggle-link">
-            <p>Don't have an account? <a href="#" (click)="toggleSignup($event)">Sign Up</a></p>
+        <!-- Social Login Buttons -->
+        <div class="social-login" *ngIf="isLogin">
+          <button type="button" class="social-btn google-btn" (click)="handleGoogleLogin()" [disabled]="isLoading">
+            <svg width="20" height="20" viewBox="0 0 24 24">
+              <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+              <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+              <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+              <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+            </svg>
+            <span>Continue with Google</span>
+          </button>
+          
+          <div class="divider">
+            <span>or</span>
           </div>
         </div>
 
-        <!-- SIGNUP -->
-        <ng-template #signupTpl>
-          <form class="form" [formGroup]="signupForm" (ngSubmit)="handleSignup()">
+        <!-- Login Form -->
+        <div *ngIf="isLogin" class="form-container">
+          <form [formGroup]="loginForm" (ngSubmit)="handleLogin()" class="auth-form">
+            
+            <!-- Email Field -->
+            <div class="form-group">
+              <label for="loginEmail" class="form-label">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                  <polyline points="22,6 12,13 2,6"></polyline>
+                </svg>
+                Email Address
+              </label>
+              <input 
+                id="loginEmail" 
+                type="email" 
+                formControlName="email" 
+                class="form-input"
+                [class.input-error]="loginControls['email'].touched && loginControls['email'].invalid"
+                placeholder="Enter your email"
+                autocomplete="email"
+              />
+              <div class="error-message" *ngIf="loginControls['email'].touched && loginControls['email'].invalid">
+                <small *ngIf="loginControls['email'].errors?.['required']">Email is required</small>
+                <small *ngIf="loginControls['email'].errors?.['email']">Please enter a valid email address</small>
+              </div>
+            </div>
 
-            <div class="input-group">
-              <label for="accountType">Account type</label>
-              <select id="accountType" formControlName="accountType">
+            <!-- Password Field -->
+            <div class="form-group">
+              <label for="loginPassword" class="form-label">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                  <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                </svg>
+                Password
+              </label>
+              <div class="password-wrapper">
+                <input 
+                  id="loginPassword" 
+                  [type]="showPassword ? 'text' : 'password'" 
+                  formControlName="password" 
+                  class="form-input"
+                  [class.input-error]="loginControls['password'].touched && loginControls['password'].invalid"
+                  placeholder="Enter your password"
+                  autocomplete="current-password"
+                />
+                <button 
+                  type="button" 
+                  class="password-toggle" 
+                  (click)="togglePasswordVisibility()"
+                  aria-label="Toggle password visibility"
+                >
+                  <svg *ngIf="!showPassword" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                    <circle cx="12" cy="12" r="3"></circle>
+                  </svg>
+                  <svg *ngIf="showPassword" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                    <line x1="1" y1="1" x2="23" y2="23"></line>
+                  </svg>
+                </button>
+              </div>
+              <div class="error-message" *ngIf="loginControls['password'].touched && loginControls['password'].invalid">
+                <small *ngIf="loginControls['password'].errors?.['required']">Password is required</small>
+                <small *ngIf="loginControls['password'].errors?.['minlength']">Password must be at least 6 characters</small>
+              </div>
+            </div>
+
+            <!-- Role Selector -->
+            <!-- <div class="form-group">
+              <label class="form-label">Login As</label>
+              <div class="role-selector" role="radiogroup" aria-label="Select login role">
+                <label class="role-option" [class.active]="loginForm.get('role')?.value === 'admin'">
+                  <input type="radio" formControlName="role" value="admin" />
+                  <span>Admin</span>
+                </label>
+                <label class="role-option" [class.active]="loginForm.get('role')?.value === 'player'">
+                  <input type="radio" formControlName="role" value="player" />
+                  <span>Player</span>
+                </label>
+                <label class="role-option" [class.active]="loginForm.get('role')?.value === 'owner'">
+                  <input type="radio" formControlName="role" value="owner" />
+                  <span>Owner</span>
+                </label>
+              </div>
+            </div> -->
+
+            <!-- Submit Button -->
+            <button 
+              type="submit" 
+              class="submit-button"
+              [class.loading]="isLoading"
+              [disabled]="!isLoginValid || isLoading"
+            >
+              <span *ngIf="!isLoading">Sign In</span>
+              <span *ngIf="isLoading" class="loading-spinner">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
+                </svg>
+                Signing in...
+              </span>
+            </button>
+
+            <!-- Toggle to Signup -->
+            <div class="form-footer">
+              <p>Don't have an account? <a href="#" (click)="toggleSignup($event)" class="link">Sign Up</a></p>
+            </div>
+          </form>
+        </div>
+
+        <!-- Signup Form -->
+        <div *ngIf="!isLogin" class="form-container">
+          <form [formGroup]="signupForm" (ngSubmit)="handleSignup()" class="auth-form">
+            
+            <!-- Account Type -->
+            <!-- <div class="form-group">
+              <label for="accountType" class="form-label">Account Type</label>
+              <select id="accountType" formControlName="accountType" class="form-input">
                 <option value="player">Player</option>
                 <option value="owner">Court Owner</option>
               </select>
-            </div>
+            </div> -->
 
-            <div class="input-group">
-              <label for="name">Full Name</label>
-              <input id="name" type="text" formControlName="name" />
-              <div class="field-error" *ngIf="(signupControls['name'].touched || signupAttempted) && signupControls['name'].invalid">
-                <small *ngIf="signupControls['name'].errors?.['required']">Name required</small>
-                <small *ngIf="signupControls['name'].errors?.['pattern']">Letters & spaces only</small>
+            <!-- Full Name -->
+            <div class="form-group">
+              <label for="name" class="form-label">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                  <circle cx="12" cy="7" r="4"></circle>
+                </svg>
+                Full Name
+              </label>
+              <input 
+                id="name" 
+                type="text" 
+                formControlName="name" 
+                class="form-input"
+                [class.input-error]="(signupControls['name'].touched || signupAttempted) && signupControls['name'].invalid"
+                placeholder="Enter your full name"
+                autocomplete="name"
+              />
+              <div class="error-message" *ngIf="(signupControls['name'].touched || signupAttempted) && signupControls['name'].invalid">
+                <small *ngIf="signupControls['name'].errors?.['required']">Full name is required</small>
+                <small *ngIf="signupControls['name'].errors?.['minlength']">Name must be at least 2 characters</small>
+                <small *ngIf="signupControls['name'].errors?.['pattern']">Name can only contain letters and spaces</small>
               </div>
             </div>
 
-            <div class="input-row">
-
-              <div class="input-group small">
-                <label for="age">Age</label>
-                <input id="age" type="number" formControlName="age" (input)="onAgeInput($event)" />
-                <div class="field-error" *ngIf="(signupControls['age'].touched || signupAttempted) && signupControls['age'].invalid">
-                  <small *ngIf="signupControls['age'].errors?.['required']">Age required</small>
-                  <small *ngIf="signupControls['age'].errors?.['min']">Minimum age is {{ signupForm.get('accountType')?.value === 'owner' ? 18 : 10 }}.</small>
+            <!-- Age and Phone Row -->
+            <div class="form-row">
+              <div class="form-group">
+                <label for="age" class="form-label">Age</label>
+                <input 
+                  id="age" 
+                  type="number" 
+                  formControlName="age" 
+                  (input)="onAgeInput($event)"
+                  class="form-input"
+                  [class.input-error]="(signupControls['age'].touched || signupAttempted) && signupControls['age'].invalid"
+                  placeholder="Age"
+                  min="10"
+                  max="120"
+                />
+                <div class="error-message" *ngIf="(signupControls['age'].touched || signupAttempted) && signupControls['age'].invalid">
+                  <small *ngIf="signupControls['age'].errors?.['required']">Age is required</small>
+                  <small *ngIf="signupControls['age'].errors?.['min']">Minimum age is {{ signupForm.get('accountType')?.value === 'owner' ? 18 : 10 }}</small>
+                  <small *ngIf="signupControls['age'].errors?.['max']">Please enter a valid age</small>
                 </div>
               </div>
 
-              <div class="input-group small">
-                <label for="phone">Phone</label>
-                <input id="phone" type="tel" formControlName="phone" (input)="onPhoneInput($event)" placeholder="+923001234567" />
-                <div class="field-error" *ngIf="(signupControls['phone'].touched || signupAttempted) && signupControls['phone'].invalid">
-                  <small *ngIf="signupControls['phone'].errors?.['required']">Phone required</small>
-                  <small *ngIf="signupControls['phone'].errors?.['pattern']">Use +923... or 03...</small>
+              <div class="form-group">
+                <label for="phone" class="form-label">Phone</label>
+                <input 
+                  id="phone" 
+                  type="tel" 
+                  formControlName="phone" 
+                  (input)="onPhoneInput($event)"
+                  class="form-input"
+                  [class.input-error]="(signupControls['phone'].touched || signupAttempted) && signupControls['phone'].invalid"
+                  placeholder="+923001234567"
+                  autocomplete="tel"
+                />
+                <div class="error-message" *ngIf="(signupControls['phone'].touched || signupAttempted) && signupControls['phone'].invalid">
+                  <small *ngIf="signupControls['phone'].errors?.['required']">Phone number is required</small>
+                  <small *ngIf="signupControls['phone'].errors?.['pattern']">Use format: +923... or 03...</small>
+                </div>
+              </div>
+            </div>
+
+            <!-- CNIC (Owner Only) -->
+            <div class="form-group" *ngIf="signupForm.get('accountType')?.value === 'owner'">
+              <label for="cnic" class="form-label">CNIC</label>
+              <input 
+                id="cnic" 
+                type="text" 
+                formControlName="cnic" 
+                (input)="onCnicInput($event)"
+                class="form-input"
+                [class.input-error]="(signupControls['cnic'].touched || signupAttempted) && signupControls['cnic'].invalid"
+                placeholder="12345-1234567-1"
+                maxlength="15"
+              />
+              <div class="error-message" *ngIf="(signupControls['cnic'].touched || signupAttempted) && signupControls['cnic'].invalid">
+                <small *ngIf="signupControls['cnic'].errors?.['required']">CNIC is required for owners</small>
+                <small *ngIf="signupControls['cnic'].errors?.['pattern']">Format: 12345-1234567-1</small>
+              </div>
+            </div>
+
+            <!-- Email -->
+            <div class="form-group">
+              <label for="emailSign" class="form-label">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                  <polyline points="22,6 12,13 2,6"></polyline>
+                </svg>
+                Email Address
+              </label>
+              <input 
+                id="emailSign" 
+                type="email" 
+                formControlName="email" 
+                class="form-input"
+                [class.input-error]="(signupControls['email'].touched || signupAttempted) && signupControls['email'].invalid"
+                placeholder="Enter your email"
+                autocomplete="email"
+              />
+              <div class="error-message" *ngIf="(signupControls['email'].touched || signupAttempted) && signupControls['email'].invalid">
+                <small *ngIf="signupControls['email'].errors?.['required']">Email is required</small>
+                <small *ngIf="signupControls['email'].errors?.['email']">Please enter a valid email address</small>
+              </div>
+            </div>
+
+            <!-- Password Row -->
+            <div class="form-row">
+              <div class="form-group">
+                <label for="passwordSign" class="form-label">Password</label>
+                <div class="password-wrapper">
+                  <input 
+                    id="passwordSign" 
+                    [type]="showPassword ? 'text' : 'password'" 
+                    formControlName="password" 
+                    class="form-input"
+                    [class.input-error]="(signupControls['password'].touched || signupAttempted) && signupControls['password'].invalid"
+                    placeholder="Create password"
+                    autocomplete="new-password"
+                  />
+                  <button 
+                    type="button" 
+                    class="password-toggle" 
+                    (click)="togglePasswordVisibility()"
+                    aria-label="Toggle password visibility"
+                  >
+                    <svg *ngIf="!showPassword" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                      <circle cx="12" cy="12" r="3"></circle>
+                    </svg>
+                    <svg *ngIf="showPassword" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                      <line x1="1" y1="1" x2="23" y2="23"></line>
+                    </svg>
+                  </button>
+                </div>
+                <div class="error-message" *ngIf="(signupControls['password'].touched || signupAttempted) && signupControls['password'].invalid">
+                  <small *ngIf="signupControls['password'].errors?.['required']">Password is required</small>
+                  <small *ngIf="signupControls['password'].errors?.['minlength']">Password must be at least 6 characters</small>
+                  <small *ngIf="signupControls['password'].errors?.['pattern']">Password must contain letters and numbers</small>
                 </div>
               </div>
 
-            </div>
-
-            <div class="input-group" *ngIf="signupForm.get('accountType')?.value === 'owner'">
-              <label for="cnic">CNIC</label>
-              <input id="cnic" type="text" formControlName="cnic" (input)="onCnicInput($event)" placeholder="12345-1234567-1" />
-              <div class="field-error" *ngIf="(signupControls['cnic'].touched || signupAttempted) && signupControls['cnic'].invalid">
-                <small *ngIf="signupControls['cnic'].errors?.['required']">CNIC required</small>
-                <small *ngIf="signupControls['cnic'].errors?.['pattern']">Format 12345-1234567-1</small>
-              </div>
-            </div>
-
-            <div class="input-group">
-              <label for="emailSign">Email</label>
-              <input id="emailSign" type="email" formControlName="email" />
-              <div class="field-error" *ngIf="(signupControls['email'].touched || signupAttempted) && signupControls['email'].invalid">
-                <small *ngIf="signupControls['email'].errors?.['required']">Email required</small>
-                <small *ngIf="signupControls['email'].errors?.['email']">Enter valid email</small>
-              </div>
-            </div>
-
-            <div class="input-row">
-
-              <div class="input-group small">
-                <label for="passwordSign">Password</label>
-                <input id="passwordSign" type="password" formControlName="password" />
-                <div class="field-error" *ngIf="(signupControls['password'].touched || signupAttempted) && signupControls['password'].invalid">
-                  <small *ngIf="signupControls['password'].errors?.['required']">Password required</small>
-                  <small *ngIf="signupControls['password'].errors?.['minlength']">Min 6 chars</small>
-                  <small *ngIf="signupControls['password'].errors?.['pattern']">Include letters and numbers</small>
+              <div class="form-group">
+                <label for="confirmPassword" class="form-label">Confirm Password</label>
+                <div class="password-wrapper">
+                  <input 
+                    id="confirmPassword" 
+                    [type]="showConfirmPassword ? 'text' : 'password'" 
+                    formControlName="confirmPassword" 
+                    class="form-input"
+                    [class.input-error]="(signupControls['confirmPassword'].touched || signupAttempted) && (signupControls['confirmPassword'].invalid || signupForm.errors?.['passwordMismatch'])"
+                    placeholder="Confirm password"
+                    autocomplete="new-password"
+                  />
+                  <button 
+                    type="button" 
+                    class="password-toggle" 
+                    (click)="toggleConfirmPasswordVisibility()"
+                    aria-label="Toggle password visibility"
+                  >
+                    <svg *ngIf="!showConfirmPassword" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                      <circle cx="12" cy="12" r="3"></circle>
+                    </svg>
+                    <svg *ngIf="showConfirmPassword" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                      <line x1="1" y1="1" x2="23" y2="23"></line>
+                    </svg>
+                  </button>
+                </div>
+                <div class="error-message" *ngIf="(signupControls['confirmPassword'].touched || signupAttempted) && signupControls['confirmPassword'].invalid">
+                  <small>Please confirm your password</small>
                 </div>
               </div>
-
-              <div class="input-group small">
-                <label for="confirmPassword">Confirm Password</label>
-                <input id="confirmPassword" type="password" formControlName="confirmPassword" />
-                <div class="field-error" *ngIf="(signupControls['confirmPassword'].touched || signupAttempted) && signupControls['confirmPassword'].invalid">
-                  <small *ngIf="signupControls['confirmPassword'].errors?.['required']">Confirm required</small>
-                </div>
-              </div>
-
             </div>
 
-            <div class="field-error" *ngIf="signupAttempted && signupForm.errors?.['passwordMismatch']">
-              <small>Passwords do not match.</small>
+            <!-- Password Mismatch Error -->
+            <div class="error-message" *ngIf="signupAttempted && signupForm.errors?.['passwordMismatch']">
+              <small>Passwords do not match</small>
             </div>
 
-            <button type="submit" class="primary-btn"
-                    [disabled]="!isSignupValid"
-                    [class.btn-green]="isSignupValid"
-                    [attr.aria-pressed]="isSignupValid">
-              Sign Up
+            <!-- Submit Button -->
+            <button 
+              type="submit" 
+              class="submit-button"
+              [class.loading]="isLoading"
+              [disabled]="!isSignupValid || isLoading"
+            >
+              <span *ngIf="!isLoading">Create Account</span>
+              <span *ngIf="isLoading" class="loading-spinner">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
+                </svg>
+                Creating account...
+              </span>
             </button>
 
+            <!-- Toggle to Login -->
+            <div class="form-footer">
+              <p>Already have an account? <a href="#" (click)="toggleLogin($event)" class="link">Sign In</a></p>
+            </div>
           </form>
-
-          <div class="toggle-link">
-            <p>Already have an account? <a href="#" (click)="toggleLogin($event)">Login</a></p>
-          </div>
-
-        </ng-template>
-
+        </div>
       </div>
     </section>
-
   </div>
-</div>  
+</div>

@@ -77,99 +77,172 @@
  -->
 
 
- <body>
-  <div class="rana">
-    <div class="home-container">
-      <div class="container">
-        <main>
-          <!-- Hero Section -->
-          <section class="hero">
+<div class="rana">
+  <div class="home-container">
+    <div class="container">
+      <main>
+        <!-- Hero Section -->
+        <section class="hero">
+          <div class="hero-content">
+            <div class="hero-badge">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
+                <path d="M2 17l10 5 10-5"></path>
+                <path d="M2 12l10 5 10-5"></path>
+              </svg>
+              <span>Your Sports Booking Platform</span>
+            </div>
             <h1>Welcome to <span>PlayEase</span>!</h1>
-            <p>Book your favorite sports facilities in just a few clicks!</p>
-            <!-- <button class="get-started-btn">Get Started</button> -->
-            <button class="get-started-btn" (click)="getStarted()"[disabled]="isLoggedIn">Get Started</button>
-          </section>
-
-          <!-- Features Section -->
-          <div class="features-container">
-            <!-- <div class="quick-booking">
-              <h2>Top Rated Sports Facilities</h2>
-            </div> -->
-  <!-- <app-court-list
-    #courtListRef
-    (courtClick)="openCourtDetails($event)"
-  ></app-court-list> -->
-            <section class="features">
-              <div class="step">
-                <div class="step-icon"><i class="fas fa-futbol"></i></div>
-                <h3>Indoor Courts</h3>
-                <p>Book world-class courts for football, cricket, padel and more.</p>
-              </div>
-
-              <div class="step">
-                <div class="step-icon"><i class="fas fa-calendar-alt"></i></div>
-                <h3>Easy Scheduling</h3>
-                <p>Schedule slots seamlessly with our dynamic calendar.</p>
-              </div>
-
-              <div class="step">
-                <div class="step-icon"><i class="fas fa-star"></i></div>
-                <h3>Player Ratings</h3>
-                <p>Player court rating system for feedback.</p>
-              </div>
-
-              <div class="step">
-                <div class="step-icon"><i class="fas fa-users"></i></div>
-                <h3>Player Recruitment</h3>
-                <p>Find teammates, join local teams or post recruitment ads.</p>
-              </div>
-            </section>
+            <p>Book your favorite sports facilities in just a few clicks. Experience seamless booking with instant confirmations.</p>
+            <div class="hero-actions">
+              <button class="get-started-btn" (click)="getStarted()" [disabled]="isLoggedIn">
+                <span>Get Started</span>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="5" y1="12" x2="19" y2="12"></line>
+                  <polyline points="12 5 19 12 12 19"></polyline>
+                </svg>
+              </button>
+              <button class="learn-more-btn" (click)="navigateTo('/our-services')">
+                <span>Learn More</span>
+              </button>
+            </div>
           </div>
+          <div class="hero-visual">
+            <div class="floating-card card-1">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                <line x1="3" y1="9" x2="21" y2="9"></line>
+                <line x1="9" y1="21" x2="9" y2="9"></line>
+              </svg>
+              <span>Book Courts</span>
+            </div>
+            <div class="floating-card card-2">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                <circle cx="9" cy="7" r="4"></circle>
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+              </svg>
+              <span>Find Players</span>
+            </div>
+            <div class="floating-card card-3">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+              </svg>
+              <span>Top Rated</span>
+            </div>
+          </div>
+        </section>
 
-          <!-- Quick Booking Section -->
-          <section class="quick-booking">
-            <h2>Book Your Game Within Minutes</h2>
-            <div class="quick-booking-steps">
-              <div class="step">
-                <span class="step-number">1</span>
-                <h3>Search</h3>
-                <p>Find courts near you with our smart filters. Filter by location, price, time, and amenities.</p>
+        <!-- Features Section -->
+        <div class="features-container">
+          <div class="section-header">
+            <h2 class="section-title">Why Choose PlayEase?</h2>
+            <p class="section-subtitle">Everything you need for seamless sports facility booking</p>
+          </div>
+          <section class="features">
+            <div class="step">
+              <div class="step-icon">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                  <line x1="3" y1="9" x2="21" y2="9"></line>
+                  <line x1="9" y1="21" x2="9" y2="9"></line>
+                </svg>
               </div>
-              <div class="step">
-                <span class="step-number">2</span>
-                <h3>Book</h3>
-                <p>Choose your time slot and pay securely online. Instant confirmation sent to your WhatsApp.</p>
+              <h3>Indoor Courts</h3>
+              <p>Book world-class courts for football, cricket, padel and more. Premium facilities at your fingertips.</p>
+            </div>
+
+            <div class="step">
+              <div class="step-icon">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                  <line x1="16" y1="2" x2="16" y2="6"></line>
+                  <line x1="8" y1="2" x2="8" y2="6"></line>
+                  <line x1="3" y1="10" x2="21" y2="10"></line>
+                </svg>
               </div>
-              <div class="step">
-                <span class="step-number">3</span>
-                <h3>Play</h3>
-                <p>Show up and play! Your booking is confirmed. Court owner is notified. Game on!</p>
+              <h3>Easy Scheduling</h3>
+              <p>Schedule slots seamlessly with our dynamic calendar. Real-time availability updates.</p>
+            </div>
+
+            <div class="step">
+              <div class="step-icon">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                </svg>
               </div>
+              <h3>Player Ratings</h3>
+              <p>Comprehensive rating system for courts and players. Make informed decisions with verified reviews.</p>
+            </div>
+
+            <div class="step">
+              <div class="step-icon">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                  <circle cx="9" cy="7" r="4"></circle>
+                  <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                  <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                </svg>
+              </div>
+              <h3>Player Recruitment</h3>
+              <p>Find teammates, join local teams or post recruitment ads. Build your dream team today.</p>
             </div>
           </section>
-        </main>
-      </div>
+        </div>
+
+        <!-- Quick Booking Section -->
+        <section class="quick-booking">
+          <div class="section-header">
+            <h2>Book Your Game Within Minutes</h2>
+            <p class="section-subtitle">Simple, fast, and secure booking process</p>
+          </div>
+          <div class="quick-booking-steps">
+            <div class="step">
+              <div class="step-number-wrapper">
+                <span class="step-number">1</span>
+              </div>
+              <div class="step-icon-wrapper">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="11" cy="11" r="8"></circle>
+                  <path d="M21 21l-4.35-4.35"></path>
+                </svg>
+              </div>
+              <h3>Search</h3>
+              <p>Find courts near you with our smart filters. Filter by location, price, time, and amenities.</p>
+            </div>
+            <div class="step">
+              <div class="step-number-wrapper">
+                <span class="step-number">2</span>
+              </div>
+              <div class="step-icon-wrapper">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                  <line x1="16" y1="2" x2="16" y2="6"></line>
+                  <line x1="8" y1="2" x2="8" y2="6"></line>
+                  <line x1="3" y1="10" x2="21" y2="10"></line>
+                  <path d="M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01M16 18h.01"></path>
+                </svg>
+              </div>
+              <h3>Book</h3>
+              <p>Choose your time slot and pay securely online. Instant confirmation sent to your WhatsApp.</p>
+            </div>
+            <div class="step">
+              <div class="step-number-wrapper">
+                <span class="step-number">3</span>
+              </div>
+              <div class="step-icon-wrapper">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <polygon points="10 8 16 12 10 16 10 8"></polygon>
+                </svg>
+              </div>
+              <h3>Play</h3>
+              <p>Show up and play! Your booking is confirmed. Court owner is notified. Game on!</p>
+            </div>
+          </div>
+        </section>
+      </main>
     </div>
   </div>
-
-  <script>
-    // Intersection Observer for Scroll Reveal Animation
-    const observerOptions = {
-      threshold: 0.2,
-      rootMargin: '0px 0px -100px 0px'
-    };
-
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add('reveal');
-        }
-      });
-    }, observerOptions);
-
-    // Observe all step cards
-    document.querySelectorAll('.step').forEach(step => {
-      observer.observe(step);
-    });
-  </script>
-</body>
+</div>

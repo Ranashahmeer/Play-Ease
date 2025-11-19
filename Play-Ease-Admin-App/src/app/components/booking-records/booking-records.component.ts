@@ -84,7 +84,6 @@ export class BookingRecordsComponent implements OnInit {
           });
   }
   getAdminData(){
-console.log("Admin")
   }
   loadUserData(): void {
     if (!this.userId) return;
@@ -130,7 +129,7 @@ console.log("Admin")
         this.pastBookings = bookings.filter(b => b.status === 'completed');
       },
       error: err => {
-        console.error('Error fetching account data:', err);
+        // Error fetching account data
       }
     });
   }
@@ -168,7 +167,7 @@ lodeOwnerData() {
       }));
     },
     error: err => {
-      console.error("Error fetching owner data:", err);
+      // Error fetching owner data
     }   
   });
 }
@@ -188,11 +187,9 @@ lodeOwnerData() {
     this.saveBookingsService.cancelBooking(bookingId).subscribe({
       next: () => {
         this.upcomingBookings = this.upcomingBookings.filter(b => b.id !== bookingId);
-        alert('Booking cancelled successfully');
       },
       error: (err:any) => {
-        console.error(err);
-        alert('Failed to cancel booking');
+        // Error cancelling booking
       }
     });
   }
@@ -207,12 +204,9 @@ lodeOwnerData() {
 
   sendTeamRequest(): void {
     if (this.teamForm.invalid) {
-      alert('Please provide a valid phone and message (min 10 chars).');
       return;
     }
-    console.log('Team request:', this.teamForm.value);
     this.toggleTeamModal(false);
-    alert('Team request submitted. We will contact you soon.');
   }
  */
   get hasNoBookings(): boolean {

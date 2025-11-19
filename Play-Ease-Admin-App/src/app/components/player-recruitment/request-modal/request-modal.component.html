@@ -1,110 +1,282 @@
 <div class="modal-overlay active" (click)="onOverlayClick($event)">
-  <div class="modal" (click)="$event.stopPropagation()">
+  <div class="modal" (click)="$event.stopPropagation()" #modalContainer>
+    <!-- Modal Header with Icon -->
     <div class="modal-header">
-      <h2 class="modal-title">Request New Members</h2>
-      <button class="btn-close" (click)="closeModal()">&times;</button>
-    </div>
-    <form (ngSubmit)="onSubmit()" #requestForm="ngForm">
-      <div class="form-group">
-        <label class="form-label">Match Name *</label>
-        <input 
-          type="text" 
-          class="form-input" 
-          [(ngModel)]="matchName"
-          name="matchName"
-          required 
-          placeholder="e.g., Saturday Morning Football">
-      </div>
-
-      <div class="form-group">
-        <label class="form-label">Location *</label>
-        <input 
-          type="text" 
-          class="form-input" 
-          [(ngModel)]="location"
-          name="location"
-          required 
-          placeholder="e.g., Greenfield Park">
-      </div>
-
-      <div class="form-row">
-        <div class="form-group">
-          <label class="form-label">Date *</label>
-          <input 
-            type="date" 
-            class="form-input" 
-            [(ngModel)]="matchDate"
-            name="matchDate"
-            [min]="minDate"
-            required>
+      <div class="header-content">
+        <div class="header-icon">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"></circle>
+            <path d="M12 2v4M12 18v4M2 12h4M18 12h4"></path>
+            <path d="M6.34 6.34l2.83 2.83M14.83 14.83l2.83 2.83M6.34 17.66l2.83-2.83M14.83 9.17l2.83-2.83"></path>
+          </svg>
         </div>
-        <div class="form-group">
-          <label class="form-label">Number of Players *</label>
-          <input 
-            type="number" 
-            class="form-input" 
-            [(ngModel)]="numPlayers"
-            name="numPlayers"
-            required 
-            min="1" 
-            placeholder="e.g., 3">
+        <div>
+          <h2 class="modal-title">Create Match Request</h2>
+          <p class="modal-subtitle">Fill in the details to find players for your match</p>
         </div>
       </div>
-
-      <div class="form-row">
-        <div class="form-group">
-          <label class="form-label">Start Time *</label>
-          <input 
-            type="time" 
-            class="form-input" 
-            [(ngModel)]="startTime"
-            name="startTime"
-            required>
-        </div>
-        <div class="form-group">
-          <label class="form-label">End Time *</label>
-          <input 
-            type="time" 
-            class="form-input" 
-            [(ngModel)]="endTime"
-            name="endTime"
-            required>
-        </div>
-      </div>
-
-      <div class="form-group">
-        <label class="form-label">Player Roles Required *</label>
-        <input 
-          type="text" 
-          class="form-input" 
-          [(ngModel)]="roles"
-          name="roles"
-          required 
-          placeholder="e.g., Forward, Midfielder, Goalkeeper">
-      </div>
-
-      <div class="form-group">
-        <label class="form-label">Contribution Price (PKR) *</label>
-        <input 
-          type="number" 
-          class="form-input" 
-          [(ngModel)]="price"
-          name="price"
-          required 
-          min="0" 
-          placeholder="e.g., 500">
-      </div>
-
-      <button 
-        type="submit" 
-        class="btn-submit"
-        [disabled]="!requestForm.form.valid">
-        Post Request
+      <button class="btn-close" (click)="closeModal()" aria-label="Close">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
       </button>
+    </div>
+
+    <!-- Form Content -->
+    <form (ngSubmit)="onSubmit()" #requestForm="ngForm" class="request-form">
+      <!-- Match Details Section -->
+      <div class="form-section">
+        <div class="section-header">
+          <span class="section-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+              <polyline points="14 2 14 8 20 8"></polyline>
+              <line x1="16" y1="13" x2="8" y2="13"></line>
+              <line x1="16" y1="17" x2="8" y2="17"></line>
+              <polyline points="10 9 9 9 8 9"></polyline>
+            </svg>
+          </span>
+          <h3 class="section-title">Match Details</h3>
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">
+            <span class="label-icon">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path>
+                <line x1="7" y1="7" x2="7.01" y2="7"></line>
+              </svg>
+            </span>
+            Match Name <span class="required">*</span>
+          </label>
+          <div class="input-wrapper">
+            <input 
+              type="text" 
+              class="form-input" 
+              [(ngModel)]="matchName"
+              name="matchName"
+              required 
+              placeholder="e.g., Saturday Morning Football">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">
+            <span class="label-icon">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                <circle cx="12" cy="10" r="3"></circle>
+              </svg>
+            </span>
+            Location <span class="required">*</span>
+          </label>
+          <div class="input-wrapper">
+            <input 
+              type="text" 
+              class="form-input" 
+              [(ngModel)]="location"
+              name="location"
+              required 
+              placeholder="e.g., Greenfield Park">
+          </div>
+        </div>
+      </div>
+
+      <!-- Date & Time Section -->
+      <div class="form-section">
+        <div class="section-header">
+          <span class="section-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+              <line x1="16" y1="2" x2="16" y2="6"></line>
+              <line x1="8" y1="2" x2="8" y2="6"></line>
+              <line x1="3" y1="10" x2="21" y2="10"></line>
+            </svg>
+          </span>
+          <h3 class="section-title">Schedule</h3>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">
+              <span class="label-icon">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                  <line x1="16" y1="2" x2="16" y2="6"></line>
+                  <line x1="8" y1="2" x2="8" y2="6"></line>
+                  <line x1="3" y1="10" x2="21" y2="10"></line>
+                </svg>
+              </span>
+              Date <span class="required">*</span>
+            </label>
+            <dx-date-box
+              [(value)]="matchDate"
+              [min]="minDate"
+              type="date"
+              displayFormat="yyyy-MM-dd"
+              [useMaskBehavior]="true"
+              placeholder="Select date"
+              class="dx-date-input">
+            </dx-date-box>
+          </div>
+          <div class="form-group">
+            <label class="form-label">
+              <span class="label-icon">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                  <circle cx="9" cy="7" r="4"></circle>
+                  <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                  <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                </svg>
+              </span>
+              Players Needed <span class="required">*</span>
+            </label>
+            <div class="input-wrapper">
+              <input 
+                type="number" 
+                class="form-input" 
+                [(ngModel)]="numPlayers"
+                name="numPlayers"
+                required 
+                min="1" 
+                placeholder="e.g., 3">
+            </div>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">
+              <span class="label-icon">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <polyline points="12 6 12 12 16 14"></polyline>
+                </svg>
+              </span>
+              Start Time <span class="required">*</span>
+            </label>
+            <dx-date-box
+              [(value)]="startTime"
+              type="time"
+              displayFormat="HH:mm"
+              [useMaskBehavior]="true"
+              placeholder="Select time"
+              class="dx-time-input">
+            </dx-date-box>
+          </div>
+          <div class="form-group">
+            <label class="form-label">
+              <span class="label-icon">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <polyline points="12 6 12 12 16 14"></polyline>
+                </svg>
+              </span>
+              End Time <span class="required">*</span>
+            </label>
+            <dx-date-box
+              [(value)]="endTime"
+              type="time"
+              displayFormat="HH:mm"
+              [useMaskBehavior]="true"
+              placeholder="Select time"
+              class="dx-time-input">
+            </dx-date-box>
+          </div>
+        </div>
+      </div>
+
+      <!-- Requirements Section -->
+      <div class="form-section">
+        <div class="section-header">
+          <span class="section-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="3"></circle>
+              <path d="M12 1v6m0 6v6M5.64 5.64l4.24 4.24m4.24 4.24l4.24 4.24M1 12h6m6 0h6M5.64 18.36l4.24-4.24m4.24-4.24l4.24-4.24"></path>
+            </svg>
+          </span>
+          <h3 class="section-title">Requirements</h3>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">
+            <span class="label-icon">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path>
+              </svg>
+            </span>
+            Player Roles Required <span class="required">*</span>
+          </label>
+          <div class="input-wrapper">
+            <input 
+              type="text" 
+              class="form-input" 
+              [(ngModel)]="roles"
+              name="roles"
+              required 
+              placeholder="e.g., Forward, Midfielder, Goalkeeper">
+          </div>
+          <p class="form-hint">Separate multiple roles with commas</p>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">
+            <span class="label-icon">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="12" y1="1" x2="12" y2="23"></line>
+                <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+              </svg>
+            </span>
+            Contribution Price (PKR) <span class="required">*</span>
+          </label>
+          <div class="input-wrapper price-input">
+            <span class="currency-symbol">₨</span>
+            <input 
+              type="number" 
+              class="form-input" 
+              [(ngModel)]="price"
+              name="price"
+              required 
+              min="0" 
+              placeholder="0">
+          </div>
+        </div>
+      </div>
+
+      <!-- Submit Button -->
+      <div class="form-actions">
+        <button 
+          type="button" 
+          class="btn-cancel"
+          (click)="closeModal()">
+          Cancel
+        </button>
+        <button 
+          type="submit" 
+          class="btn-submit"
+          [disabled]="!requestForm.form.valid">
+          <span class="btn-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="22" y1="2" x2="11" y2="13"></line>
+              <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+            </svg>
+          </span>
+          <span>Post Request</span>
+        </button>
+      </div>
     </form>
   </div>
 </div>
 
+<!-- Notification Toast -->
 <div class="notification" [class.active]="showNotification">
-  <p class="notification-text">{{ notificationText }}</p>
+  <div class="notification-content">
+    <span class="notification-icon">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+        <polyline points="20 6 9 17 4 12"></polyline>
+      </svg>
+    </span>
+    <p class="notification-text">{{ notificationText }}</p>
+  </div>
 </div>

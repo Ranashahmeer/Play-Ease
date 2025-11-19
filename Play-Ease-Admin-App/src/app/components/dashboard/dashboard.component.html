@@ -1,210 +1,561 @@
-<h1>app-dashboard</h1>
-<div class="owner-container">
-  <div class="owner-form">
-    <h2>{{ editingId ? 'Edit Service / Court' : 'Create a Service (Court)' }}</h2>
-
-    <form [formGroup]="form" (ngSubmit)="saveCourt()">
-      <label>Name *</label>
-      <input type="text" formControlName="name" placeholder="Stadium / Court name" />
-      <div class="field-error" *ngIf="submitted && form.get('name')?.invalid">Please enter a name.</div>
-
-      <label>Location</label>
-      <input type="text" formControlName="location" placeholder="City or neighborhood" />
-
-      <div style="margin-top:10px;">
-        <label>Pitch sizes</label>
-        <div class="chip-row">
-          <div *ngFor="let p of pitches" class="chip pitch-chip" (click)="$event.stopPropagation()">
-            <div style="display:flex; gap:12px; align-items:center;">
-              <div style="min-width:80px;">
-                <strong>{{ p }}</strong>
-              </div>
-
-              <div style="display:flex; flex-direction:column; gap:6px;">
-                <div style="display:flex; gap:8px; align-items:center;">
-                  <input
-                    type="number"
-                    [class.invalid-price]="!isFiniteValue(pricePerPitch[p]) && submitted"
-                    [value]="isFiniteValue(pricePerPitch[p]) ? pricePerPitch[p] : ''"
-                    (input)="setPitchPrice(p, $any($event.target).value)"
-                    placeholder="e.g. 2000"
-                    style="width:120px; padding:6px; border-radius:6px; border:1px solid #ddd;"
-                  />
-                  <div class="price-preview" *ngIf="formattedPrice(p)">{{ formattedPrice(p) }}</div>
-                </div>
-
-                <div class="field-error" *ngIf="!isFiniteValue(pricePerPitch[p]) && submitted">
-                  Enter a valid numeric price for {{ p }}.
-                </div>
-              </div>
-            </div>
-
-            <button type="button" (click)="removePitch(p)" title="Remove" class="remove-pitch-btn">×</button>
-          </div>
-        </div>
-
-        <div style="display:flex; gap:8px; margin-top:8px;">
-          <input #pitchInput type="text" placeholder="e.g. 5x5" />
-          <dx-button text="Add pitch" stylingMode="contained" (onClick)="addPitch(pitchInput)"></dx-button>
-        </div>
-        <div class="field-error" *ngIf="submitted && pitches.length === 0">Add at least one pitch and set its price.</div>
-      </div>
-
-      <label style="margin-top:12px;">Offers / Amenities</label>
-      <div class="chip-row">
-        <div *ngFor="let o of offers" class="chip" (click)="$event.stopPropagation()">
-          {{ o }} <button type="button" (click)="removeOffer(o)" title="Remove">×</button>
-        </div>
-      </div>
-      <div style="display:flex; gap:8px; margin-top:8px;">
-        <input #offerInput type="text" placeholder="e.g. Shower, Parking" />
-        <dx-button text="Add offer" stylingMode="contained" (onClick)="addOffer(offerInput)"></dx-button>
-      </div>
-
-      <label style="margin-top:12px;">Upload images (max 6)</label>
-      <ng-container *ngIf="isBrowser">
-      <dx-file-uploader [multiple]="true" [accept]="'image/png,image/jpeg'" (onValueChanged)="onImagesUpload($event)"></dx-file-uploader>
-    </ng-container>
-      <div class="image-preview-row" *ngIf="images.length > 0">
-        <div *ngFor="let img of images" class="img-thumb" (click)="$event.stopPropagation()">
-          <img [src]="img" alt="preview" />
-          <div style="display:flex; gap:6px; margin-top:6px;">
-            <dx-button text="Set main" stylingMode="contained" (onClick)="setAsMain(img)"></dx-button>
-          </div>
-          <div *ngIf="mainImage === img" class="main-badge">Main</div>
-        </div>
-      </div>
-
-      <label style="margin-top:12px;">Opening time</label>
-      <input type="text" formControlName="openingTime" placeholder="e.g. 06:00 AM" />
-
-      <label style="margin-top:12px;">Closing time</label>
-      <input type="text" formControlName="closingTime" placeholder="e.g. 10:00 PM" />
-
-      <label style="margin-top:12px;">About</label>
-      <textarea formControlName="about" rows="3" placeholder="Short description..."></textarea>
-
-      <div *ngIf="submitted && anyInvalidPitchPrice()" class="page-warning">
-        Some pitch prices are missing or invalid — please provide numeric prices for all pitches before saving.
-      </div>
-
-      <div style="display:flex; gap:8px; margin-top:12px;">
-        <dx-button text="Save Service" type="success" stylingMode="contained" (onClick)="saveCourt()"></dx-button>
-        <dx-button text="Start New" (onClick)="startCreateNew()"></dx-button>
-        <dx-button text="Reset sample data" (onClick)="resetStoreToSample()"></dx-button>
-      </div>
-    </form>
+<div class="dashboard-wrapper">
+  <div class="dashboard-header">
+    <h1>Dashboard</h1>
+    <div class="role-badge">{{ userRole }}</div>
   </div>
 
-  <div class="owner-list">
-    <h3>Saved Services</h3>
-    <div *ngIf="courts.length === 0">No services yet. Create one from the left.</div>
-
-    <div class="court-card" *ngFor="let c of courts" (click)="openCourtDetails(c)">
-      <img [src]="getPreviewImage(c)" alt="court" />
-      <div class="info">
-        <h4>{{ c.name }}</h4>
-        <p>{{ c.location }}</p>
-        <p *ngIf="c.rating !== undefined">Rating: {{ c.rating }}</p>
-        <p>Pitches: {{ c.pitches.length || 0 }}</p>
-        <ng-container *ngIf="c.pricePerPitch">
-          <div style="margin-top:6px;">
-            <small>Prices:</small>
-            <div *ngFor="let p of c.pitches">
-              <small>{{ p }} — Rs {{ (c.pricePerPitch && c.pricePerPitch[p] !== undefined) ? c.pricePerPitch[p] : '—' }}</small>
-            </div>
-          </div>
-        </ng-container>
+  <!-- KPI Cards -->
+  <div class="kpi-grid">
+    <!-- Admin Only KPIs -->
+    <div class="kpi-card" *ngIf="userRole === 'Admin'">
+      <div class="kpi-icon">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+          <circle cx="9" cy="7" r="4"></circle>
+          <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+          <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+        </svg>
       </div>
-      <div class="actions">
-        <dx-button text="Edit" (onClick)="onEditClick(c, $event)"></dx-button>
-        <dx-button text="Delete" (onClick)="onDeleteClick(c, $event)"></dx-button>
+      <div class="kpi-content">
+        <div class="kpi-label">Total Users</div>
+        <div class="kpi-value">{{ kpis.totalUsers | number }}</div>
       </div>
     </div>
+    <div class="kpi-card" *ngIf="userRole === 'Admin'">
+      <div class="kpi-icon">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="12" y1="1" x2="12" y2="23"></line>
+          <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+        </svg>
+      </div>
+      <div class="kpi-content">
+        <div class="kpi-label">Total Revenue</div>
+        <div class="kpi-value">Rs {{ kpis.totalRevenue | number:'1.0-0' }}</div>
+      </div>
+    </div>
+    <div class="kpi-card" *ngIf="userRole === 'Admin'">
+      <div class="kpi-icon">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+          <line x1="16" y1="2" x2="16" y2="6"></line>
+          <line x1="8" y1="2" x2="8" y2="6"></line>
+          <line x1="3" y1="10" x2="21" y2="10"></line>
+        </svg>
+      </div>
+      <div class="kpi-content">
+        <div class="kpi-label">Active Bookings</div>
+        <div class="kpi-value">{{ kpis.activeBookings | number }}</div>
+      </div>
+    </div>
+    <div class="kpi-card" *ngIf="userRole === 'Admin'">
+      <div class="kpi-icon">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="12" y1="2" x2="12" y2="6"></line>
+          <line x1="12" y1="18" x2="12" y2="22"></line>
+          <line x1="4.93" y1="4.93" x2="7.76" y2="7.76"></line>
+          <line x1="16.24" y1="16.24" x2="19.07" y2="19.07"></line>
+          <line x1="2" y1="12" x2="6" y2="12"></line>
+          <line x1="18" y1="12" x2="22" y2="12"></line>
+          <line x1="4.93" y1="19.07" x2="7.76" y2="16.24"></line>
+          <line x1="16.24" y1="7.76" x2="19.07" y2="4.93"></line>
+        </svg>
+      </div>
+      <div class="kpi-content">
+        <div class="kpi-label">Total Matches</div>
+        <div class="kpi-value">{{ kpis.totalMatches | number }}</div>
+      </div>
+    </div>
+
+    <!-- Owner Only KPIs -->
+    <div class="kpi-card" *ngIf="userRole === 'Owner'">
+      <div class="kpi-icon">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="12" y1="1" x2="12" y2="23"></line>
+          <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+        </svg>
+      </div>
+      <div class="kpi-content">
+        <div class="kpi-label">My Revenue</div>
+        <div class="kpi-value">Rs {{ kpis.totalRevenue | number:'1.0-0' }}</div>
+      </div>
+    </div>
+    <div class="kpi-card" *ngIf="userRole === 'Owner'">
+      <div class="kpi-icon">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+          <line x1="16" y1="2" x2="16" y2="6"></line>
+          <line x1="8" y1="2" x2="8" y2="6"></line>
+          <line x1="3" y1="10" x2="21" y2="10"></line>
+        </svg>
+      </div>
+      <div class="kpi-content">
+        <div class="kpi-label">My Bookings</div>
+        <div class="kpi-value">{{ kpis.activeBookings | number }}</div>
+      </div>
+    </div>
+
+    <!-- User Only KPIs -->
+    <div class="kpi-card" *ngIf="userRole === 'User'">
+      <div class="kpi-icon">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+          <line x1="16" y1="2" x2="16" y2="6"></line>
+          <line x1="8" y1="2" x2="8" y2="6"></line>
+          <line x1="3" y1="10" x2="21" y2="10"></line>
+        </svg>
+      </div>
+      <div class="kpi-content">
+        <div class="kpi-label">My Bookings</div>
+        <div class="kpi-value">{{ kpis.activeBookings | number }}</div>
+      </div>
+    </div>
+    <div class="kpi-card" *ngIf="userRole === 'User'">
+      <div class="kpi-icon">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="12" y1="2" x2="12" y2="6"></line>
+          <line x1="12" y1="18" x2="12" y2="22"></line>
+          <line x1="4.93" y1="4.93" x2="7.76" y2="7.76"></line>
+          <line x1="16.24" y1="16.24" x2="19.07" y2="19.07"></line>
+          <line x1="2" y1="12" x2="6" y2="12"></line>
+          <line x1="18" y1="12" x2="22" y2="12"></line>
+          <line x1="4.93" y1="19.07" x2="7.76" y2="16.24"></line>
+          <line x1="16.24" y1="7.76" x2="19.07" y2="4.93"></line>
+        </svg>
+      </div>
+      <div class="kpi-content">
+        <div class="kpi-label">My Matches</div>
+        <div class="kpi-value">{{ kpis.totalMatches | number }}</div>
+      </div>
+    </div>
+
+    <!-- Shared KPIs -->
+    <div class="kpi-card" *ngIf="userRole === 'Admin' || userRole === 'User'">
+      <div class="kpi-icon">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="20 6 9 17 4 12"></polyline>
+        </svg>
+      </div>
+      <div class="kpi-content">
+        <div class="kpi-label">Acceptance Rate</div>
+        <div class="kpi-value">{{ kpis.acceptanceRate | number:'1.1-1' }}%</div>
+      </div>
+    </div>
+    <div class="kpi-card" *ngIf="userRole === 'Admin' || userRole === 'Owner'">
+      <div class="kpi-icon">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="20" x2="18" y2="10"></line>
+          <line x1="12" y1="20" x2="12" y2="4"></line>
+          <line x1="6" y1="20" x2="6" y2="14"></line>
+        </svg>
+      </div>
+      <div class="kpi-content">
+        <div class="kpi-label">Avg Booking Value</div>
+        <div class="kpi-value">Rs {{ kpis.avgBookingValue | number:'1.0-0' }}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Charts Grid -->
+  <div class="charts-grid">
+    <!-- Admin Only: User Registration Trends -->
+    <div class="chart-card" *ngIf="userRole === 'Admin'">
+      <h3>User Registration Trends</h3>
+      <div *ngIf="charts['userRegistration'].loading" class="loading">Loading...</div>
+      <div *ngIf="charts['userRegistration'].error" class="error">{{ charts['userRegistration'].error }}</div>
+      <dx-chart
+        *ngIf="!charts['userRegistration'].loading && charts['userRegistration'].dataSource.length > 0"
+        [dataSource]="charts['userRegistration'].dataSource"
+        [palette]="['#41B783', '#2e8f63']">
+        <dxi-series
+          valueField="NewUsers"
+          argumentField="Date"
+          name="New Users"
+          type="line"
+          [color]="'#41B783'">
+        </dxi-series>
+        <dxi-series
+          valueField="CumulativeUsers"
+          argumentField="Date"
+          name="Cumulative Users"
+          type="area"
+          [color]="'#2e8f63'">
+        </dxi-series>
+        <dxo-legend [visible]="true"></dxo-legend>
+        <dxo-common-series-settings>
+          <dxo-point [visible]="false"></dxo-point>
+        </dxo-common-series-settings>
+      </dx-chart>
+    </div>
+
+    <!-- Admin Only: Role Distribution -->
+    <div class="chart-card" *ngIf="userRole === 'Admin'">
+      <h3>Role Distribution</h3>
+      <div *ngIf="charts['roleDistribution'].loading" class="loading">Loading...</div>
+      <div *ngIf="charts['roleDistribution'].error" class="error">{{ charts['roleDistribution'].error }}</div>
+      <dx-pie-chart
+        *ngIf="!charts['roleDistribution'].loading && charts['roleDistribution'].dataSource.length > 0"
+        [dataSource]="charts['roleDistribution'].dataSource"
+        palette="Soft Pastel">
+        <dxi-series
+          argumentField="RoleName"
+          valueField="UserCount">
+          <dxo-label [visible]="true" [customizeText]="customizePieLabel"></dxo-label>
+        </dxi-series>
+        <dxo-legend [visible]="true" orientation="horizontal"></dxo-legend>
+        <dxo-tooltip [enabled]="true"></dxo-tooltip>
+      </dx-pie-chart>
+    </div>
+
+    <!-- Admin & User: Application Status -->
+    <div class="chart-card" *ngIf="userRole === 'Admin' || userRole === 'User'">
+      <h3>Application Status</h3>
+      <div *ngIf="charts['applicationStatus'].loading" class="loading">Loading...</div>
+      <div *ngIf="charts['applicationStatus'].error" class="error">{{ charts['applicationStatus'].error }}</div>
+      <dx-pie-chart
+        *ngIf="!charts['applicationStatus'].loading && charts['applicationStatus'].dataSource.length > 0"
+        [dataSource]="charts['applicationStatus'].dataSource"
+        palette="Harmony Light">
+        <dxi-series
+          argumentField="status"
+          valueField="Count">
+          <dxo-label [visible]="true" [customizeText]="customizePieLabel"></dxo-label>
+        </dxi-series>
+        <dxo-legend [visible]="true"></dxo-legend>
+      </dx-pie-chart>
+    </div>
+
+    <!-- Admin Only: Active vs Inactive Users -->
+    <div class="chart-card" *ngIf="userRole === 'Admin'">
+      <h3>Active vs Inactive Users</h3>
+      <div *ngIf="charts['activeUsers'].loading" class="loading">Loading...</div>
+      <div *ngIf="charts['activeUsers'].error" class="error">{{ charts['activeUsers'].error }}</div>
+      <dx-pie-chart
+        *ngIf="!charts['activeUsers'].loading && charts['activeUsers'].dataSource.length > 0"
+        [dataSource]="charts['activeUsers'].dataSource"
+        palette="Material">
+        <dxi-series
+          argumentField="Status"
+          valueField="UserCount">
+          <dxo-label [visible]="true" [customizeText]="customizePieLabel"></dxo-label>
+        </dxi-series>
+        <dxo-legend [visible]="true"></dxo-legend>
+      </dx-pie-chart>
+    </div>
+
+    <!-- Admin Only Charts -->
+    <ng-container *ngIf="userRole === 'Admin'">
+      <!-- Match Trends -->
+      <div class="chart-card">
+        <h3>Match Creation Trends</h3>
+        <div *ngIf="charts['matchTrends'].loading" class="loading">Loading...</div>
+        <div *ngIf="charts['matchTrends'].error" class="error">{{ charts['matchTrends'].error }}</div>
+        <dx-chart
+          *ngIf="!charts['matchTrends'].loading && charts['matchTrends'].dataSource.length > 0"
+          [dataSource]="charts['matchTrends'].dataSource"
+          [palette]="['#2563eb']">
+          <dxi-series
+            valueField="MatchCount"
+            argumentField="Date"
+            name="Matches"
+            type="bar">
+          </dxi-series>
+          <dxo-legend [visible]="false"></dxo-legend>
+        </dx-chart>
+      </div>
+
+      <!-- Revenue by Court -->
+      <div class="chart-card">
+        <h3>Revenue by Court</h3>
+        <div *ngIf="charts['revenueByCourt'].loading" class="loading">Loading...</div>
+        <div *ngIf="charts['revenueByCourt'].error" class="error">{{ charts['revenueByCourt'].error }}</div>
+        <dx-chart
+          *ngIf="!charts['revenueByCourt'].loading && charts['revenueByCourt'].dataSource.length > 0"
+          [dataSource]="charts['revenueByCourt'].dataSource"
+          [palette]="['#10b981']">
+          <dxi-series
+            valueField="TotalRevenue"
+            argumentField="CourtName"
+            name="Revenue"
+            type="bar">
+          </dxi-series>
+          <dxo-legend [visible]="false"></dxo-legend>
+          <dxo-common-axis-settings>
+            <dxo-label [rotationAngle]="-45"></dxo-label>
+          </dxo-common-axis-settings>
+        </dx-chart>
+      </div>
+
+      <!-- Booking Trends -->
+      <div class="chart-card">
+        <h3>Booking Trends</h3>
+        <div *ngIf="charts['bookingTrends'].loading" class="loading">Loading...</div>
+        <div *ngIf="charts['bookingTrends'].error" class="error">{{ charts['bookingTrends'].error }}</div>
+        <dx-chart
+          *ngIf="!charts['bookingTrends'].loading && charts['bookingTrends'].dataSource.length > 0"
+          [dataSource]="charts['bookingTrends'].dataSource"
+          [palette]="['#8b5cf6', '#6366f1']">
+          <dxi-series
+            valueField="BookingCount"
+            argumentField="Date"
+            name="Bookings"
+            type="line">
+          </dxi-series>
+          <dxi-series
+            valueField="DailyRevenue"
+            argumentField="Date"
+            name="Revenue"
+            type="area"
+            axis="revenue">
+          </dxi-series>
+          <dxo-legend [visible]="true"></dxo-legend>
+          <dxi-value-axis name="revenue" position="right"></dxi-value-axis>
+        </dx-chart>
+      </div>
+
+      <!-- Revenue by Owner -->
+      <div class="chart-card">
+        <h3>Revenue by Owner</h3>
+        <div *ngIf="charts['revenueByOwner'].loading" class="loading">Loading...</div>
+        <div *ngIf="charts['revenueByOwner'].error" class="error">{{ charts['revenueByOwner'].error }}</div>
+        <dx-chart
+          *ngIf="!charts['revenueByOwner'].loading && charts['revenueByOwner'].dataSource.length > 0"
+          [dataSource]="charts['revenueByOwner'].dataSource"
+          [palette]="['#f59e0b']">
+          <dxi-series
+            valueField="TotalRevenue"
+            argumentField="OwnerName"
+            name="Revenue"
+            type="bar">
+          </dxi-series>
+          <dxo-legend [visible]="false"></dxo-legend>
+        </dx-chart>
+      </div>
+
+      <!-- Booking Time Slot -->
+      <div class="chart-card">
+        <h3>Bookings by Time Slot</h3>
+        <div *ngIf="charts['bookingTimeSlot'].loading" class="loading">Loading...</div>
+        <div *ngIf="charts['bookingTimeSlot'].error" class="error">{{ charts['bookingTimeSlot'].error }}</div>
+        <dx-chart
+          *ngIf="!charts['bookingTimeSlot'].loading && charts['bookingTimeSlot'].dataSource.length > 0"
+          [dataSource]="charts['bookingTimeSlot'].dataSource"
+          [palette]="['#ec4899']">
+          <dxi-series
+            valueField="BookingCount"
+            argumentField="Hour"
+            name="Bookings"
+            type="bar">
+          </dxi-series>
+          <dxo-legend [visible]="false"></dxo-legend>
+        </dx-chart>
+      </div>
+
+      <!-- Top Matches -->
+      <div class="chart-card">
+        <h3>Top Matches by Applicants</h3>
+        <div *ngIf="charts['topMatches'].loading" class="loading">Loading...</div>
+        <div *ngIf="charts['topMatches'].error" class="error">{{ charts['topMatches'].error }}</div>
+        <dx-chart
+          *ngIf="!charts['topMatches'].loading && charts['topMatches'].dataSource.length > 0"
+          [dataSource]="charts['topMatches'].dataSource.slice(0, 10)"
+          [palette]="['#06b6d4']">
+          <dxi-series
+            valueField="TotalApplicants"
+            argumentField="Title"
+            name="Applicants"
+            type="bar">
+          </dxi-series>
+          <dxo-legend [visible]="false"></dxo-legend>
+          <dxo-common-axis-settings>
+            <dxo-label [rotationAngle]="-45"></dxo-label>
+          </dxo-common-axis-settings>
+        </dx-chart>
+      </div>
+
+      <!-- Payment Methods -->
+      <div class="chart-card">
+        <h3>Payment Methods</h3>
+        <div *ngIf="charts['paymentMethods'].loading" class="loading">Loading...</div>
+        <div *ngIf="charts['paymentMethods'].error" class="error">{{ charts['paymentMethods'].error }}</div>
+        <dx-pie-chart
+          *ngIf="!charts['paymentMethods'].loading && charts['paymentMethods'].dataSource.length > 0"
+          [dataSource]="charts['paymentMethods'].dataSource"
+          palette="Violet">
+          <dxi-series
+            argumentField="MethodName"
+            valueField="BookingCount">
+            <dxo-label [visible]="true" [customizeText]="customizePieLabel"></dxo-label>
+          </dxi-series>
+          <dxo-legend [visible]="true"></dxo-legend>
+        </dx-pie-chart>
+      </div>
+
+      <!-- Monthly Revenue -->
+      <div class="chart-card chart-card-wide">
+        <h3>Monthly Revenue Trends</h3>
+        <div *ngIf="charts['monthlyRevenue'].loading" class="loading">Loading...</div>
+        <div *ngIf="charts['monthlyRevenue'].error" class="error">{{ charts['monthlyRevenue'].error }}</div>
+        <dx-chart
+          *ngIf="!charts['monthlyRevenue'].loading && charts['monthlyRevenue'].dataSource.length > 0"
+          [dataSource]="charts['monthlyRevenue'].dataSource"
+          [palette]="['#14b8a6']">
+          <dxi-series
+            valueField="TotalRevenue"
+            argumentField="MonthLabel"
+            name="Revenue"
+            type="line">
+          </dxi-series>
+          <dxo-legend [visible]="false"></dxo-legend>
+        </dx-chart>
+      </div>
+    </ng-container>
+
+    <!-- Owner Only Charts -->
+    <ng-container *ngIf="userRole === 'Owner'">
+      <div class="chart-card">
+        <h3>My Court Revenue</h3>
+        <div *ngIf="charts['revenueByCourt'].loading" class="loading">Loading...</div>
+        <div *ngIf="charts['revenueByCourt'].error" class="error">{{ charts['revenueByCourt'].error }}</div>
+        <dx-chart
+          *ngIf="!charts['revenueByCourt'].loading && charts['revenueByCourt'].dataSource.length > 0"
+          [dataSource]="charts['revenueByCourt'].dataSource"
+          [palette]="['#10b981']">
+          <dxi-series
+            valueField="TotalRevenue"
+            argumentField="CourtName"
+            name="Revenue"
+            type="bar">
+          </dxi-series>
+        </dx-chart>
+      </div>
+
+      <div class="chart-card">
+        <h3>My Booking Trends</h3>
+        <div *ngIf="charts['bookingTrends'].loading" class="loading">Loading...</div>
+        <div *ngIf="charts['bookingTrends'].error" class="error">{{ charts['bookingTrends'].error }}</div>
+        <dx-chart
+          *ngIf="!charts['bookingTrends'].loading && charts['bookingTrends'].dataSource.length > 0"
+          [dataSource]="charts['bookingTrends'].dataSource"
+          [palette]="['#8b5cf6']">
+          <dxi-series
+            valueField="BookingCount"
+            argumentField="Date"
+            name="Bookings"
+            type="line">
+          </dxi-series>
+        </dx-chart>
+      </div>
+
+      <div class="chart-card">
+        <h3>My Bookings by Time</h3>
+        <div *ngIf="charts['bookingTimeSlot'].loading" class="loading">Loading...</div>
+        <div *ngIf="charts['bookingTimeSlot'].error" class="error">{{ charts['bookingTimeSlot'].error }}</div>
+        <dx-chart
+          *ngIf="!charts['bookingTimeSlot'].loading && charts['bookingTimeSlot'].dataSource.length > 0"
+          [dataSource]="charts['bookingTimeSlot'].dataSource"
+          [palette]="['#ec4899']">
+          <dxi-series
+            valueField="BookingCount"
+            argumentField="Hour"
+            name="Bookings"
+            type="bar">
+          </dxi-series>
+        </dx-chart>
+      </div>
+
+      <div class="chart-card chart-card-wide">
+        <h3>My Monthly Revenue</h3>
+        <div *ngIf="charts['monthlyRevenue'].loading" class="loading">Loading...</div>
+        <div *ngIf="charts['monthlyRevenue'].error" class="error">{{ charts['monthlyRevenue'].error }}</div>
+        <dx-chart
+          *ngIf="!charts['monthlyRevenue'].loading && charts['monthlyRevenue'].dataSource.length > 0"
+          [dataSource]="charts['monthlyRevenue'].dataSource"
+          [palette]="['#14b8a6']">
+          <dxi-series
+            valueField="TotalRevenue"
+            argumentField="MonthLabel"
+            name="Revenue"
+            type="area">
+          </dxi-series>
+        </dx-chart>
+      </div>
+    </ng-container>
+
+    <!-- User Only Charts -->
+    <ng-container *ngIf="userRole === 'User'">
+      <!-- My Application Status -->
+      <div class="chart-card">
+        <h3>My Application Status</h3>
+        <div *ngIf="charts['applicationStatus'].loading" class="loading">Loading...</div>
+        <div *ngIf="charts['applicationStatus'].error" class="error">{{ charts['applicationStatus'].error }}</div>
+        <dx-pie-chart
+          *ngIf="!charts['applicationStatus'].loading && charts['applicationStatus'].dataSource.length > 0"
+          [dataSource]="charts['applicationStatus'].dataSource"
+          palette="Harmony Light">
+          <dxi-series
+            argumentField="status"
+            valueField="Count">
+            <dxo-label [visible]="true" [customizeText]="customizePieLabel"></dxo-label>
+          </dxi-series>
+          <dxo-legend [visible]="true"></dxo-legend>
+        </dx-pie-chart>
+      </div>
+
+      <!-- My Booking History -->
+      <div class="chart-card">
+        <h3>My Booking History</h3>
+        <div *ngIf="charts['bookingTrends'].loading" class="loading">Loading...</div>
+        <div *ngIf="charts['bookingTrends'].error" class="error">{{ charts['bookingTrends'].error }}</div>
+        <dx-chart
+          *ngIf="!charts['bookingTrends'].loading && charts['bookingTrends'].dataSource.length > 0"
+          [dataSource]="charts['bookingTrends'].dataSource"
+          [palette]="['#8b5cf6']">
+          <dxi-series
+            valueField="BookingCount"
+            argumentField="Date"
+            name="Bookings"
+            type="line">
+          </dxi-series>
+        </dx-chart>
+      </div>
+
+      <!-- Matches I Created -->
+      <div class="chart-card">
+        <h3>Matches I Created</h3>
+        <div *ngIf="charts['matchTrends'].loading" class="loading">Loading...</div>
+        <div *ngIf="charts['matchTrends'].error" class="error">{{ charts['matchTrends'].error }}</div>
+        <dx-chart
+          *ngIf="!charts['matchTrends'].loading && charts['matchTrends'].dataSource.length > 0"
+          [dataSource]="charts['matchTrends'].dataSource"
+          [palette]="['#2563eb']">
+          <dxi-series
+            valueField="MatchCount"
+            argumentField="Date"
+            name="Matches"
+            type="bar">
+          </dxi-series>
+        </dx-chart>
+      </div>
+
+      <!-- Matches I Applied To -->
+      <div class="chart-card">
+        <h3>Matches I Applied To</h3>
+        <div *ngIf="charts['topMatches'].loading" class="loading">Loading...</div>
+        <div *ngIf="charts['topMatches'].error" class="error">{{ charts['topMatches'].error }}</div>
+        <dx-chart
+          *ngIf="!charts['topMatches'].loading && charts['topMatches'].dataSource.length > 0"
+          [dataSource]="charts['topMatches'].dataSource"
+          [palette]="['#06b6d4']">
+          <dxi-series
+            valueField="TotalApplicants"
+            argumentField="Title"
+            name="Applicants"
+            type="bar">
+          </dxi-series>
+        </dx-chart>
+      </div>
+    </ng-container>
   </div>
 </div>
-
-<dx-popup
-  [(visible)]="popupVisible"
-  [showTitle]="false"
-  [width]="640"
-  [height]="'70vh'"
-  [dragEnabled]="false"
-  (hidden)="closePopup()"
->
-  <div *dxTemplate="let data of 'content'" class="popup-content" style="padding: 0 15px 15px 15px;">
-    <div class="popup-custom-header">
-      <div class="popup-header-left">
-        <h3 class="popup-court-name">{{ selectedCourt?.name ?? '' }}</h3>
-        <div class="popup-subinfo">
-          <span>{{ selectedCourt?.location }}</span>
-          <span *ngIf="selectedCourt?.rating" style="margin-left:8px;">• Rating: {{ selectedCourt?.rating }}</span>
-        </div>
-      </div>
-
-      <button
-        class="popup-close-btn"
-        (click)="closePopup()"
-        aria-label="Close popup"
-        title="Close">
-        ×
-      </button>
-    </div>
-
-    <div style="padding: 12px 0 0 0;">
-      <dx-gallery
-        [dataSource]="galleryImages"
-        [loop]="true"
-        [showIndicator]="true"
-        [height]="260"
-        [stretchImages]="true"
-        class="court-gallery">
-      </dx-gallery>
-    </div>
-
-    <div class="popup-price-row" style="padding-top: 10px; display:flex; align-items:center; justify-content:space-between; gap:12px;">
-      <p class="price-tag-popup">
-        <strong>From:</strong>
-        <span style="font-weight:900; margin-left:6px;">Rs {{ selectedCourt?.price ?? 0 }}</span>
-      </p>
-      <p class="hours-line-popup"><strong>Hours:</strong> {{ selectedCourt?.openingTime ?? '—' }} — {{ selectedCourt?.closingTime ?? '—' }}</p>
-    </div>
-
-    <div style="margin-top: 12px;">
-      <h4 style="margin: 8px 0 6px;">Pitches & Prices</h4>
-      <div *ngIf="selectedCourt?.pricePerPitch; else noPrices">
-        <div *ngFor="let p of selectedCourt?.pitches">
-          <div style="display:flex; justify-content:space-between; padding:6px 0;">
-            <div>{{ p }}</div>
-            <div>Rs {{ selectedCourt?.pricePerPitch?.[p] ?? '—' }}</div>
-          </div>
-        </div>
-      </div>
-      <ng-template #noPrices>
-        <div style="color:#666;">No per-pitch prices provided.</div>
-      </ng-template>
-    </div>
-
-    <div style="margin-top: 12px;">
-      <h4 style="margin: 8px 0 6px;">What we offer</h4>
-      <div class="offers-row">
-        <ng-container *ngIf="selectedCourt?.offers?.length; else noOffers">
-          <span class="offer-chip" *ngFor="let off of selectedCourt?.offers">
-            <span class="offer-icon" aria-hidden="true">{{ getOfferIcon(off) }}</span>
-            <span class="offer-text">{{ off }}</span>
-          </span>
-        </ng-container>
-        <ng-template #noOffers>
-          <span style="color: #666; font-size: 13px;">No additional info available.</span>
-        </ng-template>
-      </div>
-    </div>
-
-    <div style="margin-top: 12px;">
-      <h4 style="margin: 8px 0 6px;">About Us</h4>
-      <p style="color: #444; line-height: 1.45;">
-        {{ selectedCourt?.about ?? 'No description provided for this court.' }}
-      </p>
-    </div>
-  </div>
-</dx-popup>

@@ -1,9 +1,12 @@
-import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit, OnDestroy, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { GetDatabyDatasourceService } from '../../../services/get-data/get-databy-datasource.service';
 import { isPlatformBrowser } from '@angular/common';
 import { Inject, PLATFORM_ID } from '@angular/core';
+import { ChatService, ChatMessage } from '../../../services/chat.service';
+import { MatchService, Applicant } from '../../../services/match.service';
+import { Subscription } from 'rxjs';
 
 
 export interface MatchRequest {
@@ -19,6 +22,7 @@ export interface MatchRequest {
   organizer: string;
   organizerId: number;
   isOwn?: boolean;
+  applicants?: Applicant[]; // Applicants are included from parent component
 }
 
 @Component({
@@ -28,7 +32,7 @@ export interface MatchRequest {
   templateUrl: './available-requests.component.html',
   styleUrls: ['./available-requests.component.css']
 })
-export class AvailableRequestsComponent {
+export class AvailableRequestsComponent implements OnInit, OnDestroy, OnChanges {
   @Input() requests: MatchRequest[] = [];
  @Output() applicationSubmitted = new EventEmitter<{
   matchId: number;
@@ -36,7 +40,6 @@ export class AvailableRequestsComponent {
   userName: string;
   role: string;
 }>();
-
 
   showRoleModal = false;
   selectedMatch: MatchRequest | null = null;
@@ -46,9 +49,245 @@ export class AvailableRequestsComponent {
   notificationText = '';
   userId!: number;
   fullname: any;
-  constructor( private getDataService: GetDatabyDatasourceService,@Inject(PLATFORM_ID) private platformId: Object) {}
-
   
+  // Chat functionality
+  showChat = false;
+  currentChatRequest: MatchRequest | null = null;
+  currentChatOrganizerId: number = 0;
+  currentChatOrganizerName: string = '';
+  chatMessages: ChatMessage[] = [];
+  chatInput = '';
+  acceptedApplicants: Map<number, Applicant> = new Map(); // matchId -> Applicant
+  private messagePollingSubscription?: Subscription;
+
+  constructor(
+    private getDataService: GetDatabyDatasourceService,
+    private chatService: ChatService,
+    private matchService: MatchService,
+    @Inject(PLATFORM_ID) private platformId: Object
+  ) {}
+
+  ngOnInit(): void {
+    if (isPlatformBrowser(this.platformId)) {
+      const saved = localStorage.getItem('loggedInUser');
+      if (saved) {
+        try {
+          const user = JSON.parse(saved);
+          this.userId = user.userID ?? 0;
+          this.fullname = user.fullName ?? '';
+        } catch (err) {
+          // Failed to parse loggedInUser
+        }
+      }
+      
+      // Process applicants from requests (already loaded from parent)
+      this.processAcceptedApplicants();
+    }
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    // Refresh accepted applicants when requests input changes
+    if (changes['requests']) {
+      this.processAcceptedApplicants();
+    }
+  }
+
+  ngOnDestroy(): void {
+    if (this.messagePollingSubscription) {
+      this.messagePollingSubscription.unsubscribe();
+    }
+  }
+
+  // Process accepted applicants from requests data (no API call needed)
+  processAcceptedApplicants(): void {
+    if (!this.userId) return;
+
+    // Clear existing map
+    this.acceptedApplicants.clear();
+
+    // Process applicants from each request (already loaded from parent component)
+    this.requests.forEach(request => {
+      if (request.applicants && Array.isArray(request.applicants)) {
+        const acceptedApplicant = request.applicants.find(
+          (a: Applicant) => a.userId === this.userId && a.status === 'accepted'
+        );
+        if (acceptedApplicant) {
+          this.acceptedApplicants.set(request.id, acceptedApplicant);
+        }
+      }
+    });
+  }
+
+  // Method to refresh accepted applicants (call when requests change)
+  refreshAcceptedApplicants(): void {
+    this.processAcceptedApplicants();
+  }
+
+  // Check if user is accepted applicant for a request
+  isAcceptedApplicant(requestId: number): boolean {
+    return this.acceptedApplicants.has(requestId);
+  }
+
+  // Get accepted applicant info for a request
+  getAcceptedApplicant(requestId: number): Applicant | undefined {
+    return this.acceptedApplicants.get(requestId);
+  }
+
+  // Check if chat is available for a request
+  isChatAvailable(request: MatchRequest): boolean {
+    if (!this.isAcceptedApplicant(request.id)) {
+      return false;
+    }
+
+    const applicant = this.getAcceptedApplicant(request.id);
+    if (!applicant) {
+      return false;
+    }
+
+    return this.chatService.isChatAvailable(
+      request.date,
+      request.endTime,
+      applicant.acceptedAt
+    );
+  }
+
+  startChat(request: MatchRequest): void {
+    if (!this.isChatAvailable(request)) {
+      return;
+    }
+
+    this.currentChatRequest = request;
+    this.currentChatOrganizerId = request.organizerId;
+    this.currentChatOrganizerName = request.organizer;
+    this.showChat = true;
+    this.chatMessages = [];
+
+    // Load existing messages
+    this.loadMessages();
+
+    // Start polling for new messages
+    this.startMessagePolling();
+  }
+
+  closeChat(): void {
+    this.showChat = false;
+    this.chatMessages = [];
+    this.chatInput = '';
+    this.currentChatRequest = null;
+    this.currentChatOrganizerId = 0;
+    this.currentChatOrganizerName = '';
+
+    // Stop polling
+    if (this.messagePollingSubscription) {
+      this.messagePollingSubscription.unsubscribe();
+    }
+  }
+
+  loadMessages(): void {
+    if (!this.currentChatRequest || !this.userId) {
+      return;
+    }
+
+    this.chatService.getMessages(
+      this.currentChatRequest.id,
+      this.userId,
+      this.currentChatOrganizerId
+    ).subscribe({
+      next: (messages) => {
+        this.chatMessages = messages.sort((a, b) => {
+          const timeA = new Date(a.timestamp || a.createdAt || '').getTime();
+          const timeB = new Date(b.timestamp || b.createdAt || '').getTime();
+          return timeA - timeB;
+        });
+      },
+      error: (err) => {
+        // Error loading messages
+      }
+    });
+  }
+
+  startMessagePolling(): void {
+    if (!this.currentChatRequest || !this.userId) {
+      return;
+    }
+
+    // Poll every 3 seconds for new messages
+    this.messagePollingSubscription = this.chatService.getMessagesWithPolling(
+      this.currentChatRequest.id,
+      this.userId,
+      this.currentChatOrganizerId,
+      3000
+    ).subscribe({
+      next: (messages) => {
+        this.chatMessages = messages.sort((a, b) => {
+          const timeA = new Date(a.timestamp || a.createdAt || '').getTime();
+          const timeB = new Date(b.timestamp || b.createdAt || '').getTime();
+          return timeA - timeB;
+        });
+      },
+      error: (err) => {
+        // Error polling messages
+      }
+    });
+  }
+
+  sendMessage(): void {
+    const text = this.chatInput.trim();
+    if (!text || !this.currentChatRequest || !this.userId) {
+      return;
+    }
+
+    // Check if chat is still available
+    if (!this.isChatAvailable(this.currentChatRequest)) {
+      this.closeChat();
+      return;
+    }
+
+    const message: ChatMessage = {
+      matchId: this.currentChatRequest.id,
+      senderId: this.userId,
+      senderName: this.fullname,
+      receiverId: this.currentChatOrganizerId,
+      receiverName: this.currentChatOrganizerName,
+      message: text,
+      timestamp: new Date().toISOString()
+    };
+
+    this.chatService.sendMessage(message).subscribe({
+      next: (sentMessage) => {
+        this.chatMessages.push(sentMessage);
+        this.chatInput = '';
+      },
+      error: (err) => {
+        // Error sending message
+      }
+    });
+  }
+
+  handleChatKeyPress(event: KeyboardEvent): void {
+    if (event.key === 'Enter' && !event.shiftKey) {
+      event.preventDefault();
+      this.sendMessage();
+    }
+  }
+
+  isMyMessage(message: ChatMessage): boolean {
+    return message.senderId === this.userId;
+  }
+
+  formatMessageTime(timestamp?: string): string {
+    if (!timestamp) return '';
+    const date = new Date(timestamp);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    
+    if (diffMins < 1) return 'Just now';
+    if (diffMins < 60) return `${diffMins}m ago`;
+    if (diffMins < 1440) return `${Math.floor(diffMins / 60)}h ago`;
+    
+    return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  }
 
   applyToRequest(request: MatchRequest): void {
     this.selectedMatch = request;

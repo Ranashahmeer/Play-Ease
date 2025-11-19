@@ -16,18 +16,28 @@ export class AuthGuard implements CanActivate {
   ) {}
 
   canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): boolean {
-    console.log('[AuthGuard] checking access for', state.url);
-
     if (this.AuthLoginLogoutService.isAuthenticated()) {
-      console.log('[AuthGuard] user logged in → allow');
       return true;
     }
-
-    console.log('[AuthGuard] user not logged in → open login dialog');
-    this.dialog.open(LoginComponent, {
-      width: '1100px',
-      height: '600px',
+    
+    // Prevent multiple dialogs
+    if (this.dialog.openDialogs.length > 0) {
+      return false;
+    }
+    
+    document.body.classList.add('modal-open');
+    
+    const dialogRef = this.dialog.open(LoginComponent, {
+      width: '800px',
+      height: '1100px',
+      panelClass: 'custom-login-dialog',
+      backdropClass: 'custom-backdrop',
+      disableClose: true,
       data: { redirectUrl: state.url, notice: 'Please log in to continue' }
+    });
+
+    dialogRef.afterClosed().subscribe(() => {
+      document.body.classList.remove('modal-open');
     });
 
     return false;

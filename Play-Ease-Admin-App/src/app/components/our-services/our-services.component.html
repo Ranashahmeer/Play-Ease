@@ -1,23 +1,143 @@
-<div class="services-container">
-  <h1 class="page-title">Services</h1>
-
-  <div class="services-grid">
-    <div class="service-card">
-      <img src="assets/court.jpg" alt="Court Booking Icon" class="service-icon">
-      <h2>Court Booking</h2>
-      <p>
-        Book sports courts with ease for football, cricket, or basketball. 
-        View real-time availability, choose time slots, and reserve your court instantly using our streamlined booking interface.
-      </p>
-    </div>
-
-    <div class="service-card">
-      <img src="assets/team.jpg" alt="Team Recruitment Icon" class="service-icon">
-      <h2>Team Recruitment</h2>
-      <p>
-        Looking to build your dream team? Use our player recruitment feature to find and connect with local athletes, 
-        and grow your squad with the right talent for your sport.
-      </p>
+<section class="services-page">
+  <!-- Hero Section -->
+  <div class="services-hero">
+    <div class="hero-content">
+      <h1 class="hero-title">Our Services</h1>
+      <p class="hero-subtitle">Everything you need to book courts, find players, and enjoy your favorite sports</p>
+      <div class="hero-decoration">
+        <div class="sport-icon">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"></circle>
+            <path d="M12 2v4M12 18v4M2 12h4M18 12h4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"></path>
+          </svg>
+        </div>
+        <div class="sport-icon">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"></circle>
+            <path d="M12 6v12M6 12h12"></path>
+          </svg>
+        </div>
+        <div class="sport-icon">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
+            <path d="M2 17l10 5 10-5"></path>
+            <path d="M2 12l10 5 10-5"></path>
+          </svg>
+        </div>
+      </div>
     </div>
   </div>
-</div>
+
+  <!-- Services Grid -->
+  <div class="services-container">
+    <div class="services-grid">
+      <!-- Court Booking Service -->
+      <div class="service-card">
+        <div class="service-card-header">
+          <div class="service-icon-wrapper">
+            <img src="assets/court.jpg" alt="Court Booking" class="service-icon" loading="lazy" decoding="async" />
+            <div class="icon-overlay">
+              <span class="icon-badge">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                  <line x1="3" y1="10" x2="21" y2="10"></line>
+                  <path d="M8 4v6M16 4v6"></path>
+                </svg>
+              </span>
+            </div>
+          </div>
+          <h2 class="service-title">Court Booking</h2>
+        </div>
+        <div class="service-card-body">
+          <p class="service-description">
+            Book sports courts with ease for football, cricket, or basketball. 
+            View real-time availability, choose time slots, and reserve your court instantly using our streamlined booking interface.
+          </p>
+          <ul class="service-features">
+            <li>Real-time availability</li>
+            <li>Instant booking confirmation</li>
+            <li>Multiple court types</li>
+            <li>Flexible time slots</li>
+          </ul>
+        </div>
+        <div class="service-card-footer">
+          <div class="service-cta" (click)="navigateToBookings()">
+            <span class="cta-text">Get Started</span>
+            <span class="cta-arrow">→</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Team Recruitment Service -->
+      <div class="service-card">
+        <div class="service-card-header">
+          <div class="service-icon-wrapper">
+            <img src="assets/team.jpg" alt="Team Recruitment" class="service-icon" loading="lazy" decoding="async" />
+            <div class="icon-overlay">
+              <span class="icon-badge">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                  <circle cx="9" cy="7" r="4"></circle>
+                  <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                  <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                </svg>
+              </span>
+            </div>
+          </div>
+          <h2 class="service-title">Team Recruitment</h2>
+        </div>
+        <div class="service-card-body">
+          <p class="service-description">
+            Looking to build your dream team? Use our player recruitment feature to find and connect with local athletes, 
+            and grow your squad with the right talent for your sport.
+          </p>
+          <ul class="service-features">
+            <li>Find players nearby</li>
+            <li>Post recruitment ads</li>
+            <li>Connect with athletes</li>
+            <li>Build your team</li>
+          </ul>
+        </div>
+        <div class="service-card-footer">
+          <div class="service-cta" (click)="navigateToPlayerRecruitment()">
+            <span class="cta-text">Get Started</span>
+            <span class="cta-arrow">→</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Additional Info Section -->
+    <div class="services-info">
+      <div class="info-card">
+        <div class="info-icon">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polyline>
+          </svg>
+        </div>
+        <h3>Fast & Easy</h3>
+        <p>Book courts in minutes with our intuitive interface</p>
+      </div>
+      <div class="info-card">
+        <div class="info-icon">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+          </svg>
+        </div>
+        <h3>Secure Payments</h3>
+        <p>Safe and secure payment processing for all bookings</p>
+      </div>
+      <div class="info-card">
+        <div class="info-icon">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect>
+            <line x1="12" y1="18" x2="12" y2="18"></line>
+          </svg>
+        </div>
+        <h3>Mobile Friendly</h3>
+        <p>Access all features on any device, anywhere</p>
+      </div>
+    </div>
+  </div>
+</section>

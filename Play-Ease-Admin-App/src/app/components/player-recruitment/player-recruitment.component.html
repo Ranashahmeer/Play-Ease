@@ -7,24 +7,45 @@
   </svg>
 </div>
 
-
 <main class="recruitment-page">
   <header class="page-header">
-    <h1 class="page-title">Player Recruitment</h1>
-    <button class="btn-make-request" (click)="openRequestModal()">Request New Members</button>
+    <div class="header-content">
+      <div class="title-section">
+        <div class="title-icon">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+            <circle cx="9" cy="7" r="4"></circle>
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+          </svg>
+        </div>
+        <div>
+          <h1 class="page-title">Player Recruitment</h1>
+          <p class="page-subtitle">Connect with players and build your team</p>
+        </div>
+      </div>
+      <button class="btn-make-request" (click)="openRequestModal()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="12" y1="5" x2="12" y2="19"></line>
+          <line x1="5" y1="12" x2="19" y2="12"></line>
+        </svg>
+        Request New Members
+      </button>
+    </div>
   </header>
 
-  <app-available-requests 
-    [requests]="availableRequests"
-    (applicationSubmitted)="handleApplicationSubmitted($event)">
-  </app-available-requests>
+  <div class="content-wrapper">
+    <app-available-requests 
+      [requests]="availableRequests"
+      (applicationSubmitted)="handleApplicationSubmitted($event)">
+    </app-available-requests>
 
-  <app-my-requests 
-    [requests]="myRequests"
-    (applicantStatusChanged)="handleApplicantStatusChanged($event)">
-  </app-my-requests>
+    <app-my-requests 
+      [requests]="myRequests"
+      (applicantStatusChanged)="handleApplicantStatusChanged($event)">
+    </app-my-requests>
+  </div>
 </main>
-
 
 <app-request-modal 
   *ngIf="showRequestModal"

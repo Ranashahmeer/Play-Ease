@@ -5,6 +5,8 @@ import { GetDatabyDatasourceService } from '../../services/get-data/get-databy-d
 import{AuthLoginLogoutService} from '../../services/auth/auth.login-logout.service'
 import { Router } from '@angular/router';
 import { SaveBookingsService } from '../../services/bookings/save-bookings.service';
+import { AddCourtComponent } from '../add-court/add-court.component';
+import { DashboardComponent } from '../dashboard/dashboard.component';
 
 interface Booking {
   id: number;
@@ -21,7 +23,7 @@ interface Booking {
 @Component({
   selector: 'app-my-account',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, AddCourtComponent],
   templateUrl: './my-account.component.html',
   styleUrls: ['./my-account.component.css']
 })
@@ -39,9 +41,12 @@ export class MyAccountComponent implements OnInit {
   upcomingBookings: Booking[] = [];
   pastBookings: Booking[] = [];
   showTeamModal = false;
+  showDashboard = false; // For admin add-court modal
   userId?: number;
   roleId?: number;
   userRoleName: any;
+  isOwner?: boolean = false;
+  isAdmin?: boolean = false;
 
   constructor(private fb: FormBuilder,private router: Router,private saveBookingsService: SaveBookingsService ,public AuthLoginLogoutService :AuthLoginLogoutService, private getDataService: GetDatabyDatasourceService) {}
 
@@ -83,7 +88,19 @@ export class MyAccountComponent implements OnInit {
           });
   }
   getAdminData(){
-console.log("Admin")
+    this.isAdmin = true;
+  }
+
+  toggleDashboard(): void {
+    this.showDashboard = !this.showDashboard;
+  }
+
+  closeDashboard(): void {
+    this.showDashboard = false;
+  }
+
+  openDashboard(): void {
+    this.router.navigate(['/dashboard']);
   }
   loadUserData(): void {
     if (!this.userId) return;
@@ -129,13 +146,12 @@ console.log("Admin")
         this.pastBookings = bookings.filter(b => b.status === 'completed');
       },
       error: err => {
-        console.error('Error fetching account data:', err);
+        // Error fetching account data
       }
     });
   }
   owner: any = null;
-ownerCourts: any[] = [];
-isOwner?: boolean  =false
+  ownerCourts: any[] = [];
 lodeOwnerData() {
   if (!this.userId) return;
   const whereclause = `co.userid = ${this.userId} `;
@@ -167,7 +183,7 @@ lodeOwnerData() {
       }));
     },
     error: err => {
-      console.error("Error fetching owner data:", err);
+      // Error fetching owner data
     }   
   });
 }
@@ -188,11 +204,9 @@ lodeOwnerData() {
     this.saveBookingsService.cancelBooking(bookingId).subscribe({
       next: () => {
         this.upcomingBookings = this.upcomingBookings.filter(b => b.id !== bookingId);
-        alert('Booking cancelled successfully');
       },
       error: (err:any) => {
-        console.error(err);
-        alert('Failed to cancel booking');
+        // Error cancelling booking
       }
     });
   }
@@ -207,12 +221,9 @@ lodeOwnerData() {
 
   sendTeamRequest(): void {
     if (this.teamForm.invalid) {
-      alert('Please provide a valid phone and message (min 10 chars).');
       return;
     }
-    console.log('Team request:', this.teamForm.value);
     this.toggleTeamModal(false);
-    alert('Team request submitted. We will contact you soon.');
   }
 
   get hasNoBookings(): boolean {

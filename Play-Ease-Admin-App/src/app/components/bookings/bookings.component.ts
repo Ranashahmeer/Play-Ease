@@ -49,14 +49,12 @@ export class BookingsComponent {
     this.courtListRef.filterCourts(searchTerm);
   }
   ngAfterViewInit() {
-    console.log("courtListRef loaded:", this.courtListRef);
   } 
   toggleFilters() {
     this.filtersOpened = !this.filtersOpened;
   }
 
   onApplyFilters() {
-    console.log('Filters applied', this.form.value);
     this.filtersOpened = false;
     // You can add additional filtering logic here for courtListRef
     this.courtListRef.filterCourts(
@@ -74,16 +72,13 @@ export class BookingsComponent {
       selectedPitchSizes: [],
       distance: 0
     });
-    console.log('Filters cleared');
   }
 
   onUseLocation() {
-    console.log('Use current location');
   }
 
   onTimeSelect(item: any) {
     this.form.patchValue({ selectedTime: item });
-    console.log('Time selected', item);
   }
 
   openCourtDetails(court: any) {

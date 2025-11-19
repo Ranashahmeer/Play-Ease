@@ -1,322 +1,263 @@
-import { CommonModule, isPlatformBrowser } from '@angular/common';
-import { Component, OnInit, OnDestroy, PLATFORM_ID, Inject } from '@angular/core';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { CommonModule } from '@angular/common';
+import { Component, OnInit, OnDestroy } from '@angular/core';
+import { GetDatabyDatasourceService } from '../../services/get-data/get-databy-datasource.service';
 import {
-  DxButtonModule,
-  DxFileUploaderModule,
-  DxPopupModule,
-  DxGalleryModule
+  DxChartModule,
+  DxPieChartModule,
+  DxBarGaugeModule,
+  DxCircularGaugeModule,
+  DxButtonModule
 } from 'devextreme-angular';
 import { Subscription } from 'rxjs';
 
-type Court = {
-  id?: string;
-  name: string;
-  location?: string;
-  rating?: number;
-  pitches: string[];
-  price: number;
-  pricePerPitch?: Record<string, number>;
-  openingTime?: string;
-  closingTime?: string;
-  image?: string;
-  images?: string[];
-  offers?: string[];
-  about?: string;
-  bookedSlots?: Record<string, string[]>;
-};
-
-const STORAGE_KEY = 'playease_courts';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, DxButtonModule, DxFileUploaderModule, DxPopupModule, DxGalleryModule],
+  imports: [
+    CommonModule,
+    DxChartModule,
+    DxPieChartModule,
+    DxBarGaugeModule,
+    DxCircularGaugeModule,
+    DxButtonModule
+  ],
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.css']
 })
 export class DashboardComponent implements OnInit, OnDestroy {
-  form!: FormGroup;
+  userRole: string = '';
+  userId?: number;
+  roleId?: number;
   subscriptions: Subscription[] = [];
-  courts: Court[] = [];
-  pitches: string[] = [];
-  offers: string[] = [];
-  images: string[] = [];
-  mainImage: string = '';
-  pricePerPitch: Record<string, number> = {};
-  editingId: string | null = null;
-  private originalRating?: number;
-  submitted = false;
-  popupVisible = false;
-  selectedCourt: Court | null = null;
-  isBrowser = false;
-  constructor(private fb: FormBuilder,@Inject(PLATFORM_ID) platformId: Object) {  this.isBrowser = isPlatformBrowser(platformId);}
+
+  // Chart data containers
+  charts: {
+    [key: string]: {
+      dataSource: any[];
+      loading: boolean;
+      error?: string;
+    };
+  } = {
+    userRegistration: { dataSource: [], loading: false },
+    roleDistribution: { dataSource: [], loading: false },
+    matchTrends: { dataSource: [], loading: false },
+    applicationStatus: { dataSource: [], loading: false },
+    revenueByCourt: { dataSource: [], loading: false },
+    bookingTrends: { dataSource: [], loading: false },
+    revenueByOwner: { dataSource: [], loading: false },
+    bookingTimeSlot: { dataSource: [], loading: false },
+    topMatches: { dataSource: [], loading: false },
+    paymentMethods: { dataSource: [], loading: false },
+    activeUsers: { dataSource: [], loading: false },
+    monthlyRevenue: { dataSource: [], loading: false }
+  };
+
+  // KPI values
+  kpis = {
+    totalUsers: 0,
+    totalRevenue: 0,
+    activeBookings: 0,
+    totalMatches: 0,
+    acceptanceRate: 0,
+    avgBookingValue: 0
+  };
+
+  constructor(
+    private dataService: GetDatabyDatasourceService
+  ) {}
 
   ngOnInit(): void {
-    this.form = this.fb.group({
-      name: ['', Validators.required],
-      location: [''],
-      openingTime: [''],
-      closingTime: [''],
-      about: ['']
-    });
-    this.courts = this.loadFromStorage();
+    this.loadUserInfo();
+    // loadDashboardData() will be called automatically after getUserRole() completes
   }
 
   ngOnDestroy(): void {
-    this.subscriptions.forEach(s => s.unsubscribe());
+    this.subscriptions.forEach(sub => sub.unsubscribe());
   }
 
-  private loadFromStorage(): Court[] {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (!raw) return [];
-      const parsed = JSON.parse(raw) as Court[];
-      if (!Array.isArray(parsed)) return [];
-      return parsed;
-    } catch (err) {
-      console.error('Failed to read courts from localStorage', err);
-      return [];
-    }
-  }
-
-  private saveToStorage(arr: Court[]) {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(arr));
-      this.courts = arr;
-    } catch (err) {
-      console.error('Failed to write courts to localStorage', err);
-      alert('Failed to save data locally. See console.');
-    }
-  }
-
-  private generateId() {
-    return `c${Date.now()}${Math.floor(Math.random() * 1000)}`;
-  }
-
-  resetStoreToSample() {
-    const todayKey = this.toKey(new Date());
-    const seed: Court[] = [
-      {
-        id: this.generateId(),
-        name: 'Sample Arena',
-        location: 'Gulberg',
-        rating: 4.4,
-        pitches: ['5x5', '7x7'],
-        pricePerPitch: { '5x5': 2000, '7x7': 2500 },
-        price: 2000,
-        openingTime: '06:00 AM',
-        closingTime: '10:00 PM',
-        image: 'assets/alphaarena.jpg',
-        images: ['assets/alphaarena-1.jpg','assets/alphaarena-2.jpg'],
-        offers: ['Toilet', 'Parking'],
-        about: 'Seed court data - replace with your own.',
-        bookedSlots: { [this.toKey(new Date())]: ['06:00 AM'] }
+  loadUserInfo(): void {
+    const saved = localStorage.getItem('loggedInUser');
+    if (saved) {
+      try {
+        const user = JSON.parse(saved);
+        this.userId = user.userID;
+        this.roleId = user.roleID;
+        this.getUserRole();
+      } catch (e) {
+        // Error parsing user data
       }
-    ];
-    this.saveToStorage(seed);
-  }
-
-  addPitch(inputEl: HTMLInputElement) {
-    const val = (inputEl.value || '').trim();
-    if (!val) return;
-    if (!this.pitches.includes(val)) {
-      this.pitches.push(val);
-      this.pricePerPitch[val] = NaN;
     }
-    inputEl.value = '';
   }
 
-  removePitch(p: string) {
-    this.pitches = this.pitches.filter(x => x !== p);
-    delete this.pricePerPitch[p];
+  getUserRole(): void {
+    const sub = this.dataService.getData(4).subscribe({
+      next: (roles: any[]) => {
+        const role = roles?.find(r => r.RoleID === this.roleId);
+        this.userRole = role?.RoleName || 'User';
+        this.loadDashboardData();
+      },
+      error: (err) => {
+        // Default to 'User' if role loading fails
+        this.userRole = 'User';
+        this.loadDashboardData();
+      }
+    });
+    this.subscriptions.push(sub);
   }
 
-  setPitchPrice(pitch: string, raw: string | number) {
-    const str = typeof raw === 'number' ? String(raw) : String(raw);
-    const cleaned = str.replace(/[^\d.]/g, '');
-    const v = cleaned === '' ? NaN : Number(cleaned);
-    if (Number.isFinite(v) && v >= 0) {
-      this.pricePerPitch[pitch] = Math.round(v);
+  loadDashboardData(): void {
+    if (!this.userRole) {
+      // Wait for role to load
+      return;
+    }
+
+    // Role-specific charts only
+    if (this.userRole === 'Admin') {
+      this.loadAdminCharts();
+    } else if (this.userRole === 'Owner') {
+      this.loadOwnerCharts();
     } else {
-      this.pricePerPitch[pitch] = NaN;
+      this.loadUserCharts();
     }
+
+    // Load KPIs
+    this.loadKPIs();
   }
 
-  formattedPrice(pitch: string): string {
-    const v = this.pricePerPitch[pitch];
-    if (!Number.isFinite(v)) return '';
-    try { return `Rs ${v.toLocaleString('en-PK')}`; } catch { return `Rs ${v}`; }
+  loadAdminCharts(): void {
+    // Admin-only overview charts
+    this.loadChart(9, 'userRegistration', 'User registration trends');
+    this.loadChart(10, 'roleDistribution', 'Role distribution');
+    this.loadChart(12, 'applicationStatus', 'Application status');
+    this.loadChart(19, 'activeUsers', 'Active vs Inactive users');
+    // Admin business charts
+    this.loadChart(11, 'matchTrends', 'Match creation trends');
+    this.loadChart(13, 'revenueByCourt', 'Revenue by court');
+    this.loadChart(14, 'bookingTrends', 'Booking trends');
+    this.loadChart(15, 'revenueByOwner', 'Revenue by owner');
+    this.loadChart(16, 'bookingTimeSlot', 'Bookings by time slot');
+    this.loadChart(17, 'topMatches', 'Top matches by applicants');
+    this.loadChart(18, 'paymentMethods', 'Payment methods');
+    this.loadChart(20, 'monthlyRevenue', 'Monthly revenue trends');
   }
 
-  anyInvalidPitchPrice(): boolean {
-    if (!this.pitches || this.pitches.length === 0) return false;
-    for (const p of this.pitches) {
-      const v = this.pricePerPitch[p];
-      if (!Number.isFinite(v) || Number.isNaN(v)) return true;
-    }
-    return false;
+  loadOwnerCharts(): void {
+    // Owner-specific charts - only their own data
+    if (!this.userId) return;
+    
+    // DataSource 13 has no WHERE, so use WHERE
+    const courtWhereClause = `co.OwnerID = (SELECT OwnerID FROM courtowners WHERE UserId = ${this.userId})`;
+    // DataSource 14 already has WHERE IsActive = 1, so use AND
+    const bookingWhereClause = `AND b.CourtId IN (SELECT CourtID FROM courts WHERE OwnerID = (SELECT OwnerID FROM courtowners WHERE UserId = ${this.userId}))`;
+    // DataSource 16 already has WHERE IsActive = 1, so use AND
+    const timeSlotWhereClause = `AND CourtId IN (SELECT CourtID FROM courts WHERE OwnerID = (SELECT OwnerID FROM courtowners WHERE UserId = ${this.userId}))`;
+    // DataSource 20 already has WHERE IsActive = 1, so use AND
+    const monthlyWhereClause = `AND CourtId IN (SELECT CourtID FROM courts WHERE OwnerID = (SELECT OwnerID FROM courtowners WHERE UserId = ${this.userId}))`;
+    
+    this.loadChart(13, 'revenueByCourt', 'My Court Revenue', courtWhereClause);
+    this.loadChart(14, 'bookingTrends', 'My Booking Trends', bookingWhereClause);
+    this.loadChart(16, 'bookingTimeSlot', 'My Bookings by Time', timeSlotWhereClause);
+    this.loadChart(20, 'monthlyRevenue', 'My Monthly Revenue', monthlyWhereClause);
   }
 
-  isFiniteValue(v: any): boolean { return Number.isFinite(v); }
-
-  addOffer(inputEl: HTMLInputElement) {
-    const val = (inputEl.value || '').trim();
-    if (!val) return;
-    if (!this.offers.includes(val)) this.offers.push(val);
-    inputEl.value = '';
+  loadUserCharts(): void {
+    // User-specific charts - only their own data
+    if (!this.userId) return;
+    
+    // DataSource 14 already has WHERE IsActive = 1, so use AND
+    const bookingWhereClause = `AND UserID = ${this.userId}`;
+    // DataSource 11 has no WHERE, so use WHERE
+    const matchWhereClause = `OrganizerId = ${this.userId}`;
+    // DataSource 12 has no WHERE, so use WHERE
+    const applicationWhereClause = `user_id = ${this.userId}`;
+    // DataSource 17 has no WHERE, so use WHERE
+    const matchesAppliedWhereClause = `a.user_id = ${this.userId}`;
+    
+    this.loadChart(14, 'bookingTrends', 'My Booking History', bookingWhereClause);
+    this.loadChart(11, 'matchTrends', 'Matches I Created', matchWhereClause);
+    this.loadChart(12, 'applicationStatus', 'My Application Status', applicationWhereClause);
+    this.loadChart(17, 'topMatches', 'Matches I Applied To', matchesAppliedWhereClause);
   }
 
-  removeOffer(o: string) { this.offers = this.offers.filter(x => x !== o); }
+  loadChart(dataSourceId: number, chartKey: string, chartName: string, whereClause: string = ''): void {
+    this.charts[chartKey].loading = true;
+    this.charts[chartKey].error = undefined;
 
-  onImagesUpload(e: any) {
-    const files: File[] = e?.value || [];
-    if (!files || files.length === 0) return;
-    const maxFiles = Math.min(files.length, 6);
-    for (let i = 0; i < maxFiles; i++) {
-      const f = files[i];
-      const reader = new FileReader();
-      reader.onload = (ev: any) => {
-        this.images.push(ev.target.result as string);
-        if (!this.mainImage) this.mainImage = this.images[0];
-      };
-      reader.readAsDataURL(f);
-    }
-  }
-
-  setAsMain(img: string) { this.mainImage = img; }
-
-  startCreateNew() {
-    this.editingId = null;
-    this.originalRating = undefined;
-    this.submitted = false;
-    this.form.reset({
-      name: '',
-      location: '',
-      openingTime: '',
-      closingTime: '',
-      about: ''
-    });
-    this.pitches = [];
-    this.offers = [];
-    this.images = [];
-    this.mainImage = '';
-    this.pricePerPitch = {};
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }
-
-  editCourt(c: Court) {
-    this.editingId = c.id ?? null;
-    this.originalRating = c.rating;
-    this.submitted = false;
-    this.form.patchValue({
-      name: c.name,
-      location: c.location ?? '',
-      openingTime: c.openingTime ?? '',
-      closingTime: c.closingTime ?? '',
-      about: c.about ?? ''
-    });
-    this.pitches = [...(c.pitches || [])];
-    this.offers = [...(c.offers || [])];
-    this.images = [...(c.images || (c.image ? [c.image] : []))];
-    this.mainImage = c.image || (this.images[0] ?? '');
-    this.pricePerPitch = { ...(c.pricePerPitch || {}) };
-    for (const p of this.pitches) {
-      if (!(p in this.pricePerPitch)) this.pricePerPitch[p] = NaN;
-    }
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }
-
-  onEditClick(c: Court, ev: any) { try { ev?.event?.stopPropagation?.(); } catch {} this.editCourt(c); }
-
-  onDeleteClick(c: Court, ev: any) { try { ev?.event?.stopPropagation?.(); } catch {} this.deleteCourt(c); }
-
-  deleteCourt(c: Court) {
-    if (!c.id) return;
-    if (!confirm(`Delete "${c.name}"? This cannot be undone.`)) return;
-    const arr = this.loadFromStorage().filter(x => x.id !== c.id);
-    this.saveToStorage(arr);
-    alert('Service deleted.');
-  }
-
-  saveCourt() {
-    this.submitted = true;
-    const missing: string[] = [];
-    if (!this.form.value.name || this.form.get('name')?.invalid) missing.push('Name');
-    if (!this.pitches || this.pitches.length === 0) missing.push('At least one pitch (add via "Add pitch")');
-    else {
-      for (const p of this.pitches) {
-        const v = this.pricePerPitch[p];
-        if (!Number.isFinite(v) || Number.isNaN(v)) missing.push(`Price for pitch "${p}"`);
+    const sub = this.dataService.getData(dataSourceId, whereClause).subscribe({
+      next: (data: any[]) => {
+        this.charts[chartKey].dataSource = Array.isArray(data) ? data : [];
+        this.charts[chartKey].loading = false;
+      },
+      error: (err) => {
+        this.charts[chartKey].error = `Failed to load ${chartName}`;
+        this.charts[chartKey].loading = false;
+        this.charts[chartKey].dataSource = [];
       }
-    }
-    if (missing.length > 0) { alert(`Please fill the following fields before saving:\n• ${missing.join('\n• ')}`); return; }
+    });
+    this.subscriptions.push(sub);
+  }
 
-    const cleaned: Record<string, number> = {};
-    for (const p of this.pitches) cleaned[p] = Math.round(this.pricePerPitch[p]);
-    const prices = Object.values(cleaned);
-    const minPrice = prices.length ? Math.min(...prices) : 0;
+  loadKPIs(): void {
+    // Total Users
+    this.dataService.getData(9).subscribe({
+      next: (data: any[]) => {
+        if (data && data.length > 0) {
+          const last = data[data.length - 1];
+          this.kpis.totalUsers = last.CumulativeUsers || 0;
+        }
+      }
+    });
 
-    const payload: Court = {
-      id: this.editingId ?? undefined,
-      name: this.form.value.name,
-      location: this.form.value.location,
-      rating: this.editingId ? this.originalRating : undefined,
-      pitches: [...this.pitches],
-      pricePerPitch: Object.keys(cleaned).length ? cleaned : undefined,
-      price: minPrice,
-      openingTime: this.form.value.openingTime || undefined,
-      closingTime: this.form.value.closingTime || undefined,
-      image: this.mainImage || (this.images[0] ?? ''),
-      images: [...this.images],
-      offers: [...this.offers],
-      about: this.form.value.about,
-      bookedSlots: {}
+    // Total Revenue
+    this.dataService.getData(14).subscribe({
+      next: (data: any[]) => {
+        if (data && data.length > 0) {
+          const total = data.reduce((sum, item) => sum + (item.DailyRevenue || 0), 0);
+          const count = data.reduce((sum, item) => sum + (item.BookingCount || 0), 0);
+          this.kpis.totalRevenue = total;
+          this.kpis.avgBookingValue = count > 0 ? total / count : 0;
+          this.kpis.activeBookings = count;
+        }
+      }
+    });
+
+    // Total Matches
+    this.dataService.getData(11).subscribe({
+      next: (data: any[]) => {
+        if (data && data.length > 0) {
+          this.kpis.totalMatches = data.reduce((sum, item) => sum + (item.MatchCount || 0), 0);
+        }
+      }
+    });
+
+    // Acceptance Rate
+    this.dataService.getData(12).subscribe({
+      next: (data: any[]) => {
+        if (data && data.length > 0) {
+          const accepted = data.find(d => d.status === 'accepted')?.Count || 0;
+          const total = data.reduce((sum, item) => sum + (item.Count || 0), 0);
+          this.kpis.acceptanceRate = total > 0 ? (accepted / total) * 100 : 0;
+        }
+      }
+    });
+  }
+
+  customizeTooltip(arg: any): any {
+    return {
+      text: `${arg.seriesName}: ${arg.valueText}`
     };
-
-    const all = this.loadFromStorage();
-
-    if (this.editingId) {
-      const next = all.map(x => (x.id === this.editingId ? { ...payload, id: this.editingId } : x));
-      this.saveToStorage(next);
-      alert('Service updated.');
-    } else {
-      payload.id = this.generateId();
-      all.push(payload);
-      this.saveToStorage(all);
-      alert('Service created.');
-    }
-
-    this.startCreateNew();
   }
 
-  getPreviewImage(c: Court) { return c.image || (c.images && c.images[0]) || 'assets/placeholder-court.png'; }
-
-  openCourtDetails(c: Court) { this.selectedCourt = c; this.popupVisible = true; }
-
-  closePopup() { this.popupVisible = false; this.selectedCourt = null; }
-
-  get galleryImages(): string[] {
-    if (!this.selectedCourt) return [];
-    if (this.selectedCourt.images && this.selectedCourt.images.length) return this.selectedCourt.images;
-    return this.selectedCourt.image ? [this.selectedCourt.image] : [];
+  customizeLabel(arg: any): string {
+    return `${arg.valueText}`;
   }
 
-  getOfferIcon(offer: string): string {
-    if (!offer) return '•';
-    const key = offer.toLowerCase();
-    if (key.includes('park')) return '🅿️';
-    if (key.includes('toilet') || key.includes('wc') || key.includes('restroom')) return '🚻';
-    if (key.includes('shower')) return '🚿';
-    if (key.includes('light')) return '💡';
-    if (key.includes('change') || key.includes('changing')) return '🧍‍♂️';
-    return '⭐';
+  customizePieLabel(arg: any): string {
+    return `${arg.argument}: ${arg.valueText} (${arg.percentText})`;
   }
 
-  toKey(d: Date): string {
-    const y = d.getFullYear();
-    const m = String(d.getMonth() + 1).padStart(2, '0');
-    const day = String(d.getDate()).padStart(2, '0');
-    return `${y}-${m}-${day}`;
+  pointClick(e: any): void {
+    e.target.select();
   }
 }

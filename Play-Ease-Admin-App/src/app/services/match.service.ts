@@ -35,6 +35,7 @@ export interface Applicant {
   role: string;
   status: 'pending' | 'accepted' | 'rejected';
   userId: number;
+  acceptedAt?: string;
 }
 
 export interface Application {
@@ -48,7 +49,7 @@ export interface Application {
   providedIn: 'root'
 })
 export class MatchService {
-  private apiUrl = "http://localhost:5105/api";
+  private apiUrl = "http://localhost:5000/api";
 
   constructor(private http: HttpClient) {}
 

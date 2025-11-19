@@ -1,35 +1,49 @@
-/* Right Column - Bookings Panel */
 .right-col {
-  display: flex;
-  flex-direction: column;
-  gap: 30px;
-  max-width: 1200px;
-  margin: 0;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 20px;
+  width: 100%;
+  align-items: start;
 }
 
-/* Bookings Panel Container - Lighter Forest Green Background */
 .bookings-panel {
   background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
-  border-radius: 16px;
+  border-radius: 12px;
   padding: 0;
-  box-shadow: 0 4px 16px rgba(0, 69, 38, 0.12);
+  box-shadow: 0 2px 8px rgba(0, 69, 38, 0.08);
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
 }
 
-/* Header with Green Background */
 .bookings-panel h3 {
   margin: 0;
-  padding: 20px 30px;
-  font-size: 24px;
+  padding: 16px 20px;
+  font-size: 1.25rem;
   font-weight: 700;
   background: linear-gradient(135deg, #004526 0%, #006b3d 100%);
   color: white;
   letter-spacing: 0.5px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.bookings-panel h3::before {
+  content: '';
+  width: 4px;
+  height: 20px;
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: 2px;
 }
 
 /* Cards Container */
 .bookings-container {
   padding: 24px;
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
 }
 
 /* Booking Card - Row Style */
@@ -45,6 +59,9 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
   transition: all 0.3s ease;
   border-left: 4px solid transparent;
+  width: 100%;
+  box-sizing: border-box;
+  position: relative;
 }
 
 .booking-card:hover {
@@ -94,8 +111,11 @@
   gap: 6px;
 }
 
-.booking-card .meta.small::before {
-  content: "📍";
+.booking-card .meta.small svg {
+  width: 16px;
+  height: 16px;
+  color: var(--brand-primary);
+  flex-shrink: 0;
 }
 
 /* Actions Section - Horizontal */
@@ -105,6 +125,8 @@
   align-items: flex-end;
   gap: 12px;
   min-width: 140px;
+  max-width: 180px;
+  flex-shrink: 0;
 }
 
 .booking-card .price {

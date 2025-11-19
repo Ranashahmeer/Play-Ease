@@ -69,8 +69,10 @@
             </button>
             <button 
               class="btn-chat"
-              [class.active]="applicant.status === 'accepted'"
-              (click)="startChat(applicant.userName, applicant.role)">
+              [class.active]="applicant.status === 'accepted' && isChatAvailable(request, applicant)"
+              [disabled]="!isChatAvailable(request, applicant)"
+              (click)="startChat(request, applicant)"
+              [title]="!isChatAvailable(request, applicant) ? 'Chat only available for accepted applicants until match ends' : 'Start chat'">
               Chat
             </button>
           </div>
@@ -85,26 +87,42 @@
 </section>
 
 <!-- Chat Popup -->
-<div class="chat-popup" [class.active]="showChat">
+<div class="chat-popup" [class.active]="showChat" *ngIf="currentChatApplicant && currentChatRequest">
   <div class="chat-header">
-    <div>Chat with {{ currentChatApplicant }}</div>
-    <button class="btn-close" (click)="closeChat()">&times;</button>
+    <div class="chat-header-info">
+      <div class="chat-participant-name">Chat with {{ currentChatApplicant.userName }}</div>
+      <div class="chat-match-info">{{ currentChatRequest.title }} - {{ currentChatApplicant.role }}</div>
+    </div>
+    <button class="btn-close" (click)="closeChat()" aria-label="Close chat">&times;</button>
   </div>
-  <div class="chat-messages">
+  <div class="chat-messages" #chatMessagesContainer>
     <div 
       class="chat-message"
-      [class.system]="message.type === 'system'"
-      [class.you]="message.type === 'you'"
-      [class.them]="message.type === 'them'"
+      [class.my-message]="isMyMessage(message)"
+      [class.their-message]="!isMyMessage(message)"
       *ngFor="let message of chatMessages">
-      {{ message.text }}
+      <div class="message-sender">{{ message.senderName }}</div>
+      <div class="message-text">{{ message.message }}</div>
+      <div class="message-time">{{ formatMessageTime(message.timestamp || message.createdAt) }}</div>
+    </div>
+    <div class="chat-empty" *ngIf="chatMessages.length === 0">
+      No messages yet. Start the conversation!
     </div>
   </div>
   <div class="chat-input">
     <input 
       [(ngModel)]="chatInput"
       (keypress)="handleChatKeyPress($event)"
-      placeholder="Type a message..."/>
-    <button class="chat-send-btn" (click)="sendMessage()">Send</button>
+      placeholder="Type a message..."
+      [disabled]="!isChatAvailable(currentChatRequest, currentChatApplicant)"/>
+    <button 
+      class="chat-send-btn" 
+      (click)="sendMessage()"
+      [disabled]="!chatInput.trim() || !isChatAvailable(currentChatRequest, currentChatApplicant)">
+      Send
+    </button>
+  </div>
+  <div class="chat-status" *ngIf="!isChatAvailable(currentChatRequest, currentChatApplicant)">
+    Chat is no longer available. The match has ended.
   </div>
 </div>

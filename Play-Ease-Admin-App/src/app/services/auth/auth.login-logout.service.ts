@@ -23,11 +23,13 @@ export class AuthLoginLogoutService {
   // Call this on logout
   logout() {
     this.loggedIn = false;
-   /*  localStorage.removeItem('isLoggedIn'); */
     if (isPlatformBrowser(this.platformId)) {
       localStorage.removeItem('isLoggedIn');
+      localStorage.removeItem('loggedInUser');
+      // Dispatch custom event to notify navbar and other components
+      window.dispatchEvent(new CustomEvent('auth:logout'));
     }
-    this.router.navigate(['/']); // redirect to home
+    this.router.navigate(['/home']); // redirect to home
   }
 
   isAuthenticated(): boolean {

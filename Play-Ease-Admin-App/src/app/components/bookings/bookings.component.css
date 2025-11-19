@@ -1,34 +1,142 @@
 .booking-container {
   display: flex;
   flex-direction: column;
-  gap: 30px;
-  padding: 30px;
-  font-family: sans-serif;
+  gap: 24px;
+  padding: 24px;
+  max-width: 1600px;
+  margin: 0 auto;
+  min-height: calc(100vh - 150px);
 }
 
-/* Keep Searchbar centered */
 app-searchbar {
   width: 100%;
   max-width: 900px;
   margin: 0 auto;
+  flex-shrink: 0;
 }
 
-/* Filter Drawer positioning */
 app-filter-drawer {
   position: relative;
   z-index: 10;
+  flex-shrink: 0;
 }
 
-/* Court list styling */
-app-court-list {
-  width: 100%;
+/* Top Half: Court List */
+.top-section {
+  flex: 0 0 50%;
+  min-height: 400px;
+  display: flex;
+  flex-direction: column;
 }
 
-/* Booking Records component at bottom */
-app-booking-records {
+.top-section .section-card {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+}
+
+.top-section .section-content {
+  flex: 1;
+  padding: 24px;
+  overflow: hidden;
+  position: relative;
+}
+
+/* Bottom Half: Bookings */
+.bottom-section {
+  flex: 0 0 50%;
+  min-height: 400px;
+  display: flex;
+  flex-direction: column;
+}
+
+.bottom-section app-booking-records {
   width: 100%;
-  max-width: 900px;   /* matches searchbar width */
-  margin: 0;     /* center it */
+  height: 100%;
   display: block;
+  flex: 1;
+}
+
+/* Section Header */
+.section-header {
+  background: linear-gradient(135deg, #004526 0%, #006b3d 100%);
+  padding: 20px 24px;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+  flex-shrink: 0;
+}
+
+.section-header h2 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: white;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.section-header svg {
+  width: 24px;
+  height: 24px;
+  stroke: white;
+}
+
+/* Override nested component styles */
+.top-section app-court-list {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.top-section .courts-wrapper {
+  padding: 0;
+  gap: 20px;
+}
+
+.top-section .court-card {
+  width: 300px;
+  min-height: 380px;
+}
+
+.top-section .scroll-btn {
+  z-index: 5;
+}
+
+/* Bottom Section: Horizontal Bookings Layout */
+.bottom-section .right-col {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 20px;
+  width: 100%;
+  height: 100%;
+}
+
+@media (min-width: 1024px) {
+  .bottom-section .right-col {
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+  
+  /* If only one panel (no upcoming), make it full width */
+  .bottom-section .right-col:has(.bookings-panel:only-child) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.bottom-section .bookings-panel {
+  display: flex;
+  flex-direction: column;
+  min-height: 350px;
+  max-height: 100%;
+}
+
+.bottom-section .bookings-container {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
 }
 

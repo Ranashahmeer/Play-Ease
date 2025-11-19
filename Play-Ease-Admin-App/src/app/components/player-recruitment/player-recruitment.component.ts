@@ -33,9 +33,9 @@ export interface MyRequest extends MatchRequest {
 })
 export class PlayerRecruitmentComponent implements OnInit, OnDestroy {
   showRequestModal = false;
-  availableRequests: MatchRequest[] = [];
+  availableRequests: MyRequest[] = []; // Changed to MyRequest[] to include applicants
   myRequests: MyRequest[] = [];
-  allRequests: MatchRequest[] = [];
+  allRequests: MyRequest[] = []; // Changed to MyRequest[] to include applicants
   private expiryCheckInterval: any;
   hasFooter = true;
   
@@ -55,9 +55,12 @@ export class PlayerRecruitmentComponent implements OnInit, OnDestroy {
 
   this.loadAllRequests();
 
-  // Periodic expiry check
-  this.expiryCheckInterval = setInterval(() => this.removeExpiredMatches(), 60000);
-  this.removeExpiredMatches();
+  // Periodic expiry check - run every 5 minutes instead of every minute
+  // This prevents too frequent filtering that might cause flickering
+  this.expiryCheckInterval = setInterval(() => this.removeExpiredMatches(), 300000); // 5 minutes
+  
+  // Don't run immediately - wait for data to load first
+  // The initial expiry check will happen after data loads
 }
 
 
@@ -72,7 +75,6 @@ export class PlayerRecruitmentComponent implements OnInit, OnDestroy {
   private getCurrentUser(): void {
   // ❗ Only run in the browser
   if (!isPlatformBrowser(this.platformId)) {
-    console.warn("SSR: skipping localStorage access");
     return;
   }
 
@@ -83,7 +85,6 @@ export class PlayerRecruitmentComponent implements OnInit, OnDestroy {
       this.currentUserId = p.userID ?? 0;
       this.currentUserName = p.fullName ?? "";
     } catch (err) {
-      console.error("Failed to parse loggedInUser:", err);
       this.currentUserId = 0;
       this.currentUserName = "";
     }
@@ -135,52 +136,76 @@ private async initializeUser(): Promise<void> {
       if (!data.length) return;
 
       // Map API data
-      this.allRequests = data.map(item => ({
-        id: item.Id ?? 0,
-        title: item.Title ?? 'Untitled Match',
-        date: item.Date ?? '',
-        startTime: item.StartTime ?? '',
-        endTime: item.EndTime ?? '',
-        location: item.Location ?? '',
-        roles: item.Roles ?? '',
-        numPlayers: item.NumPlayers ?? 0,
-        price: item.Price ?? 0,
-        organizer: item.Organizer ?? 'Unknown',
-        organizerId: item.OrganizerId ?? 0,
-        isOwn: item.OrganizerId === this.currentUserId,
-        createdAt: item.CreatedAt ?? '',
-       applicants: Array.isArray(item.Applicants) 
-    ? item.Applicants 
-    : item.Applicants 
-        ? JSON.parse(item.Applicants) 
-        : []
+      this.allRequests = data.map(item => {
+        // Parse and normalize applicants data
+        let applicants: any[] = [];
+        if (Array.isArray(item.Applicants)) {
+          applicants = item.Applicants;
+        } else if (item.Applicants) {
+          try {
+            applicants = typeof item.Applicants === 'string' 
+              ? JSON.parse(item.Applicants) 
+              : item.Applicants;
+          } catch (e) {
+            applicants = [];
+          }
+        }
 
-      })) as MyRequest[];
+        // Normalize applicant field names (handle both camelCase and PascalCase)
+        const normalizedApplicants = applicants.map((app: any) => ({
+          id: app.id ?? app.Id ?? 0,
+          userId: app.userId ?? app.UserId ?? app.user_id ?? 0,
+          userName: app.userName ?? app.UserName ?? app.user_name ?? '',
+          role: app.role ?? app.Role ?? '',
+          status: (app.status ?? app.Status ?? 'pending').toLowerCase(),
+          acceptedAt: app.acceptedAt ?? app.AcceptedAt ?? app.accepted_at ?? undefined
+        }));
+
+        return {
+          id: item.Id ?? 0,
+          title: item.Title ?? 'Untitled Match',
+          date: item.Date ?? '',
+          startTime: item.StartTime ?? '',
+          endTime: item.EndTime ?? '',
+          location: item.Location ?? '',
+          roles: item.Roles ?? '',
+          numPlayers: item.NumPlayers ?? 0,
+          price: item.Price ?? 0,
+          organizer: item.Organizer ?? 'Unknown',
+          organizerId: item.OrganizerId ?? 0,
+          isOwn: item.OrganizerId === this.currentUserId,
+          createdAt: item.CreatedAt ?? '',
+          applicants: normalizedApplicants
+        } as MyRequest;
+      });
 
       // Filter into available and my requests
       this.filterRequests();
+      
+      // After loading data, remove expired matches
+      // Use setTimeout to ensure this runs after the view updates
+      setTimeout(() => {
+        this.removeExpiredMatches();
+      }, 100);
     },
     error: err => {
-      console.error('Error fetching match data:', err);
+      // Error fetching match data
     }
   });
 }
 
 
 private filterRequests(): void {
-  // AVAILABLE REQUESTS: Matches not created by current user
+  // AVAILABLE REQUESTS: Matches not created by current user (applicants included)
   this.availableRequests = this.allRequests.filter(r => r.organizerId !== this.currentUserId);
 
-  // MY REQUESTS: Only matches created by the current logged-in user
-  this.myRequests = this.allRequests
-    .filter(r => r.organizerId === this.currentUserId)
-    .map(r => r as MyRequest); // includes applicants
+  // MY REQUESTS: Only matches created by the current logged-in user (applicants included)
+  this.myRequests = this.allRequests.filter(r => r.organizerId === this.currentUserId);
 }
 
 
   openRequestModal(): void {
     if (!this.authService.isLoggedIn()) {
-      alert('Please login first!');
       return;
     }
     this.showRequestModal = true;
@@ -190,41 +215,12 @@ private filterRequests(): void {
     this.showRequestModal = false;
   }
 
-  // ✅ FIXED: Handle request submission properly
+  // ✅ FIXED: Handle request submission - just refresh data since modal already created the match
   handleRequestSubmitted(request: any): void {
-  const userId = this.authService.getUserId();
-  
-  if (userId === 0) {
-    alert('Please login first!');
-    return;
+    // The request-modal component already handles the API call via RequestPlayerService
+    // We just need to refresh the data to show the new match
+    this.loadAllRequests();
   }
-
-  const matchData: CreateMatchDto = {
-    userId: userId,
-    title: request.title,
-    date: request.date,
-    startTime: request.startTime,
-    endTime: request.endTime,
-    location: request.location,
-    roles: request.roles,
-    numPlayers: request.numPlayers,
-    price: request.price
-  };
-
-  console.log('📤 Sending to backend:', matchData);
-
-  this.matchService.createRequest(matchData).subscribe({
-    next: (response: MatchRequest) => {
-      alert('Match request created successfully!');
-      this.loadAllRequests();
-      this.closeRequestModal();
-    },
-    error: (error: any) => {
-      console.error('❌ Error creating request:', error);
-      alert('Failed to create request. Please try again.');
-    }
-  });
-}
 
   // ✅ FIXED: Handle application submission
   handleApplicationSubmitted(data: { matchId: number; role: string }): void {
@@ -232,7 +228,6 @@ private filterRequests(): void {
     const userName = this.authService.getUserName();
     
     if (userId === 0) {
-      alert('Please login first!');
       return;
     }
 
@@ -243,16 +238,12 @@ private filterRequests(): void {
       role: data.role
     };
 
-    console.log('📤 Submitting application:', application);
-
     this.matchService.applyToMatch(application).subscribe({
       next: (response) => {
-        console.log('✅ Application submitted successfully:', response);
-        alert('Application submitted successfully!');
+        // Application submitted successfully
       },
       error: (error) => {
-        console.error('❌ Error applying to match:', error);
-        alert('Failed to apply. Please try again.');
+        // Error applying to match
       }
     });
   }
@@ -260,19 +251,23 @@ private filterRequests(): void {
   handleApplicantStatusChanged(data: { requestId: number; applicantId: number; status: 'accepted' | 'rejected' }): void {
     this.matchService.updateApplicantStatus(data).subscribe({
       next: (response) => {
-        console.log('✅ Applicant status updated');
         // Update local state
         const request = this.myRequests.find(r => r.id === data.requestId);
         if (request) {
           const applicant = request.applicants.find(a => a.id === data.applicantId);
           if (applicant) {
             applicant.status = data.status;
+            // Set acceptedAt timestamp when status changes to accepted
+            if (data.status === 'accepted') {
+              applicant.acceptedAt = new Date().toISOString();
+            }
           }
         }
+        // Reload all requests to get updated data from backend
+        this.loadAllRequests();
       },
       error: (error) => {
-        console.error('❌ Error updating status:', error);
-        alert('Failed to update status. Please try again.');
+        // Error updating status
       }
     });
   }
@@ -282,14 +277,36 @@ private filterRequests(): void {
     const currentDate = now.toISOString().split('T')[0];
     const currentTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
 
+    // Only filter if we have requests to check
+    if (this.allRequests.length === 0) {
+      return;
+    }
+
     // Filter out expired matches from all requests
+    // A match is expired if:
+    // 1. The date has passed (date < currentDate), OR
+    // 2. The date is today AND the end time has passed (date === currentDate AND endTime <= currentTime)
+    const beforeFilterCount = this.allRequests.length;
     this.allRequests = this.allRequests.filter(request => {
-      return request.date > currentDate || 
-             (request.date === currentDate && request.endTime > currentTime);
+      // If date is in the future, match is still valid
+      if (request.date > currentDate) {
+        return true;
+      }
+      
+      // If date is today, check if end time has passed
+      if (request.date === currentDate) {
+        // Match is valid if end time hasn't passed yet
+        return request.endTime > currentTime;
+      }
+      
+      // If date is in the past, match is expired
+      return false;
     });
 
-    // Re-filter to update both available and my requests
-    this.filterRequests();
+    // Only re-filter if data actually changed
+    if (this.allRequests.length !== beforeFilterCount) {
+      this.filterRequests();
+    }
   }
 
   // Method to manually refresh data from backend

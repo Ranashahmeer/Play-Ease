@@ -28,7 +28,6 @@ export class PaymentPopupComponent {
 
   submitPaymentProof() {
     // call API to submit payment proof
-    alert('Payment submitted!');
     this.visibleChange.emit(false);
   }
 

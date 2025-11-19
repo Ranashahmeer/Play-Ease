@@ -1,11 +1,12 @@
-import { Component, OnInit, Inject, PLATFORM_ID } from '@angular/core';
+import { Component, OnInit, OnDestroy, Inject, PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
-import { Router } from '@angular/router';
+import { Router, NavigationEnd } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
 import { LoginComponent } from '../login/login.component';
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
+import { Subscription, filter } from 'rxjs';
 
 @Component({
   selector: 'app-navbar',
@@ -14,9 +15,12 @@ import { MatIconModule } from '@angular/material/icon';
   templateUrl: './navbar.component.html',
   styleUrls: ['./navbar.component.css']
 })
-export class NavbarComponent implements OnInit {
+export class NavbarComponent implements OnInit, OnDestroy {
   isLoggedIn = false;
   loggedInUser: any = null;
+  private routerSubscription?: Subscription;
+  private storageHandler = () => this.checkLoginStatus();
+  private logoutHandler = () => this.checkLoginStatus();
 
   constructor(private router: Router, private dialog: MatDialog,@Inject(PLATFORM_ID) private platformId: Object) {}
 
@@ -24,9 +28,27 @@ export class NavbarComponent implements OnInit {
     if (isPlatformBrowser(this.platformId)) {
       this.checkLoginStatus();
 
-    // 🔹 Also listen to localStorage changes (if user logs in from popup)
-      window.addEventListener('storage', () => this.checkLoginStatus());
+      // 🔹 Listen to localStorage changes (if user logs in from popup in different tab)
+      window.addEventListener('storage', this.storageHandler);
+      
+      // 🔹 Listen to custom logout event (for same-window logout)
+      window.addEventListener('auth:logout', this.logoutHandler);
+      
+      // 🔹 Also check on route changes
+      this.routerSubscription = this.router.events
+        .pipe(filter(event => event instanceof NavigationEnd))
+        .subscribe(() => {
+          setTimeout(() => this.checkLoginStatus(), 100);
+        });
     }
+  }
+
+  ngOnDestroy(): void {
+    if (isPlatformBrowser(this.platformId)) {
+      window.removeEventListener('storage', this.storageHandler);
+      window.removeEventListener('auth:logout', this.logoutHandler);
+    }
+    this.routerSubscription?.unsubscribe();
   }
   // 🔹 Check login status
   checkLoginStatus() {

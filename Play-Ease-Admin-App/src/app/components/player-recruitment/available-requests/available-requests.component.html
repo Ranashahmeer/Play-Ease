@@ -50,6 +50,7 @@
           <span class="organizer-label">Organizer:</span>
           <span class="organizer-name">{{ request.organizer }}</span>
         </div>
+        <div class="request-actions">
         <button 
           class="btn-apply" 
           [class.applied]="isApplied(request.id)"
@@ -57,6 +58,19 @@
           (click)="applyToRequest(request)">
           {{ isApplied(request.id) ? 'Applied ✓' : 'Apply' }}
         </button>
+          <button 
+            *ngIf="isAcceptedApplicant(request.id)"
+            class="btn-chat"
+            [class.active]="isChatAvailable(request)"
+            [disabled]="!isChatAvailable(request)"
+            (click)="startChat(request)"
+            [title]="!isChatAvailable(request) ? 'Chat only available until match ends' : 'Chat with organizer'">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+            </svg>
+            Chat
+          </button>
+        </div>
       </footer>
     </article>
 
@@ -90,4 +104,45 @@
 <!-- Notification -->
 <div class="notification" [class.active]="showNotification">
   <p class="notification-text">{{ notificationText }}</p>
+</div>
+
+<!-- Chat Popup -->
+<div class="chat-popup" [class.active]="showChat" *ngIf="currentChatRequest">
+  <div class="chat-header">
+    <div class="chat-header-info">
+      <div class="chat-participant-name">Chat with {{ currentChatOrganizerName }}</div>
+      <div class="chat-match-info">{{ currentChatRequest.title }}</div>
+    </div>
+    <button class="btn-close" (click)="closeChat()" aria-label="Close chat">&times;</button>
+  </div>
+  <div class="chat-messages" #chatMessagesContainer>
+    <div 
+      class="chat-message"
+      [class.my-message]="isMyMessage(message)"
+      [class.their-message]="!isMyMessage(message)"
+      *ngFor="let message of chatMessages">
+      <div class="message-sender">{{ message.senderName }}</div>
+      <div class="message-text">{{ message.message }}</div>
+      <div class="message-time">{{ formatMessageTime(message.timestamp || message.createdAt) }}</div>
+    </div>
+    <div class="chat-empty" *ngIf="chatMessages.length === 0">
+      No messages yet. Start the conversation!
+    </div>
+  </div>
+  <div class="chat-input">
+    <input 
+      [(ngModel)]="chatInput"
+      (keypress)="handleChatKeyPress($event)"
+      placeholder="Type a message..."
+      [disabled]="!isChatAvailable(currentChatRequest)"/>
+    <button 
+      class="chat-send-btn" 
+      (click)="sendMessage()"
+      [disabled]="!chatInput.trim() || !isChatAvailable(currentChatRequest)">
+      Send
+    </button>
+  </div>
+  <div class="chat-status" *ngIf="!isChatAvailable(currentChatRequest)">
+    Chat is no longer available. The match has ended.
+  </div>
 </div>

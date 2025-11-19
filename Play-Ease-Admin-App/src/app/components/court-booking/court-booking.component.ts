@@ -3,28 +3,28 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { DxDateBoxModule, DxButtonModule, DxGalleryModule, DxFileUploaderModule, DxListModule, DxTagBoxModule, DxSliderModule, DxDropDownBoxModule, DxPopupModule, DxCalendarComponent } from 'devextreme-angular';
-import{CourtListComponent} from '../court-list/court-list.component';
+import { CourtListComponent } from '../court-list/court-list.component';
 import { PaymentPopupComponent } from "../payment-popup/payment-popup.component";
 import { GetDatabyDatasourceService } from '../../services/get-data/get-databy-datasource.service';
 import { CourtAdapter } from '../../adapters/court.adapter';
- 
+import { SaveBookings } from '../../models/setupModels';
 
 @Component({
   selector: 'app-court-booking',
   standalone: true,
-   imports: [
-    CommonModule, ReactiveFormsModule, DxDateBoxModule, DxButtonModule, DxListModule, DxTagBoxModule, DxSliderModule, DxGalleryModule, DxGalleryModule, DxFileUploaderModule, DxPopupModule, DxDropDownBoxModule,
+  imports: [
+    CommonModule, ReactiveFormsModule, DxDateBoxModule, DxButtonModule, DxListModule, DxTagBoxModule, DxSliderModule, DxGalleryModule, DxFileUploaderModule, DxPopupModule, DxDropDownBoxModule,
     CourtListComponent,
     PaymentPopupComponent,
     DxCalendarComponent
-],
+  ],
   templateUrl: './court-booking.component.html',
   styleUrl: './court-booking.component.css'
 })
 export class CourtBookingComponent implements OnInit {
   form: FormGroup;
   courtId!: number;
-  courtDetails: any;
+  courtDetails: any = null;
   selectedPitchSize: string = '';
   selectedBookingDate: Date = new Date();
   selectedBookingTime: string = '';
@@ -33,11 +33,16 @@ export class CourtBookingComponent implements OnInit {
   allSlotsDisabled = false;
   paymentPopupVisible: boolean = false;
   ddBox: any;
-  selectedCourt: any[] = [];  
+  selectedCourt: any[] = [];
+  minDate: Date = new Date();
+  currentUserId: number = 0;
+  bookingData!: SaveBookings;
+  selectedPaymentMethodId: number = 0;
 
   constructor(
     private fb: FormBuilder,
-    private route: ActivatedRoute,private dataService: GetDatabyDatasourceService,
+    private route: ActivatedRoute,
+    private dataService: GetDatabyDatasourceService,
     private router: Router
   ) {
     this.form = this.fb.group({
@@ -48,27 +53,35 @@ export class CourtBookingComponent implements OnInit {
   }
 
   ngOnInit() {
+    // Get user ID from localStorage
+    this.currentUserId = Number(localStorage.getItem('userId')) || 0;
+    
+    if (!this.currentUserId) {
+      alert('Please login first!');
+      this.router.navigate(['/login']);
+      return;
+    }
+
     this.courtId = +this.route.snapshot.paramMap.get('courtId')!;
     this.fetchCourtDetails();
   }
 
-fetchCourtDetails() {
-  const whereclause = `c.CourtID = ${this.courtId}`;
-  this.dataService.getData(1, whereclause).subscribe({
-    next: (data: any[]) => {
-      const adapter = new CourtAdapter();
-      const apiData = Array.isArray(data) ? data : [];
-      this.courtDetails = apiData.length > 0 ? adapter.fromApi(apiData[0]) : null;
-      if (!this.courtDetails) {
-        console.warn('Court not found for ID:', this.courtId);
+  fetchCourtDetails() {
+    const whereclause = `c.CourtID = ${this.courtId}`;
+    this.dataService.getData(1, whereclause).subscribe({
+      next: (data: any[]) => {
+        const adapter = new CourtAdapter();
+        const apiData = Array.isArray(data) ? data : [];
+        this.courtDetails = apiData.length > 0 ? adapter.fromApi(apiData[0]) : null;
+        if (!this.courtDetails) {
+          console.warn('Court not found for ID:', this.courtId);
+        }
+      },
+      error: (err: any) => {
+        console.error('Error loading courts:', err);
       }
-    },
-    error: (err) => {
-      console.error('Error loading courts:', err);
-    }
-  });
-}
-
+    });
+  }
 
   selectPitch(pitch: any) {
     this.selectedPitchSize = pitch.pitchtype;
@@ -83,7 +96,7 @@ fetchCourtDetails() {
     const item = e.itemData;
     if (item.disabled) return;
     this.selectedBookingTime = item.text;
-    try { ddBox.instance.close(); } catch {}
+    try { ddBox.instance.close(); } catch { }
   }
 
   recomputeAvailability() {
@@ -103,7 +116,8 @@ fetchCourtDetails() {
     this.timeSlotItems = generatedSlots.map(slot => {
       const slotMin = this.timeStringToMinutes(slot);
       const overlaps = bookedMinutes.some((bMin: any) => this.intervalsOverlap(slotMin, duration, bMin, duration));
-      return { text: slot, disabled: overlaps };
+      const isPast = this.isPastSlot(slotMin, this.selectedBookingDate);
+      return { text: slot, disabled: overlaps || isPast };
     });
 
     // Reset selected time if invalid
@@ -129,13 +143,64 @@ fetchCourtDetails() {
       alert('Please select pitch & time first!');
       return;
     }
+
+    if (!this.courtDetails) {
+      alert('Court details not loaded yet!');
+      return;
+    }
+
+    // Find selected pitch
+    const selectedPitch = this.courtDetails.pitches.find(
+      (p: any) => p.pitchtype === this.selectedPitchSize
+    );
+
+    if (!selectedPitch) {
+      alert('Invalid pitch selection!');
+      return;
+    }
+
+    // Calculate end time
+    const duration = Number(this.form.get('matchDuration')?.value) || 60;
+    const startMinutes = this.timeStringToMinutes(this.selectedBookingTime);
+    const endMinutes = startMinutes + duration;
+    const endTime = this.minutesToTimeString(endMinutes);
+
+    // Prepare booking data
+    this.bookingData = {
+      CourtId: this.courtId,
+      userId: this.currentUserId,
+      courtPitchId: selectedPitch.pitchId || 0,
+      ownerId: this.courtDetails.OwnerId,
+      paymentMethodId: 1,
+      paymentProof: '',
+      bookingDate: this.toKey(this.selectedBookingDate),
+      startTime: this.selectedBookingTime,
+      endTime: endTime,
+      price: this.getComputedPrice()
+    };
+      console.log('Prepared booking data:', this.bookingData);
+  
+  // Check for missing required fields
+  const missingFields = [];
+  if (!this.bookingData.CourtId) missingFields.push('CourtId');
+  if (!this.bookingData.userId) missingFields.push('userId');
+  if (!this.bookingData.courtPitchId) missingFields.push('courtPitchId');
+  if (!this.bookingData.ownerId) missingFields.push('ownerId');
+  if (!this.bookingData.paymentMethodId) missingFields.push('paymentMethodId');
+  
+  if (missingFields.length > 0) {
+    console.error('Missing required fields:', missingFields);
+    alert('Missing required booking data: ' + missingFields.join(', '));
+    return;
+  }
     this.paymentPopupVisible = true;
   }
 
   toKey(d: Date): string {
-    return d.toISOString().split('T')[0]; // simple date key YYYY-MM-DD
+    return d.toISOString().split('T')[0];
   }
-private timeStringToMinutes(t: string): number {
+
+  private timeStringToMinutes(t: string): number {
     if (!t) return 0;
     const [timePart, ampm] = t.split(' ');
     const [hhStr, mmStr] = timePart.split(':');
@@ -156,6 +221,7 @@ private timeStringToMinutes(t: string): number {
     }
     return slots;
   }
+
   private minutesToTimeString(mins: number): string {
     mins = ((mins % (24 * 60)) + (24 * 60)) % (24 * 60);
     const hh = Math.floor(mins / 60);
@@ -164,6 +230,7 @@ private timeStringToMinutes(t: string): number {
     const displayHour = ((hh + 11) % 12) + 1;
     return `${String(displayHour).padStart(2, '0')}:${String(mm).padStart(2, '0')} ${ampm}`;
   }
+
   private intervalsOverlap(startA: number, durationA: number, startB: number, durationB: number): boolean {
     const endA = startA + durationA;
     const endB = startB + durationB;

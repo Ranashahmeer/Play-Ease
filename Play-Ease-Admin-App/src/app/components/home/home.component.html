@@ -76,8 +76,7 @@
 </div>
  -->
 
-
- <body>
+<body>
   <div class="rana">
     <div class="home-container">
       <div class="container">
@@ -87,15 +86,25 @@
             <h1>Welcome to <span>PlayEase</span>!</h1>
             <p>Book your favorite sports facilities in just a few clicks!</p>
             <!-- <button class="get-started-btn">Get Started</button> -->
-            <button class="get-started-btn" (click)="getStarted()"[disabled]="isLoggedIn">Get Started</button>
+            <button
+              class="get-started-btn"
+              (click)="getStarted()"
+              [disabled]="isLoggedIn"
+            >
+              Get Started
+            </button>
           </section>
-
+          <app-court-list
+            #courtListRef
+            (courtClick)="
+              authService.isLoggedIn() ? openCourtDetails($event) : openLoginPopup()"
+          ></app-court-list>
           <!-- Features Section -->
           <div class="features-container">
             <!-- <div class="quick-booking">
               <h2>Top Rated Sports Facilities</h2>
             </div> -->
-  <!-- <app-court-list
+            <!-- <app-court-list
     #courtListRef
     (courtClick)="openCourtDetails($event)"
   ></app-court-list> -->
@@ -103,7 +112,9 @@
               <div class="step">
                 <div class="step-icon"><i class="fas fa-futbol"></i></div>
                 <h3>Indoor Courts</h3>
-                <p>Book world-class courts for football, cricket, padel and more.</p>
+                <p>
+                  Book world-class courts for football, cricket, padel and more.
+                </p>
               </div>
 
               <div class="step">
@@ -133,17 +144,26 @@
               <div class="step">
                 <span class="step-number">1</span>
                 <h3>Search</h3>
-                <p>Find courts near you with our smart filters. Filter by location, price, time, and amenities.</p>
+                <p>
+                  Find courts near you with our smart filters. Filter by
+                  location, price, time, and amenities.
+                </p>
               </div>
               <div class="step">
                 <span class="step-number">2</span>
                 <h3>Book</h3>
-                <p>Choose your time slot and pay securely online. Instant confirmation sent to your WhatsApp.</p>
+                <p>
+                  Choose your time slot and pay securely online. Instant
+                  confirmation sent to your WhatsApp.
+                </p>
               </div>
               <div class="step">
                 <span class="step-number">3</span>
                 <h3>Play</h3>
-                <p>Show up and play! Your booking is confirmed. Court owner is notified. Game on!</p>
+                <p>
+                  Show up and play! Your booking is confirmed. Court owner is
+                  notified. Game on!
+                </p>
               </div>
             </div>
           </section>
@@ -156,19 +176,19 @@
     // Intersection Observer for Scroll Reveal Animation
     const observerOptions = {
       threshold: 0.2,
-      rootMargin: '0px 0px -100px 0px'
+      rootMargin: "0px 0px -100px 0px",
     };
 
     const observer = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
+      entries.forEach((entry) => {
         if (entry.isIntersecting) {
-          entry.target.classList.add('reveal');
+          entry.target.classList.add("reveal");
         }
       });
     }, observerOptions);
 
     // Observe all step cards
-    document.querySelectorAll('.step').forEach(step => {
+    document.querySelectorAll(".step").forEach((step) => {
       observer.observe(step);
     });
   </script>

@@ -416,7 +416,19 @@ main {
       opacity: 0.6;
       cursor: not-allowed;
     }
-
+   /*  app-court-list {
+      width: 100%;
+      position: relative; /* or static 
+  display: block;
+  margin-top: 20px;
+  padding: 80px 20px; /* Add spacing after hero
+    } */
+    app-court-list {
+  width: 100%;
+  display: block;
+  margin: 80px 0 0 0;      /* consistent top & bottom spacing */
+  position: relative;
+}
     /* Features Container */
     .features-container {
       background: white;

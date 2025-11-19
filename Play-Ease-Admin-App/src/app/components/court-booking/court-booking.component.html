@@ -57,10 +57,14 @@
   </div>
 
   <!-- Date Selection -->
-  <div class="booking-section">
-    <h3>Select Date</h3>
-    <dx-calendar [(value)]="selectedBookingDate" (onValueChanged)="onBookingDateChanged($event)"></dx-calendar>
-  </div>
+<div class="booking-section">
+  <h3>Select Date</h3>
+  <dx-calendar 
+    [(value)]="selectedBookingDate" 
+    [min]="minDate"
+    (onValueChanged)="onBookingDateChanged($event)">
+  </dx-calendar>
+</div>
 
   <!-- Time Slots -->
   <div class="booking-section">
@@ -83,4 +87,10 @@
   <button class="next-button" (click)="proceedToPayment()">Proceed to Payment</button>
 </div>
 
-<app-payment-popup [(visible)]="paymentPopupVisible"></app-payment-popup>
+<!-- <app-payment-popup [(visible)]="paymentPopupVisible"></app-payment-popup> -->
+<!-- court-booking.component.html -->
+<app-payment-popup 
+  [(visible)]="paymentPopupVisible"
+  [bookingData]="bookingData"
+  [ownerPaymentMethods]="courtDetails?.paymentMethods || []">
+</app-payment-popup>

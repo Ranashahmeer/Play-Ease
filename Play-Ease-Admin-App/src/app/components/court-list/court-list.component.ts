@@ -55,15 +55,26 @@ export class CourtListComponent implements OnInit {
   // ---------------------------
 filterCourts(searchText: string, filters?: any) {
   if (!filters) filters = {};
-
+  
   const text = (searchText || '').toLowerCase();
 
   this.courts = this.allCourts.filter(court => {
+    console.log("Court object:", court); 
     // ---------- SEARCH TEXT ----------
+    const courtName = court.name ? court.name.toLowerCase() : "";
+const courtLocation = court.location ? court.location.toLowerCase() : "";
+
+const matchesText =
+  courtName.includes(text) ||
+  courtLocation.includes(text);
+    /* const matchesText =
+  (court.name?.toLowerCase()?.includes(text) ?? false) ||
+  (court.location?.toLowerCase()?.includes(text) ?? false);
+
     const matchesText =
       court.name.toLowerCase().includes(text) ||
       court.location.toLowerCase().includes(text);
-
+ */
     // ---------- DATE ----------
     let matchesDate = true;
     if (filters.selectedDate) {

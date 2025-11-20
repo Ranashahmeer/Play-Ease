@@ -17,6 +17,7 @@ export interface Court {
 }
 
 export interface Pitch {
+  pitchId: number; // ADD THIS if not present
   pitchtype: string;
   price: number;
 }
@@ -49,4 +50,3 @@ export interface Pitch {
   endTime: string;
   price: number;
 }
-  

@@ -9,7 +9,7 @@ export class CourtAdapter implements Adapter<Court> {
 
     return {
       courtId: item.courtid,
-      name: item.NAME,
+      name: item.name,
       location: item.location,
       rating: Number(item.rating) || 0,
       openingTime: item.openingtime,
@@ -26,6 +26,7 @@ export class CourtAdapter implements Adapter<Court> {
       OwnerId: item.OwnerID
     };
   }
+ 
 
   private static timeStringToMinutes(time: string): number {
     if (!time) return 0;
@@ -45,15 +46,22 @@ export class CourtAdapter implements Adapter<Court> {
     return offers.split(',').map((o: string) => o.trim());
   }
 
-  private parsePitches(pitches: any): Pitch[] {
-    if (!pitches) return [];
-    try {
-      return typeof pitches === 'string' ? JSON.parse(pitches) : pitches;
-    } catch {
-      return [];
-    }
+  /*  */
+  // adapters/court.adapter.ts
+private parsePitches(pitches: any): Pitch[] {
+  if (!pitches) return [];
+  try {
+    const parsed = typeof pitches === 'string' ? JSON.parse(pitches) : pitches;
+    // Ensure each pitch has required fields
+    return parsed.map((p: any) => ({
+      pitchId: p.pitchId || p.pitchid || 0,
+      pitchtype: p.pitchtype || p.pitchType || '',
+      price: Number(p.price) || 0
+    }));
+  } catch {
+    return [];
   }
-
+}
   private parseBookedSlots(slots: any): Record<string, string[]> {
     if (!slots) return {};
     try {

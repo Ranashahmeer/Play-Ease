@@ -677,6 +677,7 @@
 @media (max-width: 1024px) {
   .owner-container {
     grid-template-columns: 1fr;
+    padding: 0 var(--spacing-md);
   }
 
   .owner-form {
@@ -686,24 +687,74 @@
 }
 
 @media (max-width: 768px) {
+  .owner-container {
+    padding: 0 var(--spacing-sm);
+    gap: var(--spacing-lg);
+  }
+  
   .owner-form,
   .owner-list {
-    padding: 20px;
+    padding: var(--spacing-lg);
   }
 
   .owner-form h2 {
-    font-size: 24px;
+    font-size: 22px;
   }
 
   .image-preview-row {
     grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    gap: var(--spacing-sm);
   }
 
+  .court-card {
+    margin: var(--spacing-md);
+  }
+  
   .court-card .actions {
     flex-direction: column;
+    gap: var(--spacing-sm);
   }
 
   ::ng-deep .dx-button {
     width: 100% !important;
+  }
+  
+  .popup-content {
+    padding: var(--spacing-md);
+  }
+  
+  .popup-court-name {
+    font-size: 20px;
+  }
+  
+  .pitches-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .owner-container {
+    padding: 0 var(--spacing-xs);
+  }
+  
+  .owner-form,
+  .owner-list {
+    padding: var(--spacing-md);
+  }
+  
+  .owner-form h2 {
+    font-size: 20px;
+  }
+  
+  .image-preview-row {
+    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+  }
+  
+  .court-card {
+    margin: var(--spacing-sm);
+  }
+  
+  .popup-content {
+    padding: var(--spacing-sm);
   }
 }

@@ -18,6 +18,7 @@ import { Subscription, filter } from 'rxjs';
 export class NavbarComponent implements OnInit, OnDestroy {
   isLoggedIn = false;
   loggedInUser: any = null;
+  isMobileMenuOpen = false;
   private routerSubscription?: Subscription;
   private storageHandler = () => this.checkLoginStatus();
   private logoutHandler = () => this.checkLoginStatus();
@@ -104,5 +105,20 @@ export class NavbarComponent implements OnInit, OnDestroy {
     this.isLoggedIn = false;
     this.loggedInUser = null;
     this.router.navigate(['/home']);
+  }
+
+  // 🔹 Mobile Menu Toggle
+  toggleMobileMenu() {
+    this.isMobileMenuOpen = !this.isMobileMenuOpen;
+    if (this.isMobileMenuOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+  }
+
+  closeMobileMenu() {
+    this.isMobileMenuOpen = false;
+    document.body.style.overflow = '';
   }
 }

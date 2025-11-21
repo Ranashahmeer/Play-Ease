@@ -97,3 +97,40 @@ textarea:focus {
   font-weight: 600;
   font-size: 1.1rem;
 }
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .contact-container {
+    margin: var(--spacing-lg) auto;
+    padding: var(--spacing-lg);
+    max-width: 100%;
+  }
+  
+  .contact-title {
+    font-size: 2rem;
+  }
+  
+  .contact-description {
+    font-size: 0.95rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .contact-container {
+    margin: var(--spacing-md) auto;
+    padding: var(--spacing-md);
+  }
+  
+  .contact-title {
+    font-size: 1.75rem;
+  }
+  
+  .social-icons {
+    gap: var(--spacing-md);
+  }
+  
+  .social-icons img {
+    width: 30px;
+    height: 30px;
+  }
+}

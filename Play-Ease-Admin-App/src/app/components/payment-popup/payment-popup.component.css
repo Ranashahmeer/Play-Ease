@@ -96,3 +96,46 @@
 .pay-button:hover {
   background: #2e8f61;
 }
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .payment-popup-content {
+    padding: var(--spacing-md);
+  }
+  
+  .payment-header {
+    padding: var(--spacing-sm);
+  }
+  
+  .payment-title-text {
+    font-size: 15px;
+  }
+  
+  .bill-section {
+    padding: var(--spacing-sm);
+  }
+  
+  .bill-row {
+    font-size: 14px;
+  }
+  
+  .bill-total {
+    font-size: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .payment-popup-content {
+    padding: var(--spacing-sm);
+  }
+  
+  .payment-method {
+    padding: var(--spacing-sm);
+    flex-wrap: wrap;
+  }
+  
+  .pay-button {
+    padding: var(--spacing-md);
+    font-size: 14px;
+  }
+}

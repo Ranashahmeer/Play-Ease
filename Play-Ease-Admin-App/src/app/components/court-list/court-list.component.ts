@@ -51,68 +51,115 @@ export class CourtListComponent implements OnInit {
   }
 
   // ---------------------------
-  // FILTER LOGIC LIKE BOOKING
+  // COMPREHENSIVE FILTER LOGIC
   // ---------------------------
-filterCourts(searchText: string, filters?: any) {
-  if (!filters) filters = {};
-  
-  const text = (searchText || '').toLowerCase();
+  filterCourts(searchText: string, filters?: any) {
+    if (!filters) filters = {};
 
-  this.courts = this.allCourts.filter(court => {
-    console.log("Court object:", court); 
-    // ---------- SEARCH TEXT ----------
-    const courtName = court.name ? court.name.toLowerCase() : "";
-const courtLocation = court.location ? court.location.toLowerCase() : "";
+    const text = (searchText || '').toLowerCase().trim();
 
-const matchesText =
-  courtName.includes(text) ||
-  courtLocation.includes(text);
-    /* const matchesText =
-  (court.name?.toLowerCase()?.includes(text) ?? false) ||
-  (court.location?.toLowerCase()?.includes(text) ?? false);
+    this.courts = this.allCourts.filter(court => {
+      // ---------- REAL-TIME SEARCH ON ALL FIELDS ----------
+      let matchesText = true;
+      if (text) {
+        const searchFields = [
+          court.name || '',
+          court.location || '',
+          court.about || '',
+          ...(court.offers || []),
+          ...(court.pitches?.map((p: Pitch) => p.pitchtype) || []),
+          court.rating?.toString() || ''
+        ];
+        
+        matchesText = searchFields.some(field => 
+          field.toLowerCase().includes(text)
+        );
+      }
 
-    const matchesText =
-      court.name.toLowerCase().includes(text) ||
-      court.location.toLowerCase().includes(text);
- */
-    // ---------- DATE ----------
-    let matchesDate = true;
-    if (filters.selectedDate) {
-      const selected = new Date(filters.selectedDate).toDateString();
-      matchesDate = court.availableDates?.some(
-        (d: string | Date) => new Date(d).toDateString() === selected
-      );
-    }
+      // ---------- LOCATION FILTER ----------
+      let matchesLocation = true;
+      if (filters.location && filters.location.trim()) {
+        const locationFilter = filters.location.toLowerCase().trim();
+        matchesLocation = (court.location || '').toLowerCase().includes(locationFilter);
+      }
 
-    // ---------- TIME ----------
-    let matchesTime = true;
-    if (filters.selectedTime) {
-      matchesTime = court.availableTimes?.includes(filters.selectedTime);
-    }
+      // ---------- DATE FILTER ----------
+      let matchesDate = true;
+      if (filters.selectedDate) {
+        const selectedDate = new Date(filters.selectedDate);
+        const dateStr = selectedDate.toISOString().split('T')[0]; // Format: YYYY-MM-DD
+        
+        // Check if court has booked slots for this date
+        // If date is selected, court should be available (not fully booked)
+        if (court.bookedSlots && court.bookedSlots[dateStr]) {
+          // Court has some bookings on this date, but might still have available slots
+          // We'll consider it available if it has pitches (can check availability later)
+          matchesDate = true;
+        } else {
+          // No bookings on this date, court is available
+          matchesDate = true;
+        }
+      }
 
-    // ---------- MATCH DURATION ----------
-    let matchesDuration = true;
-    if (filters.matchDuration) {
-      matchesDuration = court.matchDurations?.includes(filters.matchDuration);
-    }
+      // ---------- TIME FILTER ----------
+      let matchesTime = true;
+      if (filters.selectedTime && filters.selectedDate) {
+        const selectedDate = new Date(filters.selectedDate);
+        const dateStr = selectedDate.toISOString().split('T')[0];
+        const selectedTime = filters.selectedTime;
+        
+        // Check if the selected time slot is booked
+        if (court.bookedSlots && court.bookedSlots[dateStr]) {
+          const bookedTimes = court.bookedSlots[dateStr];
+          // Check if selected time conflicts with booked slots
+          // This is a simple check - you might want to enhance this based on duration
+          matchesTime = !bookedTimes.includes(selectedTime);
+        } else {
+          // No bookings, time is available
+          matchesTime = true;
+        }
+        
+        // Also check if time is within court operating hours
+        if (matchesTime && court.openingTime && court.closingTime) {
+          const timeMatch = selectedTime.match(/(\d+):(\d+)\s*(AM|PM)/i);
+          if (timeMatch) {
+            let hours = parseInt(timeMatch[1]);
+            const minutes = parseInt(timeMatch[2]);
+            const period = timeMatch[3].toUpperCase();
+            
+            if (period === 'PM' && hours !== 12) hours += 12;
+            if (period === 'AM' && hours === 12) hours = 0;
+            
+            const selectedMinutes = hours * 60 + minutes;
+            matchesTime = selectedMinutes >= court.openingMinutes && 
+                         selectedMinutes <= court.closingMinutes;
+          }
+        }
+      }
 
-    // ---------- PITCH SIZES ----------
+      // ---------- MATCH DURATION FILTER ----------
+      let matchesDuration = true;
+      if (filters.matchDuration) {
+        // Check if court has pitches that can accommodate the duration
+        // For now, we'll just check if court has any pitches
+        // You can enhance this to check specific pitch availability
+        matchesDuration = court.pitches && court.pitches.length > 0;
+      }
+
+      // ---------- PITCH SIZES FILTER ----------
+      let matchesPitch = true;
+      if (filters.selectedPitchSizes?.length) {
+        matchesPitch = filters.selectedPitchSizes.some((size: string) =>
+          court.pitches?.some((p: Pitch) => p.pitchtype === size)
+        );
+      }
+
+      return matchesText && matchesLocation && matchesDate && matchesTime && matchesDuration && matchesPitch;
+    });
     
-  let matchesPitch = true;
-if (filters.selectedPitchSizes?.length) {
-  matchesPitch = filters.selectedPitchSizes.some((size: string) =>
-    court.pitches?.some((p: Pitch) => p.pitchtype === size)
-  );
-}
-
-    // ---------- DISTANCE ----------
-    let matchesDistance = true;
-    if (filters.distance != null && filters.distance > 0) {
-      matchesDistance = court.distance <= filters.distance;
-    }
-    return matchesText && matchesDate && matchesTime && matchesDuration && matchesPitch && matchesDistance;
-  });
-}
+    // Update scroll arrows after filtering
+    setTimeout(() => this.updateArrows(), 100);
+  }
 
    get visibleCourts() {
     const start = (this.currentPage - 1) * this.pageSize;

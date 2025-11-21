@@ -6,3 +6,19 @@
   border-radius: 10px;
   background: #f9f9f9;
 }
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .court-details {
+    padding: var(--spacing-lg);
+    margin: var(--spacing-md) auto;
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .court-details {
+    padding: var(--spacing-md);
+    margin: var(--spacing-sm) auto;
+  }
+}

@@ -28,3 +28,39 @@
   object-fit: cover;
   border-radius: 8px;
 }
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .next-bookings-container {
+    padding: var(--spacing-lg);
+  }
+  
+  .courts-grid {
+    gap: var(--spacing-md);
+  }
+  
+  .court-card {
+    max-width: calc(50% - var(--spacing-md));
+    min-width: 0;
+  }
+}
+
+@media (max-width: 480px) {
+  .next-bookings-container {
+    padding: var(--spacing-md);
+  }
+  
+  .courts-grid {
+    flex-direction: column;
+    gap: var(--spacing-sm);
+  }
+  
+  .court-card {
+    max-width: 100%;
+    width: 100%;
+  }
+  
+  .court-card img {
+    height: 200px;
+  }
+}

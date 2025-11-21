@@ -172,6 +172,38 @@
   border-color: rgba(255, 255, 255, 0.4);
 }
 
+/* Mobile Menu Toggle */
+.mobile-menu-toggle {
+  display: none;
+  flex-direction: column;
+  gap: 5px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: var(--spacing-xs);
+  z-index: var(--z-sticky);
+}
+
+.hamburger-line {
+  width: 24px;
+  height: 2px;
+  background: #fff;
+  border-radius: 2px;
+  transition: all var(--transition-base);
+}
+
+.hamburger-line.active:nth-child(1) {
+  transform: rotate(45deg) translate(7px, 7px);
+}
+
+.hamburger-line.active:nth-child(2) {
+  opacity: 0;
+}
+
+.hamburger-line.active:nth-child(3) {
+  transform: rotate(-45deg) translate(7px, -7px);
+}
+
 /* Responsive Design */
 @media (max-width: 1024px) {
   .nav-links {
@@ -184,46 +216,166 @@
   }
 }
 
+/* Mobile Menu Container */
+.mobile-menu {
+  display: contents;
+}
+
 @media (max-width: 768px) {
   .navbar {
     padding: var(--spacing-sm) var(--spacing-md);
     min-height: 64px;
+    flex-wrap: wrap;
+    position: relative;
   }
   
   .logo img {
     height: 36px;
   }
   
-  .nav-links {
-    gap: var(--spacing-sm);
+  .mobile-menu-toggle {
+    display: flex;
+    order: 2;
   }
   
-  .nav-links a {
-    font-size: 13px;
-    padding: var(--spacing-xs);
+  /* Mobile menu container - wraps both nav-links and action-buttons */
+  .mobile-menu {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-primary-dark) 100%);
+    box-shadow: var(--shadow-lg);
+    z-index: var(--z-dropdown);
+    flex-direction: column;
+    animation: slideDown 0.3s ease-out;
+  }
+  
+  .mobile-menu.mobile-open {
+    display: flex;
+  }
+  
+  /* Nav links inside mobile menu */
+  .mobile-menu .nav-links {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    padding: var(--spacing-md) 0;
+    margin: 0;
+    width: 100%;
+  }
+  
+  .mobile-menu .nav-links li {
+    width: 100%;
+  }
+  
+  .mobile-menu .nav-links a {
+    display: block;
+    width: 100%;
+    padding: var(--spacing-md) var(--spacing-lg);
+    font-size: 16px;
+    border-radius: 0;
+    transition: background-color 0.2s;
+  }
+  
+  .mobile-menu .nav-links a:hover {
+    background: rgba(255, 255, 255, 0.1);
+  }
+  
+  .mobile-menu .nav-links a::before {
+    display: none;
+  }
+  
+  /* Action buttons inside mobile menu */
+  .mobile-menu .action-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-md);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    width: 100%;
+  }
+  
+  .mobile-menu .book-now,
+  .mobile-menu .login {
+    width: 100%;
+    padding: var(--spacing-md);
+    font-size: 15px;
+    justify-content: center;
+  }
+  
+  .mobile-menu .logged-in-menu {
+    flex-direction: column;
+    gap: var(--spacing-sm);
+    width: 100%;
+    align-items: stretch;
+  }
+  
+  .mobile-menu .logged-in-menu span {
+    font-size: 14px;
+    text-align: center;
+  }
+  
+  .mobile-menu .logout {
+    width: 100%;
+    padding: var(--spacing-md);
+  }
+  
+  @keyframes slideDown {
+    from {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
   
   .book-now,
   .login {
-    padding: var(--spacing-xs) var(--spacing-md);
-    font-size: 13px;
+    width: 100%;
+    padding: var(--spacing-md);
+    font-size: 15px;
+    justify-content: center;
   }
   
   .logged-in-menu {
     flex-direction: column;
-    gap: var(--spacing-xs);
-    align-items: flex-end;
+    gap: var(--spacing-sm);
+    width: 100%;
+    align-items: stretch;
   }
   
   .logged-in-menu span {
-    font-size: 12px;
+    font-size: 14px;
+    text-align: center;
+  }
+  
+  .logout {
+    width: 100%;
+    padding: var(--spacing-md);
   }
 }
 
 @media (max-width: 640px) {
-  .nav-links {
-    display: none; /* Consider adding a mobile menu toggle */
+  .navbar {
+    padding: var(--spacing-xs) var(--spacing-sm);
+  }
+  
+  .logo img {
+    height: 32px;
+  }
+  
+  .mobile-menu-toggle {
+    padding: var(--spacing-xs);
+  }
+  
+  .hamburger-line {
+    width: 20px;
   }
 }
+
 
 

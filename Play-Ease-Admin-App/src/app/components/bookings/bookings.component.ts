@@ -41,26 +41,29 @@ export class BookingsComponent {
       selectedTime: [null],
       matchDuration: [null],
       selectedPitchSizes: [[]],
-      distance: [0]
+      location: ['']
     });
   }
 
   onSearch(searchTerm: string) {
-    this.courtListRef.filterCourts(searchTerm);
+    // Real-time search - filter with current form values
+    this.courtListRef.filterCourts(searchTerm || '', this.form.value);
   }
+  
   ngAfterViewInit() {
   } 
+  
   toggleFilters() {
     this.filtersOpened = !this.filtersOpened;
   }
 
   onApplyFilters() {
     this.filtersOpened = false;
-    // You can add additional filtering logic here for courtListRef
+    // Apply filters with current search query
     this.courtListRef.filterCourts(
-    this.form.value.searchQuery,
-    this.form.value
-  );
+      this.form.value.searchQuery || '',
+      this.form.value
+    );
   }
 
   onClearFilters() {
@@ -70,8 +73,10 @@ export class BookingsComponent {
       selectedTime: null,
       matchDuration: null,
       selectedPitchSizes: [],
-      distance: 0
+      location: ''
     });
+    // Clear filters and show all courts
+    this.courtListRef.filterCourts('', {});
   }
 
   onUseLocation() {

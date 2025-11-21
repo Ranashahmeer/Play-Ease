@@ -59,4 +59,36 @@
   ::ng-deep .fc-day-today {
     background-color: #e5393510;
   }
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .calendar-container {
+    flex-direction: column;
+    height: auto;
+    min-height: 100vh;
+  }
+  
+  .sidebar {
+    width: 100%;
+    padding: var(--spacing-md);
+  }
+  
+  .calendar-content {
+    padding: var(--spacing-md);
+  }
+}
+
+@media (max-width: 480px) {
+  .sidebar {
+    padding: var(--spacing-sm);
+  }
+  
+  .sidebar h3 {
+    font-size: 1.1rem;
+  }
+  
+  .calendar-content {
+    padding: var(--spacing-sm);
+  }
+}
   

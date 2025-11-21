@@ -3,25 +3,28 @@
       <img src="assets/PlayEase.png" alt="PlayEase Logo" />
       <!-- <span>Play<span style="color: green;">Ease</span></span> -->
     </div>
-    <ul class="nav-links">
-      <li><a (click)="navigateTo('/home')">Home</a></li>
-      <li><a (click)="navigateTo('/our-services')">Services</a></li>
-      <li><a (click)="navigateTo('/player-recruitment')">Play Together</a></li>
-      <li><a (click)="navigateTo('/my-account')">My Account</a></li>
-    </ul>
-    <div class="action-buttons">
-      <button class="book-now" (click)="RedirectToBooking()">Book Now!</button>
-      <!-- Show Login if NOT logged in -->
-<button *ngIf="!isLoggedIn" class="book-now" (click)="RedirectToLogin()">Login</button>
+    <button class="mobile-menu-toggle" (click)="toggleMobileMenu()" [attr.aria-label]="'Toggle menu'">
+      <span class="hamburger-line" [class.active]="isMobileMenuOpen"></span>
+      <span class="hamburger-line" [class.active]="isMobileMenuOpen"></span>
+      <span class="hamburger-line" [class.active]="isMobileMenuOpen"></span>
+    </button>
+    <div class="mobile-menu" [class.mobile-open]="isMobileMenuOpen">
+      <ul class="nav-links">
+        <li><a (click)="navigateTo('/home'); closeMobileMenu()">Home</a></li>
+        <li><a (click)="navigateTo('/our-services'); closeMobileMenu()">Services</a></li>
+        <li><a (click)="navigateTo('/player-recruitment'); closeMobileMenu()">Play Together</a></li>
+        <li><a (click)="navigateTo('/my-account'); closeMobileMenu()">My Account</a></li>
+      </ul>
+      <div class="action-buttons">
+        <button class="book-now" (click)="RedirectToBooking(); closeMobileMenu()">Book Now!</button>
+        <!-- Show Login if NOT logged in -->
+        <button *ngIf="!isLoggedIn" class="book-now" (click)="RedirectToLogin(); closeMobileMenu()">Login</button>
 
-<!-- Show username + Logout if logged in -->
-<div *ngIf="isLoggedIn" class="logged-in-menu">
-  <span>Welcome, {{ loggedInUser?.fullName || 'User' }}</span>
-  <button class="logout" (click)="logout()">Logout</button>
-
-  <!-- <button mat-button (click)="logout()">Logout</button> -->
-</div>
-
-      <!-- <button class="login" (click)="RedirectToLogin()">Login</button> -->
+        <!-- Show username + Logout if logged in -->
+        <div *ngIf="isLoggedIn" class="logged-in-menu">
+          <span>Welcome, {{ loggedInUser?.fullName || 'User' }}</span>
+          <button class="logout" (click)="logout(); closeMobileMenu()">Logout</button>
+        </div>
+      </div>
     </div>
   </nav>

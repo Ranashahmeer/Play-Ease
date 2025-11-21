@@ -54,3 +54,36 @@
 .filter-btn:hover {
   background: #e2e2e2;
 }
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .search-bar {
+    padding: 6px 12px;
+  }
+  
+  .search-bar input {
+    padding: 10px 12px;
+    font-size: 14px;
+  }
+  
+  .search-bar button {
+    padding: 8px 14px;
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 480px) {
+  .search-bar {
+    flex-direction: column;
+    gap: 8px;
+    padding: 12px;
+  }
+  
+  .search-bar input {
+    width: 100%;
+  }
+  
+  .search-bar button {
+    width: 100%;
+  }
+}

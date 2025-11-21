@@ -140,3 +140,63 @@ app-filter-drawer {
   min-height: 0;
 }
 
+/* Responsive Design */
+@media (max-width: 768px) {
+  .booking-container {
+    padding: var(--spacing-md);
+    gap: var(--spacing-md);
+  }
+  
+  .top-section {
+    flex: 0 0 auto;
+    min-height: 300px;
+  }
+  
+  .bottom-section {
+    flex: 0 0 auto;
+    min-height: 300px;
+  }
+  
+  .section-header {
+    padding: var(--spacing-md) var(--spacing-lg);
+  }
+  
+  .section-header h2 {
+    font-size: 1.25rem;
+  }
+  
+  .section-header svg {
+    width: 20px;
+    height: 20px;
+  }
+  
+  .top-section .section-content {
+    padding: var(--spacing-md);
+  }
+  
+  .top-section .court-card {
+    width: 260px;
+    min-height: 360px;
+  }
+}
+
+@media (max-width: 480px) {
+  .booking-container {
+    padding: var(--spacing-sm);
+    gap: var(--spacing-sm);
+  }
+  
+  .section-header {
+    padding: var(--spacing-sm) var(--spacing-md);
+  }
+  
+  .section-header h2 {
+    font-size: 1.1rem;
+  }
+  
+  .top-section .court-card {
+    width: 240px;
+    min-height: 340px;
+  }
+}
+

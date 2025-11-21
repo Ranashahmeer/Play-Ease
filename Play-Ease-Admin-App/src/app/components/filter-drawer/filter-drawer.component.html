@@ -6,16 +6,17 @@
   <input type="date" [formControl]="selectedDate" [min]="minDate | date:'yyyy-MM-dd'">
 
   <label>Time</label>
-<select [formControl]="selectedTime" (change)="onTimeSelect($event)">
-  <option *ngFor="let t of timeOptions" [value]="t.text">{{ t.text }}</option>
-</select>
-
+  <select [formControl]="selectedTime" (change)="onTimeSelect($event)">
+    <option value="">Any Time</option>
+    <option *ngFor="let t of timeOptions" [value]="t.text">{{ t.text }}</option>
+  </select>
 
   <label>Match Duration</label>
   <div class="duration-buttons">
     <button type="button" [class.active]="matchDuration.value===60" (click)="matchDuration.setValue(60)">60 mins</button>
     <button type="button" [class.active]="matchDuration.value===90" (click)="matchDuration.setValue(90)">90 mins</button>
     <button type="button" [class.active]="matchDuration.value===120" (click)="matchDuration.setValue(120)">120 mins</button>
+    <button type="button" [class.active]="!matchDuration.value" (click)="matchDuration.setValue(null)">Any</button>
   </div>
 
   <label>Pitch Size</label>
@@ -27,11 +28,11 @@
     <option value="11x11">11x11</option>
   </select>
 
-  <label>Distance (km)</label>
-  <input type="range" min="0" max="50" [formControl]="distance">
+  <label>Location</label>
+  <input type="text" formControlName="location" placeholder="Filter by location...">
 
   <div class="filter-actions">
-    <button type="button" (click)="onUseLocation()">Use Location</button>
+    <button type="button" (click)="onUseLocation()">Use Current Location</button>
     <button type="button" (click)="onClearFilters()">Clear</button>
     <button type="button" (click)="onApplyFilters()">Apply</button>
   </div>

@@ -57,4 +57,8 @@ export class FilterDrawerComponent {
   get selectedPitchSizes(): FormControl {
     return this.form.get('selectedPitchSizes') as FormControl;
   }
+
+  get location(): FormControl {
+    return this.form.get('location') as FormControl;
+  }
 }

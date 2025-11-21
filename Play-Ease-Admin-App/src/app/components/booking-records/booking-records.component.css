@@ -1,9 +1,11 @@
+/* Right Column */
 .right-col {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+  max-width: 900px;
+  margin: 0 auto;
   width: 100%;
-  align-items: start;
 }
 
 .bookings-panel {
@@ -19,8 +21,8 @@
 
 .bookings-panel h3 {
   margin: 0;
-  padding: 16px 20px;
-  font-size: 1.25rem;
+  padding: 20px 20px;
+  font-size: 24px;
   font-weight: 700;
   background: linear-gradient(135deg, #004526 0%, #006b3d 100%);
   color: white;
@@ -38,7 +40,7 @@
   border-radius: 2px;
 }
 
-/* Cards Container */
+/* Bookings Container */
 .bookings-container {
   padding: 24px;
   flex: 1;
@@ -46,140 +48,90 @@
   min-height: 0;
 }
 
-/* Booking Card - Row Style */
-.booking-card {
-  display: grid;
-  grid-template-columns: 100px 1fr auto;
-  gap: 20px;
-  align-items: center;
-  padding: 20px;
-  background: white;
-  border-radius: 12px;
-  margin-bottom: 16px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-  transition: all 0.3s ease;
-  border-left: 4px solid transparent;
+/* AG-Grid Styling */
+.ag-theme-alpine {
   width: 100%;
-  box-sizing: border-box;
-  position: relative;
+  height: 450px;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
-.booking-card:hover {
-  box-shadow: 0 6px 20px rgba(0, 69, 38, 0.15);
-  transform: translateX(4px);
-  border-left-color: #B8860B;
-}
-
-.booking-card:last-child {
-  margin-bottom: 0;
-}
-
-/* Thumbnail Image */
-.booking-card .thumb {
-  width: 100px;
-  height: 100px;
-  border-radius: 10px;
-  object-fit: cover;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-/* Info Section - Expanded */
-.booking-card .info {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.booking-card .title {
-  font-size: 18px;
+/* Custom AG-Grid overrides */
+::ng-deep .ag-theme-alpine .ag-header {
+  background: #f8f9fa;
+  border-bottom: 2px solid #e0e0e0;
   font-weight: 700;
+}
+
+::ng-deep .ag-theme-alpine .ag-header-cell-label {
   color: #1a1a1a;
-  margin-bottom: 4px;
+  font-weight: 700;
 }
 
-.booking-card .meta {
-  font-size: 15px;
-  color: #555;
-  font-weight: 500;
+::ng-deep .ag-theme-alpine .ag-row-odd {
+  background: #fafafa;
 }
 
-.booking-card .meta.small {
-  font-size: 14px;
-  color: #777;
+::ng-deep .ag-theme-alpine .ag-row-even {
+  background: white;
+}
+
+::ng-deep .ag-theme-alpine .ag-row:hover {
+  background: #f5f5f5;
+}
+
+::ng-deep .ag-theme-alpine .ag-cell {
   display: flex;
   align-items: center;
-  gap: 6px;
 }
 
-.booking-card .meta.small svg {
-  width: 16px;
-  height: 16px;
-  color: var(--brand-primary);
-  flex-shrink: 0;
-}
-
-/* Actions Section - Horizontal */
-.booking-card .actions {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 12px;
-  min-width: 140px;
-  max-width: 180px;
-  flex-shrink: 0;
-}
-
-.booking-card .price {
-  font-size: 24px;
-  font-weight: 800;
+/* Price cell styling */
+::ng-deep .price-cell {
+  font-size: 16px;
+  font-weight: 700;
   background: linear-gradient(135deg, #8B6914 0%, #B8860B 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
-/* Buttons */
-.btn {
-  padding: 10px 24px;
-  border-radius: 8px;
-  font-size: 13px;
+/* Status badge */
+::ng-deep .status-badge {
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  background: linear-gradient(135deg, #004526 0%, #006b3d 100%);
+  color: white;
+  display: inline-block;
+}
+
+/* Cancel button */
+::ng-deep .cancel-btn {
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 12px;
   font-weight: 700;
   border: none;
   cursor: pointer;
   transition: all 0.3s ease;
   text-transform: uppercase;
-  letter-spacing: 1px;
-  white-space: nowrap;
-}
-
-.btn-danger {
+  letter-spacing: 0.5px;
   background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
   color: white;
 }
 
-.btn-danger:hover {
+::ng-deep .cancel-btn:hover {
   background: linear-gradient(135deg, #c82333 0%, #bd2130 100%);
-  box-shadow: 0 4px 16px rgba(220, 53, 69, 0.4);
+  box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
   transform: translateY(-2px);
 }
 
-/* Status Badge */
-.status {
-  padding: 8px 18px;
-  border-radius: 24px;
-  font-size: 12px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-}
-
-.status.done {
-  background: linear-gradient(135deg, #004526 0%, #006b3d 100%);
-  color: white;
-  box-shadow: 0 2px 8px rgba(0, 69, 38, 0.3);
-}
-
-/* Empty States */
+/* Empty State */
 .empty {
   text-align: center;
   padding: 50px 30px;
@@ -191,67 +143,12 @@
   border: 2px dashed #95d5b2;
 }
 
-/* Responsive Design */
-@media (max-width: 968px) {
-  .booking-card {
-    grid-template-columns: 80px 1fr auto;
-    gap: 16px;
-  }
-
-  .booking-card .thumb {
-    width: 80px;
-    height: 80px;
-  }
-
-  .booking-card .title {
-    font-size: 16px;
-  }
-
-  .booking-card .price {
-    font-size: 20px;
-  }
-}
-
-@media (max-width: 768px) {
-  .bookings-panel h3 {
-    padding: 16px 20px;
-    font-size: 20px;
-  }
-
-  .bookings-container {
-    padding: 16px;
-  }
-
-  .booking-card {
-    grid-template-columns: 1fr;
-    gap: 16px;
-    padding: 16px;
-  }
-
-  .booking-card .thumb {
-    width: 100%;
-    height: 180px;
-  }
-
-  .booking-card .actions {
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: center;
-    width: 100%;
-  }
-
-  .btn {
-    flex: 1;
-  }
-}
-
-/* Owner Section Wrapper */
+/* Owner Section */
 .owner-section {
   width: 100%;
-  margin: 0;
 }
 
-/* Courts Panel Container - Lighter Forest Green Background */
+/* Courts Panel */
 .courts-panel {
   background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
   border-radius: 16px;
@@ -260,10 +157,9 @@
   overflow: hidden;
 }
 
-/* Header with Green Background */
 .courts-panel h2 {
   margin: 0;
-  padding: 20px 30px;
+  padding: 20px 20px;
   font-size: 24px;
   font-weight: 700;
   background: linear-gradient(135deg, #004526 0%, #006b3d 100%);
@@ -271,7 +167,7 @@
   letter-spacing: 0.5px;
 }
 
-/* Court Card - Row Style */
+/* Court Card */
 .court-card {
   display: grid;
   grid-template-columns: 120px 1fr;
@@ -302,7 +198,6 @@
   margin-bottom: 24px;
 }
 
-/* Court Thumbnail Image */
 .court-card .court-thumb {
   width: 120px;
   height: 120px;
@@ -311,7 +206,6 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
-/* Court Info Section */
 .court-card .court-info {
   display: flex;
   flex-direction: column;
@@ -341,29 +235,26 @@
   font-size: 16px;
   font-weight: 700;
   color: #8B6914;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-/* Empty State */
-.empty {
-  text-align: center;
-  padding: 50px 30px;
-  margin: 24px;
-  color: #006b3d;
-  font-size: 16px;
-  font-weight: 600;
-  background: rgba(255, 255, 255, 0.6);
-  border-radius: 12px;
-  border: 2px dashed #95d5b2;
 }
 
 /* Responsive Design */
 @media (max-width: 768px) {
+  .bookings-panel h3,
   .courts-panel h2 {
     padding: 16px 20px;
     font-size: 20px;
+  }
+
+  .bookings-container {
+    padding: 16px;
+  }
+
+  .ag-theme-alpine {
+    height: 350px;
+  }
+
+  ::ng-deep .ag-theme-alpine {
+    font-size: 12px;
   }
 
   .court-card {

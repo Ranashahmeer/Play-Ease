@@ -1,4 +1,4 @@
-import { Component, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+import { Component, CUSTOM_ELEMENTS_SCHEMA,ViewChild } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { Inject, PLATFORM_ID } from '@angular/core';
 import { CommonModule } from '@angular/common';
@@ -7,11 +7,13 @@ import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { LoginComponent } from '../login/login.component';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
+import { CourtListComponent } from '../court-list/court-list.component';
+import { AuthService } from '../../services/auth/auth.service';
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule, MatDialogModule, MatButtonModule, MatIconModule],
+  imports: [CommonModule, MatDialogModule, MatButtonModule, MatIconModule,CourtListComponent],
   templateUrl: './home.component.html',
   styleUrls: ['./home.component.css'],
   schemas: [CUSTOM_ELEMENTS_SCHEMA]
@@ -19,8 +21,8 @@ import { MatIconModule } from '@angular/material/icon';
 export class HomeComponent {
   isLoggedIn = false;
   isBrowser = false;
-
-  constructor(private router: Router, private dialog: MatDialog,@Inject(PLATFORM_ID) private platformId: Object) {}
+  @ViewChild('courtListRef') courtListRef!: CourtListComponent;
+  constructor(private router: Router, private dialog: MatDialog,@Inject(PLATFORM_ID) private platformId: Object,public authService: AuthService,) {}
   
   ngOnInit() {
     this.isBrowser = isPlatformBrowser(this.platformId);
@@ -31,6 +33,7 @@ export class HomeComponent {
     } else {
       this.isLoggedIn = false;
     }
+
 }
   // ✅ Opens the same login popup as navbar
   openLoginPopup() {

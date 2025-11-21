@@ -12,9 +12,10 @@ export class SaveBookingsService {
   constructor(private http: HttpClient) {}
 
   createBooking(booking: SaveBookings): Observable<any> {
+    console.log('Service: Sending booking to API:', booking);
     return this.http.post(`${this.baseUrl}/create`, booking);
   }
-
+ 
   cancelBooking(id: number) {
     return this.http.put(`${this.baseUrl}/cancel/${id}`, {});
   }

@@ -40,6 +40,12 @@ export class CourtListComponent implements OnInit {
         const adapter = new CourtAdapter();
         const apiData = Array.isArray(data) ? data : [];
         this.allCourts = apiData.map(item => adapter.fromApi(item));
+        this.allCourts = this.allCourts.map(court => ({
+          ...court,
+          minPrice: court.pitches?.length
+            ? court.pitches[0].price   // first pitch price
+            : 0
+        }));
         this.courts = [...this.allCourts];
       },
       
@@ -165,7 +171,7 @@ export class CourtListComponent implements OnInit {
     const start = (this.currentPage - 1) * this.pageSize;
     return this.courts.slice(start, start + this.pageSize);
   } 
-scrollLeft() {
+  scrollLeft() {
     const el = this.scrollContainer.nativeElement;
     el.scrollBy({ left: -350, behavior: 'smooth' });
   }

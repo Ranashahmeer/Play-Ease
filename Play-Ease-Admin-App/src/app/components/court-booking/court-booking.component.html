@@ -1,8 +1,7 @@
 <div class="booking-page" *ngIf="courtDetails">
-  <!-- Header Card -->
   <div class="booking-header-card">
     <div class="booking-image">
-      <img [src]="courtDetails.image" alt="{{ courtDetails.name || 'Court' }}" />
+      <img [src]="courtDetails.image" [alt]="courtDetails.name || 'Court'" />
       <div class="rating-badge">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2">
           <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
@@ -22,92 +21,103 @@
       <p *ngIf="courtDetails.offers?.length">Offers: {{ courtDetails.offers.join(', ') }}</p>
       <p class="price-large">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <line x1="12" y1="1" x2="12" y2="23"></line>
-          <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+          <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path>
+          <circle cx="7" cy="7" r="1.5"></circle>
         </svg>
         Rs {{ getComputedPrice() }}
       </p>
     </div>
   </div>
 
-  <!-- Gallery -->
   <div class="booking-section" *ngIf="courtDetails.images?.length">
     <h3>Gallery</h3>
     <div class="gallery-grid">
-      <img *ngFor="let img of courtDetails.images" [src]="img" />
+      <img *ngFor="let img of courtDetails.images" [src]="img" alt="Gallery image" />
     </div>
   </div>
 
-  <!-- Match Duration -->
   <div class="booking-section">
     <h3>Match Duration</h3>
     <div class="time-slot-grid">
       <div class="time-slot-btn" 
-           [class.time-slot-selected]="form.get('matchDuration')?.value===60" 
-           (click)="form.patchValue({matchDuration:60}); recomputeAvailability()">
-        60 mins
-      </div>
-      <div class="time-slot-btn" 
-           [class.time-slot-selected]="form.get('matchDuration')?.value===90" 
-           (click)="form.patchValue({matchDuration:90}); recomputeAvailability()">
-        90 mins
-      </div>
-      <div class="time-slot-btn" 
-           [class.time-slot-selected]="form.get('matchDuration')?.value===120" 
-           (click)="form.patchValue({matchDuration:120}); recomputeAvailability()">
-        120 mins
+           *ngFor="let dur of [60, 90, 120]"
+           [class.time-slot-selected]="form.get('matchDuration')?.value === dur" 
+           (click)="form.patchValue({matchDuration: dur}); recomputeAvailability()">
+        {{ dur }} mins
       </div>
     </div>
   </div>
 
-  <!-- Pitch Selection -->
   <div class="booking-section" *ngIf="courtDetails.pitches?.length">
     <h3>Select Pitch</h3>
     <div class="time-slot-grid">
       <div class="time-slot-btn" 
            *ngFor="let p of courtDetails.pitches"
-           [class.time-slot-selected]="selectedPitchSize===p.pitchtype"
+           [class.time-slot-selected]="selectedPitchSize === p.pitchtype"
            (click)="selectPitch(p)">
         {{ p.pitchtype }}
       </div>
     </div>
   </div>
 
-  <!-- Date Selection -->
-<div class="booking-section">
-  <h3>Select Date</h3>
-  <dx-calendar 
-    [(value)]="selectedBookingDate" 
-    [min]="minDate"
-    (onValueChanged)="onBookingDateChanged($event)">
-  </dx-calendar>
-</div>
-
-  <!-- Time Slots -->
   <div class="booking-section">
-    <h3>Select Time</h3>
-    <div class="time-slot-grid">
-      <div class="time-slot-btn" *ngFor="let slot of timeSlotItems"
-           [class.time-slot-selected]="selectedBookingTime===slot.text"
+    <h3>Select Date</h3>
+    <dx-calendar 
+      [(value)]="selectedBookingDate" 
+      [min]="minDate"
+      (onValueChanged)="onBookingDateChanged($event)">
+    </dx-calendar>
+  </div>
+
+  <div class="booking-section">
+    <h3>Select Time Slots</h3>
+    <p class="section-hint">You can select multiple time slots. Click to select/deselect.</p>
+    <div *ngIf="isLoadingBookedSlots" class="loading-slots">Loading available slots...</div>
+    <div class="time-slot-grid" *ngIf="!isLoadingBookedSlots">
+      <div class="time-slot-btn" 
+           *ngFor="let slot of timeSlotItems"
+           [class.time-slot-selected]="selectedTimeSlots.includes(slot.text) && !slot.disabled"
            [class.disabled]="slot.disabled"
-           (click)="!slot.disabled && (selectedBookingTime=slot.text)">
+           [title]="slot.disabled ? 'This slot is already booked or in the past' : 'Click to select this time slot'"
+           (click)="!slot.disabled && toggleTimeSlot(slot)">
         {{ slot.text }}
+        <span class="slot-check" *ngIf="selectedTimeSlots.includes(slot.text) && !slot.disabled">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+            <polyline points="20 6 9 17 4 12"></polyline>
+          </svg>
+        </span>
+        <span class="slot-booked-icon" *ngIf="slot.disabled">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+          </svg>
+        </span>
       </div>
     </div>
-    <p *ngIf="bookedForDay.length>0" class="booked-info">
-      <em>Booked for {{ selectedBookingDate | date:'shortDate' }}:</em> {{ bookedForDay.join(', ') }}
+    
+    <div class="selected-slots-summary" *ngIf="selectedTimeSlots.length > 0">
+      <h4>Selected Slots ({{ selectedTimeSlots.length }}):</h4>
+      <div class="selected-slots-list">
+        <span class="selected-slot-tag" *ngFor="let slot of selectedTimeSlots">
+          {{ slot }}
+          <button class="remove-slot-btn" (click)="toggleTimeSlot({text: slot, disabled: false})" title="Remove">×</button>
+        </span>
+      </div>
+    </div>
+    
+    <p *ngIf="bookedForDay.length > 0" class="booked-info">
+      <em>Already booked for {{ selectedBookingDate | date:'shortDate' }}:</em> {{ bookedForDay.join(', ') }}
     </p>
     <p *ngIf="allSlotsDisabled" class="no-slots">No available slots for this date.</p>
   </div>
 
-  <!-- Proceed to Payment -->
   <button class="next-button" (click)="proceedToPayment()">Proceed to Payment</button>
 </div>
 
-<!-- <app-payment-popup [(visible)]="paymentPopupVisible"></app-payment-popup> -->
-<!-- court-booking.component.html -->
 <app-payment-popup 
   [(visible)]="paymentPopupVisible"
   [bookingData]="bookingData"
-  [ownerPaymentMethods]="courtDetails?.paymentMethods || []">
+  [ownerPaymentMethods]="ownerPaymentMethods"
+  [totalPrice]="getComputedPrice()"
+  [slotDuration]="form.get('matchDuration')?.value || 60">
 </app-payment-popup>

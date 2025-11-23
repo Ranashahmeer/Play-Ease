@@ -1,29 +1,19 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { ReactiveFormsModule } from '@angular/forms';
 import { GetDatabyDatasourceService } from '../../services/get-data/get-databy-datasource.service';
 import{AuthLoginLogoutService} from '../../services/auth/auth.login-logout.service'
 import { Router } from '@angular/router';
 import { SaveBookingsService } from '../../services/bookings/save-bookings.service';
 import { AddCourtComponent } from '../add-court/add-court.component';
 import { DashboardComponent } from '../dashboard/dashboard.component';
+import { AdminDashboardComponent } from '../admin-dashboard/admin-dashboard.component';
 
-interface Booking {
-  id: number;
-  courtName: string;
-  date: string;
-  time: string;
-  duration: string;
-  location: string;
-  price: number;
-  image: string;
-  status: 'upcoming' | 'completed';
-}
 
 @Component({
   selector: 'app-my-account',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, AddCourtComponent],
+  imports: [CommonModule, ReactiveFormsModule, AddCourtComponent, AdminDashboardComponent],
   templateUrl: './my-account.component.html',
   styleUrls: ['./my-account.component.css']
 })
@@ -37,18 +27,18 @@ export class MyAccountComponent implements OnInit {
     about: ''
   };
 
-  teamForm!: FormGroup;
-  upcomingBookings: Booking[] = [];
-  pastBookings: Booking[] = [];
-  showTeamModal = false;
-  showDashboard = false; // For admin add-court modal
+  showDashboard = false;
   userId?: number;
   roleId?: number;
   userRoleName: any;
   isOwner?: boolean = false;
   isAdmin?: boolean = false;
 
-  constructor(private fb: FormBuilder,private router: Router,private saveBookingsService: SaveBookingsService ,public AuthLoginLogoutService :AuthLoginLogoutService, private getDataService: GetDatabyDatasourceService) {}
+  constructor(
+    private router: Router,
+    public AuthLoginLogoutService: AuthLoginLogoutService,
+    private getDataService: GetDatabyDatasourceService
+  ) {}
 
   ngOnInit(): void {
     const saved = localStorage.getItem('loggedInUser');
@@ -60,12 +50,7 @@ export class MyAccountComponent implements OnInit {
       } catch {}
     }
 
-    // init team form
-    this.teamForm = this.fb.group({
-      phone: ['', Validators.required],
-      message: ['', [Validators.required, Validators.minLength(10)]]
-    });
-    this.getUserRoleDetails()
+    this.getUserRoleDetails();
   }
   getUserRoleDetails(){
   this.getDataService.getData(4).subscribe({
@@ -122,28 +107,6 @@ export class MyAccountComponent implements OnInit {
           about: first.about
         };
 
-        // Map bookings
-        const today = new Date();
-        const bookings = data.map((item, index) => {
-          const bookingDate = new Date(item.bookingdate);
-          const status: 'upcoming' | 'completed' =
-            bookingDate >= today ? 'upcoming' : 'completed';
-
-          return {
-            id: index + 1,
-            courtName: item.NAME,
-            date: bookingDate.toISOString().split('T')[0],
-            time: `${item.starttime} - ${item.endtime}`,
-            duration: this.calcDuration(item.starttime, item.endtime),
-            location: item.location,
-            price: item.price,
-            image: item.mainimage,
-            status
-          } as Booking;
-        });
-
-        this.upcomingBookings = bookings.filter(b => b.status === 'upcoming');
-        this.pastBookings = bookings.filter(b => b.status === 'completed');
       },
       error: err => {
         // Error fetching account data
@@ -189,50 +152,19 @@ lodeOwnerData() {
 }
 
 
-  private calcDuration(start: string, end: string): string {
-    const [sh, sm] = start.split(':').map(Number);
-    const [eh, em] = end.split(':').map(Number);
-    const startMins = sh * 60 + sm;
-    const endMins = eh * 60 + em;
-    const diff = endMins - startMins;
-    return `${diff} mins`;
-  }
-
-  cancelUpcoming(bookingId: number): void {
-    if (!confirm('Are you sure you want to cancel this booking? There will be no refund!')) return;
-  
-    this.saveBookingsService.cancelBooking(bookingId).subscribe({
-      next: () => {
-        this.upcomingBookings = this.upcomingBookings.filter(b => b.id !== bookingId);
-      },
-      error: (err:any) => {
-        // Error cancelling booking
-      }
-    });
-  }
-  
-
-  toggleTeamModal(open = true) {
-    this.showTeamModal = open;
-    if (!open) {
-      this.teamForm.reset({ phone: this.user.contact });
-    }
-  }
-
-  sendTeamRequest(): void {
-    if (this.teamForm.invalid) {
-      return;
-    }
-    this.toggleTeamModal(false);
-  }
-
-  get hasNoBookings(): boolean {
-    return this.upcomingBookings.length === 0 && this.pastBookings.length === 0;
-  }
   addCourt(){
     // this.router.navigate(['/my-account']);
     this.router.navigate(['/add-court'])
   }
+
+  navigateToManageSlots(): void {
+    this.router.navigate(['/manage-slots']);
+  }
+
+  navigateToPaymentApprovals(): void {
+    this.router.navigate(['/payment-approvals']);
+  }
+
   logout() {
     this.AuthLoginLogoutService.logout();
   }

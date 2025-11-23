@@ -13,6 +13,8 @@ import { AdminDashboardComponent } from './components/admin-dashboard/admin-dash
 
 import { AuthGuard } from './auth.guard';
 import { CourtBookingComponent } from './components/court-booking/court-booking.component';
+import { ManageSlotsComponent } from './components/manage-slots/manage-slots.component';
+import { PaymentApprovalsComponent } from './components/payment-approvals/payment-approvals.component';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/home', pathMatch: 'full' }, // Redirect to login
@@ -30,6 +32,10 @@ export const routes: Routes = [
   { path: 'add-court', component: AddCourtComponent },
   { path: 'player-recruitment', component: PlayerRecruitmentComponent, canActivate: [AuthGuard] },
   {path: 'admin-dashboard', component: AdminDashboardComponent},
+  { path: 'manage-slots', component: ManageSlotsComponent, canActivate: [AuthGuard] },
+  { path: 'payment-approvals', component: PaymentApprovalsComponent, canActivate: [AuthGuard] },
+  { path: 'approve-payment', component: PaymentApprovalsComponent },
+  { path: 'reject-payment', component: PaymentApprovalsComponent },
   { path: 'court-booking/:courtId', component: CourtBookingComponent },
   { path: '**', redirectTo: 'dashboard' }, // Fallback route
 ];

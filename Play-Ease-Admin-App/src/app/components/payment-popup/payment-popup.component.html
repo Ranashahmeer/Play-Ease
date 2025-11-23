@@ -1,36 +1,151 @@
-<dx-popup [(visible)]="visible" [width]="520" [height]="'auto'" [showTitle]="false" [dragEnabled]="false">
+<dx-popup [(visible)]="visible" [width]="600" [height]="'auto'" [showTitle]="false" [dragEnabled]="false" [showCloseButton]="true">
   <div *dxTemplate="let data of 'content'">
     <div class="payment-header">
-      <div class="payment-title">
-        <div class="payment-title-text">Payment Review</div>
-        <div class="reservation-line" *ngIf="!reservationExpired">
-          <small>Reservation active — pay within <strong>{{ reservationRemaining }}</strong></small>
-        </div>
-        <div class="reservation-expired" *ngIf="reservationExpired">
-          <small>Reservation expired — please go back and re-select slots.</small>
-        </div>
-      </div>
+      <div class="payment-title-text">Complete Your Booking</div>
+      <small *ngIf="!reservationExpired && reservationRemaining" class="reservation-line">
+        <svg class="icon-inline" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"></circle>
+          <polyline points="12 6 12 12 16 14"></polyline>
+        </svg>
+        Reservation active — pay within <strong>{{ reservationRemaining }}</strong>
+      </small>
+      <small *ngIf="reservationExpired" class="reservation-expired">
+        <svg class="icon-inline" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+          <line x1="12" y1="9" x2="12" y2="13"></line>
+          <line x1="12" y1="17" x2="12.01" y2="17"></line>
+        </svg>
+        Reservation expired — please go back and re-select slots.
+      </small>
     </div>
 
-    <div style="padding:16px; max-height:75vh; overflow:auto;">
-      <h4>Payment Options</h4>
-      <div *ngFor="let method of ownerPaymentMethods">
-        <p><strong>{{ method.MethodName }}</strong></p>
-        <p>Account Title: {{ method.AccountTitle }}</p>
-        <p>Account Number: {{ method.AccountNumber }}</p>
-        <p *ngIf="method.BankName">Bank: {{ method.BankName }}</p>
-        <hr>
+    <div class="payment-content">
+      <div class="bill-section">
+        <h4>Booking Summary</h4>
+        <div class="slots-info" *ngIf="hasMultipleSlots">
+          <p><strong>Selected Time Slots ({{ bookingData?.selectedSlots?.length }}):</strong></p>
+          <ul class="slots-list">
+            <li *ngFor="let slot of bookingData?.selectedSlots">
+              <svg class="icon-inline" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <polyline points="12 6 12 12 16 14"></polyline>
+              </svg>
+              {{ slot }}
+            </li>
+          </ul>
+        </div>
+        <div class="slots-info" *ngIf="!hasMultipleSlots">
+          <p><strong>Time Slot:</strong> {{ bookingData?.startTime || 'N/A' }}</p>
+        </div>
+        <div class="bill-row">
+          <span>Total Amount:</span>
+          <span class="bill-total">Rs {{ totalPrice || bookingData?.price || 0 }}</span>
+        </div>
       </div>
 
-      <dx-file-uploader [accept]="'image/png,image/jpeg'" [multiple]="false" (onValueChanged)="onFileUpload($event)"></dx-file-uploader>
-      <div *ngIf="paymentProofPreviewUrl">
-        <p><strong>Preview</strong></p>
-        <img [src]="paymentProofPreviewUrl" style="max-width:100%; border-radius:6px; border:1px solid #eee;">
+      <div class="error-section" *ngIf="validationErrors.length > 0">
+        <div class="error-message" *ngFor="let error of validationErrors">
+          <svg class="icon-inline" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+            <line x1="12" y1="9" x2="12" y2="13"></line>
+            <line x1="12" y1="17" x2="12.01" y2="17"></line>
+          </svg>
+          {{ error }}
+        </div>
       </div>
 
-      <div style="display:flex; gap:8px; margin-top:14px;">
-        <dx-button text="Cancel" (onClick)="cancel()"></dx-button>
-        <dx-button text="Submit Payment Proof" type="success" [disabled]="!paymentProofFile || reservationExpired" (onClick)="submitPaymentProof()"></dx-button>
+      <div class="payment-methods-section">
+        <h4>Select Payment Method</h4>
+        <p class="section-description">Choose a payment method and transfer the amount to the account details shown below:</p>
+        
+        <div *ngIf="ownerPaymentMethods.length === 0" class="no-payment-methods">
+          <p>
+            <svg class="icon-inline" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+              <line x1="12" y1="9" x2="12" y2="13"></line>
+              <line x1="12" y1="17" x2="12.01" y2="17"></line>
+            </svg>
+            No payment methods available for this court owner. Please contact support.
+          </p>
+        </div>
+
+        <div class="payment-method-list">
+          <div *ngFor="let method of ownerPaymentMethods" 
+               class="payment-method"
+               [class.selected]="selectedPaymentMethod?.PaymentID === method.PaymentID"
+               (click)="onPaymentMethodSelect(method)">
+            <div class="payment-method-icon">
+              <svg *ngIf="getPaymentMethodIcon(method) === 'mobile'" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect>
+                <line x1="12" y1="18" x2="12.01" y2="18"></line>
+              </svg>
+              <svg *ngIf="getPaymentMethodIcon(method) === 'bank'" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="2" y="6" width="20" height="12" rx="2"></rect>
+                <line x1="2" y1="10" x2="22" y2="10"></line>
+                <line x1="2" y1="14" x2="22" y2="14"></line>
+                <line x1="6" y1="18" x2="6.01" y2="18"></line>
+                <line x1="10" y1="18" x2="10.01" y2="18"></line>
+                <line x1="14" y1="18" x2="14.01" y2="18"></line>
+                <line x1="18" y1="18" x2="18.01" y2="18"></line>
+              </svg>
+              <svg *ngIf="getPaymentMethodIcon(method) === 'credit-card'" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect>
+                <line x1="1" y1="10" x2="23" y2="10"></line>
+              </svg>
+            </div>
+            <div class="payment-method-details">
+              <div class="method-name">{{ method.MethodName }}</div>
+              <div class="method-info">
+                <div><strong>Account Title:</strong> {{ method.AccountTitle }}</div>
+                <div><strong>Account Number:</strong> {{ method.AccountNumber }}</div>
+                <div *ngIf="method.BankName"><strong>Bank:</strong> {{ method.BankName }}</div>
+              </div>
+            </div>
+            <div class="payment-method-check" *ngIf="selectedPaymentMethod?.PaymentID === method.PaymentID">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="upload-section">
+        <h4>Upload Payment Proof</h4>
+        <p class="section-description">After making the payment, upload a screenshot or photo of your payment receipt:</p>
+        
+        <dx-file-uploader 
+          [accept]="'image/png,image/jpeg,image/jpg'" 
+          [multiple]="false" 
+          [uploadMode]="'useForm'"
+          (onValueChanged)="onFileUpload($event)">
+        </dx-file-uploader>
+        
+        <div class="file-info" *ngIf="paymentProofFile">
+          <small>
+            <svg class="icon-inline" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path>
+            </svg>
+            File: {{ paymentProofFile.name }} ({{ (paymentProofFile.size / 1024).toFixed(2) }} KB)
+          </small>
+        </div>
+
+        <div class="preview-section" *ngIf="paymentProofPreviewUrl">
+          <p><strong>Preview:</strong></p>
+          <div class="image-preview">
+            <img [src]="paymentProofPreviewUrl" alt="Payment proof preview">
+          </div>
+        </div>
+      </div>
+
+      <div class="action-buttons">
+        <dx-button text="Cancel" type="normal" [disabled]="isSubmitting" (onClick)="cancel()"></dx-button>
+        <dx-button 
+          [text]="isSubmitting ? 'Processing...' : 'Confirm Booking'" 
+          type="success" 
+          [disabled]="!canSubmit" 
+          (onClick)="submitPaymentProof()">
+        </dx-button>
       </div>
     </div>
   </div>

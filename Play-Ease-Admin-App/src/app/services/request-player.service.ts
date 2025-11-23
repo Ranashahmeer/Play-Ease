@@ -20,7 +20,7 @@ export interface MatchRequest {
 })
 export class RequestPlayerService {
 
-  private apiUrl = 'http://localhost:5105/api/RequestPlayer'; // Update your API URL
+  private apiUrl = 'http://localhost:5000/api/RequestPlayer'; // Update your API URL
 
   constructor(private http: HttpClient) { }
 

@@ -1,0 +1,214 @@
+.approvals-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: var(--spacing-xl);
+  background: var(--gray-50);
+  min-height: calc(100vh - 200px);
+}
+
+.approvals-header {
+  background: white;
+  padding: var(--spacing-xl);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-md);
+  margin-bottom: var(--spacing-xl);
+  border-left: 4px solid var(--brand-primary);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--spacing-md);
+}
+
+.approvals-header h2 {
+  margin: 0;
+  color: var(--gray-900);
+  font-size: 1.75rem;
+}
+
+.subtitle {
+  color: var(--gray-600);
+  margin: var(--spacing-xs) 0 0 0;
+  font-size: 0.95rem;
+}
+
+.refresh-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: var(--brand-primary);
+  color: white;
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  font-weight: 600;
+  transition: all var(--transition-base);
+}
+
+.refresh-btn:hover:not(:disabled) {
+  background: var(--brand-primary-dark);
+  transform: translateY(-2px);
+}
+
+.refresh-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.loading-state,
+.empty-state {
+  text-align: center;
+  padding: var(--spacing-2xl);
+  background: white;
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-md);
+}
+
+.empty-state svg {
+  color: var(--gray-400);
+  margin-bottom: var(--spacing-md);
+}
+
+.empty-state p {
+  font-size: 1.1rem;
+  color: var(--gray-700);
+  margin: var(--spacing-sm) 0;
+}
+
+.empty-state small {
+  color: var(--gray-500);
+}
+
+.approvals-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+}
+
+.approval-card {
+  background: white;
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-md);
+  padding: var(--spacing-xl);
+  border-left: 4px solid var(--warning);
+  transition: all var(--transition-base);
+}
+
+.approval-card:hover {
+  box-shadow: var(--shadow-lg);
+  transform: translateY(-2px);
+}
+
+.approval-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: var(--spacing-lg);
+  flex-wrap: wrap;
+  gap: var(--spacing-md);
+}
+
+.approval-info h3 {
+  margin: 0 0 var(--spacing-xs);
+  color: var(--gray-900);
+  font-size: 1.25rem;
+}
+
+.booking-details {
+  display: flex;
+  gap: var(--spacing-md);
+  flex-wrap: wrap;
+  margin: var(--spacing-sm) 0 0 0;
+  font-size: 0.9rem;
+  color: var(--gray-600);
+}
+
+.booking-details .price {
+  font-weight: 700;
+  color: var(--brand-primary);
+  font-size: 1rem;
+}
+
+.time-remaining {
+  background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  color: var(--warning);
+  font-size: 0.9rem;
+  white-space: nowrap;
+}
+
+.time-remaining.expired {
+  background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+  color: var(--error);
+}
+
+.approval-body {
+  margin-bottom: var(--spacing-lg);
+}
+
+.user-info {
+  margin-bottom: var(--spacing-md);
+}
+
+.user-info p {
+  margin: var(--spacing-xs) 0;
+  color: var(--gray-700);
+  font-size: 0.95rem;
+}
+
+.payment-proof {
+  margin-top: var(--spacing-md);
+}
+
+.payment-proof p {
+  margin-bottom: var(--spacing-sm);
+  font-weight: 600;
+  color: var(--gray-700);
+}
+
+.proof-image {
+  max-width: 100%;
+  max-height: 400px;
+  border-radius: var(--radius-md);
+  border: 2px solid var(--gray-200);
+  box-shadow: var(--shadow-sm);
+  cursor: pointer;
+  transition: transform var(--transition-base);
+}
+
+.proof-image:hover {
+  transform: scale(1.02);
+}
+
+.approval-actions {
+  display: flex;
+  gap: var(--spacing-md);
+  padding-top: var(--spacing-lg);
+  border-top: 2px solid var(--gray-200);
+}
+
+.approval-actions dx-button {
+  flex: 1;
+}
+
+@media (max-width: 768px) {
+  .approvals-container {
+    padding: var(--spacing-md);
+  }
+
+  .approval-header {
+    flex-direction: column;
+  }
+
+  .approval-actions {
+    flex-direction: column;
+  }
+
+  .proof-image {
+    max-height: 300px;
+  }
+}
+

@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, Inject, PLATFORM_ID } from '@angular/core';
+import { Component, OnInit, OnDestroy, Inject, PLATFORM_ID, HostListener } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { Router, NavigationEnd } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
@@ -19,6 +19,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
   isLoggedIn = false;
   loggedInUser: any = null;
   isMobileMenuOpen = false;
+  showProfileDropdown = false;
   private routerSubscription?: Subscription;
   private storageHandler = () => this.checkLoginStatus();
   private logoutHandler = () => this.checkLoginStatus();
@@ -104,7 +105,32 @@ export class NavbarComponent implements OnInit, OnDestroy {
     localStorage.removeItem('loggedInUser');
     this.isLoggedIn = false;
     this.loggedInUser = null;
+    this.showProfileDropdown = false;
     this.router.navigate(['/home']);
+  }
+
+  // 🔹 Toggle profile dropdown
+  toggleProfileDropdown(event?: Event) {
+    if (event) {
+      event.stopPropagation();
+    }
+    this.showProfileDropdown = !this.showProfileDropdown;
+  }
+
+  // 🔹 Close profile dropdown
+  closeProfileDropdown() {
+    this.showProfileDropdown = false;
+  }
+
+  // 🔹 Close dropdown when clicking outside
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent) {
+    if (this.showProfileDropdown && isPlatformBrowser(this.platformId)) {
+      const target = event.target as HTMLElement;
+      if (!target.closest('.profile-dropdown-container')) {
+        this.closeProfileDropdown();
+      }
+    }
   }
 
   // 🔹 Mobile Menu Toggle

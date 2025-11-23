@@ -1,14 +1,98 @@
 <div class="right-col">
-  <!-- Upcoming Bookings - Only show if there are upcoming bookings -->
+  <!-- Upcoming Bookings -->
   <div class="bookings-panel" *ngIf="upcomingBookings.length > 0">
-    <h3>Upcoming Bookings</h3>
-    <div class="bookings-container" *ngIf="upcomingBookings.length; else noUpcoming">
-      <ag-grid-angular
-        class="ag-theme-alpine"
-        [rowData]="upcomingBookings"
-        [columnDefs]="columnDefs"
-        [gridOptions]="gridOptions"
-      ></ag-grid-angular>
+    <h3>
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+        <line x1="16" y1="2" x2="16" y2="6"></line>
+        <line x1="8" y1="2" x2="8" y2="6"></line>
+        <line x1="3" y1="10" x2="21" y2="10"></line>
+      </svg>
+      Upcoming Bookings
+    </h3>
+    <div class="search-filter-bar">
+      <div class="search-input-wrapper">
+        <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"></circle>
+          <path d="m21 21-4.35-4.35"></path>
+        </svg>
+        <input 
+          type="text" 
+          class="search-input"
+          placeholder="Search by court name, location, date, or time..."
+          [(ngModel)]="upcomingSearchQuery"
+          (input)="filterUpcomingBookings($any($event.target).value)"
+        />
+        <button 
+          *ngIf="upcomingSearchQuery" 
+          class="clear-search-btn"
+          (click)="clearUpcomingSearch()"
+          type="button"
+          aria-label="Clear search">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+      <div class="search-results-count" *ngIf="upcomingSearchQuery">
+        {{ filteredUpcomingBookings.length }} result{{ filteredUpcomingBookings.length !== 1 ? 's' : '' }}
+      </div>
+    </div>
+    <div class="bookings-container" *ngIf="filteredUpcomingBookings.length; else noUpcoming">
+      <div class="booking-cards-grid">
+        <div class="booking-card" *ngFor="let booking of filteredUpcomingBookings">
+          <div class="card-image">
+            <img [src]="booking.image || 'assets/placeholder-court.jpg'" [alt]="booking.courtName" />
+            <div class="status-badge status-upcoming">Upcoming</div>
+          </div>
+          <div class="card-content">
+            <h4 class="court-name">{{ booking.courtName }}</h4>
+            <div class="booking-details">
+              <div class="detail-item">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                  <line x1="16" y1="2" x2="16" y2="6"></line>
+                  <line x1="8" y1="2" x2="8" y2="6"></line>
+                  <line x1="3" y1="10" x2="21" y2="10"></line>
+                </svg>
+                <span>{{ booking.date | date:'mediumDate' }}</span>
+              </div>
+              <div class="detail-item">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <polyline points="12 6 12 12 16 14"></polyline>
+                </svg>
+                <span>{{ booking.time }}</span>
+              </div>
+              <div class="detail-item">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                  <circle cx="12" cy="10" r="3"></circle>
+                </svg>
+                <span>{{ booking.location }}</span>
+              </div>
+              <div class="detail-item">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <polyline points="12 6 12 12 16 14"></polyline>
+                </svg>
+                <span>{{ booking.duration }}</span>
+              </div>
+            </div>
+            <div class="card-footer">
+              <div class="price">Rs {{ booking.price | number }}</div>
+              <button class="cancel-btn" (click)="cancelUpcoming(booking.BookingID)">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
     <ng-template #noUpcoming>
       <div class="bookings-container">
@@ -19,14 +103,91 @@
 
   <!-- Booking History -->
   <div class="bookings-panel">
-    <h3>Booking History</h3>
-    <div class="bookings-container" *ngIf="pastBookings.length; else noPast">
-      <ag-grid-angular
-        class="ag-theme-alpine"
-        [rowData]="pastBookings"
-        [columnDefs]="columnDefs"
-        [gridOptions]="gridOptions"
-      ></ag-grid-angular>
+    <h3>
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+        <polyline points="14 2 14 8 20 8"></polyline>
+        <line x1="16" y1="13" x2="8" y2="13"></line>
+        <line x1="16" y1="17" x2="8" y2="17"></line>
+        <polyline points="10 9 9 9 8 9"></polyline>
+      </svg>
+      Booking History
+    </h3>
+    <div class="search-filter-bar">
+      <div class="search-input-wrapper">
+        <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"></circle>
+          <path d="m21 21-4.35-4.35"></path>
+        </svg>
+        <input 
+          type="text" 
+          class="search-input"
+          placeholder="Search by court name, location, date, or time..."
+          [(ngModel)]="pastSearchQuery"
+          (input)="filterPastBookings($any($event.target).value)"
+        />
+        <button 
+          *ngIf="pastSearchQuery" 
+          class="clear-search-btn"
+          (click)="clearPastSearch()"
+          type="button"
+          aria-label="Clear search">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+      <div class="search-results-count" *ngIf="pastSearchQuery">
+        {{ filteredPastBookings.length }} result{{ filteredPastBookings.length !== 1 ? 's' : '' }}
+      </div>
+    </div>
+    <div class="bookings-container" *ngIf="filteredPastBookings.length; else noPast">
+      <div class="booking-cards-horizontal">
+        <div class="booking-card-compact booking-completed" *ngFor="let booking of filteredPastBookings">
+          <div class="card-content-compact">
+            <div class="compact-header">
+              <h4 class="court-name-compact">{{ booking.courtName }}</h4>
+              <div class="status-badge-inline status-completed">Completed</div>
+            </div>
+            <div class="booking-details-compact">
+              <div class="detail-item-compact">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                  <line x1="16" y1="2" x2="16" y2="6"></line>
+                  <line x1="8" y1="2" x2="8" y2="6"></line>
+                  <line x1="3" y1="10" x2="21" y2="10"></line>
+                </svg>
+                <span>{{ booking.date | date:'shortDate' }}</span>
+              </div>
+              <div class="detail-item-compact">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <polyline points="12 6 12 12 16 14"></polyline>
+                </svg>
+                <span>{{ booking.time }}</span>
+              </div>
+              <div class="detail-item-compact">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                  <circle cx="12" cy="10" r="3"></circle>
+                </svg>
+                <span>{{ booking.location }}</span>
+              </div>
+              <div class="detail-item-compact">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <polyline points="12 6 12 12 16 14"></polyline>
+                </svg>
+                <span>{{ booking.duration }}</span>
+              </div>
+            </div>
+            <div class="card-footer-compact">
+              <div class="price-compact">Rs {{ booking.price | number }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
     <ng-template #noPast>
       <div class="bookings-container">
@@ -41,24 +202,5 @@
       <div class="empty">No bookings yet. Book a court to see it here.</div>
     </div>
   </div>
-</div>
-<div *ngIf=this.isOwner class="owner-section">
- <div class="courts-panel">
-  <h2>Your Courts</h2>
-  <div *ngIf="!ownerCourts.length" class="empty">
-    You don't own any courts yet.
-  </div>
-
-  <div *ngFor="let court of ownerCourts" class="court-card">
-    <img [src]="court.image" alt="{{ court.name }}" class="court-thumb" />
-    <div class="court-info">
-      <div class="court-name">{{ court.name }}</div>
-      <div class="court-meta">
-        📍 {{ court.location }} | ⏰ {{ court.opening }} - {{ court.closing }}
-      </div>
-      <div class="court-rating">⭐ {{ court.rating }}</div>
-    </div>
-  </div>
- </div>
 </div>
 

@@ -1,11 +1,10 @@
-/* Page shell */
-.account-shell {
+/* Page container */
+.account-container {
   max-width: 1100px;
   margin: 24px auto;
   padding: 20px;
   font-family: 'Poppins', sans-serif;
   color: #1f2937;
-  background: #f9fafb;
 }
 
 /* Top bar */
@@ -53,39 +52,33 @@
 }
 .team-cta:hover { transform: translateY(-2px) scale(1.02); }
 
-/* Grid */
-.account-grid {
-  display: grid;
-  grid-template-columns: 1fr 420px;
-  gap: 20px;
-}
-
 /* Cards */
-.profile-card, .password-card, .bookings-panel {
+.profile-card {
   background: white;
   border-radius: 14px;
   padding: 18px;
   box-shadow: 0 6px 24px rgba(15,23,42,0.06);
   transition: all 0.2s ease;
 }
-.profile-card:hover,
-.password-card:hover,
-.bookings-panel:hover {
+
+.profile-card:hover {
   box-shadow: 0 10px 30px rgba(15,23,42,0.1);
 }
 
-/* Profile card */
-.profile-card-no-avatar .profile-heading {
+/* Profile heading */
+.profile-heading {
   margin-bottom: 14px;
 }
+
 .profile-heading h2 {
   margin: 0;
   font-size: 21px;
   font-weight: 700;
 }
+
 .profile-heading .small {
-  color:#6b7280;
-  margin-top:6px;
+  color: #6b7280;
+  margin-top: 6px;
   font-size: 14px;
 }
 
@@ -107,213 +100,287 @@
 .tile-label { font-size: 13px; color: #6b7280; margin-bottom: 4px; }
 .tile-value { font-weight: 700; font-size: 15px; color: #111827; }
 
-/* Password card */
-.password-card label {
-  display: block;
-  margin: 10px 0 6px;
-  font-size: 14px;
-  font-weight: 500;
-}
-.password-card input {
-  width: 100%;
-  padding: 10px;
-  border-radius: 10px;
-  border: 1px solid #e2e8f0;
-  font-size: 14px;
-}
-.password-card input:focus {
-  outline: none;
-  border-color: #41B783;
-  box-shadow: 0 0 0 3px rgba(65,183,131,0.15);
-}
-.pwd-msg .success { color: #15803d; }
-.pwd-msg .error { color: #dc2626; }
-
-/* Bookings */
-.booking-card {
-  display: flex;
-  gap: 14px;
-  align-items: center;
-  padding: 12px;
-  border-radius: 12px;
-  border: 1px solid #f1f5f9;
-  margin-bottom: 12px;
-  background: linear-gradient(180deg,#fff,#f9fdfb);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-.booking-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(0,0,0,0.05);
-}
-.booking-card .thumb {
-  width: 90px;
-  height: 64px;
-  object-fit: cover;
-  border-radius: 10px;
-  border: 1px solid #e2e8f0;
-}
-.booking-card .info { flex: 1; }
-.booking-card .title {
-  font-weight: 700;
-  margin-bottom: 6px;
-  color: #0f172a;
-}
-.booking-card .meta {
-  color: #6b7280;
-  font-size: 13px;
-}
-.booking-card .actions {
-  text-align: right;
-  display:flex;
-  flex-direction:column;
-  gap:8px;
-  align-items:flex-end;
-}
-
-/* Price and status */
-.price { font-weight: 800; color: #0f172a; }
-.status.done { color:#475569; font-weight:700; }
-
 /* Empty states */
-.empty, .empty-big {
-  text-align:center;
-  color:#6b7280;
+.empty {
+  text-align: center;
+  color: #6b7280;
   padding: 20px;
   font-size: 15px;
 }
 
-.team-modal {
-  background: #fff;
-  padding: 2rem;
-  border-radius: 12px;
-  max-width: 480px;
-  margin: auto;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.15);
-}
-
-.modal-title {
-  margin-bottom: 1.5rem;
-  font-size: 1.4rem;
-  font-weight: 600;
-  text-align: center;
-  color: #333;
-}
-
-.form-group {
-  margin-bottom: 1.2rem;
-}
-
-.form-group input,
-.form-group textarea {
-  width: 100%;
-  padding: 0.75rem;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  font-size: 0.95rem;
-}
-
-.form-group input:focus,
-.form-group textarea:focus {
-  outline: none;
-  border-color: #007bff;
-  box-shadow: 0 0 6px rgba(0,123,255,0.3);
-}
-
-.modal-actions {
-  display: flex;
-  justify-content: space-between;
-  margin-top: 1.5rem;
-}
-
+/* Buttons */
 .btn {
   padding: 0.6rem 1.2rem;
   border-radius: 8px;
   font-size: 0.95rem;
   cursor: pointer;
   transition: 0.2s;
-}
-
-.btn-outline {
-  border: 1px solid #888;
-  background: transparent;
-  color: #444;
-}
-
-.btn-outline:hover {
-  background: #f5f5f5;
+  border: none;
+  font-weight: 500;
 }
 
 .btn-primary {
-  border: none;
   background: #007bff;
   color: white;
-  font-weight: 500;
 }
 
 .btn-primary:hover {
   background: #0056b3;
 }
 
-/* OWNER SECTION */
+/* Sections */
+.user-section,
 .owner-section {
   display: flex;
   flex-direction: column;
   gap: 18px;
 }
 
-.owner-about {
-  margin-top: 12px;
-  color: #4b5563;
+/* Courts Panel */
+.courts-panel {
+  background: white;
+  border-radius: 14px;
+  padding: 24px;
+  box-shadow: 0 6px 24px rgba(15,23,42,0.06);
+  transition: all 0.2s ease;
+}
+
+.courts-panel:hover {
+  box-shadow: 0 10px 30px rgba(15,23,42,0.1);
+}
+
+.courts-panel-header {
+  margin-bottom: 24px;
+}
+
+.courts-panel-header h2 {
+  margin: 0 0 8px 0;
+  font-size: 24px;
+  font-weight: 700;
+  color: #111827;
+}
+
+.courts-subtitle {
+  margin: 0;
+  color: #6b7280;
   font-size: 14px;
 }
 
-/* Courts list */
-.courts-panel h2 {
-  margin-bottom: 10px;
-  font-size: 20px;
-}
-
-.court-card {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  padding: 10px;
-  border-radius: 10px;
-  background: #fff;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.05);
-  margin-bottom: 10px;
-  transition: transform 0.2s;
-}
-.court-card:hover { transform: translateY(-2px); }
-
-.court-thumb {
-  width: 100px;
-  height: 70px;
-  border-radius: 8px;
-  object-fit: cover;
-}
-
-.court-info {
-  flex: 1;
-}
-.court-name {
-  font-weight: 700;
-  font-size: 16px;
-  margin-bottom: 4px;
-}
-.court-meta {
-  font-size: 13px;
+/* Empty Courts State */
+.empty-courts {
+  text-align: center;
+  padding: 60px 20px;
   color: #6b7280;
 }
-.court-rating {
-  font-weight: 600;
-  color: #2563eb;
-  margin-top: 6px;
+
+.empty-courts svg {
+  color: #d1d5db;
+  margin-bottom: 16px;
 }
 
-.register-court-btn {
-  text-align: right;
+.empty-courts p {
+  font-size: 16px;
+  margin: 0 0 24px 0;
+  color: #6b7280;
+}
+
+.empty-courts .btn-primary {
+  background: linear-gradient(135deg, #41B783, #2e8f63);
+  color: white;
+  padding: 12px 24px;
+  border-radius: 10px;
+  font-weight: 600;
+  box-shadow: 0 4px 12px rgba(65, 183, 131, 0.3);
+  transition: all 0.2s ease;
+}
+
+.empty-courts .btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(65, 183, 131, 0.4);
+}
+
+/* Courts Grid */
+.courts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 24px;
+}
+
+/* Court Card - Modern Design */
+.court-card {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.court-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #41B783, #2e8f63);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 1;
+}
+
+.court-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12);
+  border-color: #41B783;
+}
+
+.court-card:hover::before {
+  transform: scaleX(1);
+}
+
+/* Court Image */
+.court-image-wrapper {
+  position: relative;
+  width: 100%;
+  height: 200px;
+  overflow: hidden;
+  background: #f3f4f6;
+}
+
+.court-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.court-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(to bottom, transparent 0%, rgba(0, 0, 0, 0.1) 100%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.court-card:hover .court-image {
+  transform: scale(1.08);
+}
+
+.court-card:hover .court-overlay {
+  opacity: 1;
+}
+
+/* Court Content */
+.court-content {
+  padding: 20px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.court-name {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+  color: #111827;
+  line-height: 1.3;
+}
+
+.court-details {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.court-detail-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  color: #6b7280;
+}
+
+.court-detail-item svg {
+  flex-shrink: 0;
+  color: #41B783;
+  width: 16px;
+  height: 16px;
+}
+
+.court-detail-item span {
+  flex: 1;
+  line-height: 1.5;
+}
+
+
+.owner-actions {
+  display: flex;
+  gap: 12px;
   margin-top: 16px;
+  flex-wrap: wrap;
+}
+
+.owner-actions .btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  font-size: 15px;
+  font-weight: 600;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.owner-actions .btn-primary {
+  background: linear-gradient(135deg, var(--brand-primary), var(--brand-primary-dark));
+  color: white;
+  box-shadow: 0 4px 12px rgba(0, 122, 51, 0.3);
+}
+
+.owner-actions .btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 122, 51, 0.4);
+}
+
+.owner-actions .btn-secondary {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.owner-actions .btn-secondary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
+}
+
+.owner-actions .btn-tertiary {
+  background: linear-gradient(135deg, var(--success), #059669);
+  color: white;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.owner-actions .btn-tertiary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(16, 185, 129, 0.4);
+}
+
+.owner-actions .btn svg {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
 }
 
 /* ADMIN SECTION */
@@ -444,14 +511,8 @@
 }
 
 /* Responsive */
-@media (max-width: 1024px) {
-  .account-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
 @media (max-width: 768px) {
-  .account-shell {
+  .account-container {
     padding: var(--spacing-md);
     margin: var(--spacing-md) auto;
   }
@@ -475,27 +536,13 @@
     grid-template-columns: 1fr;
   }
   
-  .booking-card {
-    flex-direction: column;
+  .courts-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
   }
   
-  .booking-card .thumb {
-    width: 100%;
-    height: 150px;
-  }
-  
-  .booking-card .actions {
-    width: 100%;
-    flex-direction: row;
-  }
-  
-  .court-card {
-    flex-direction: column;
-  }
-  
-  .court-thumb {
-    width: 100%;
-    height: 150px;
+  .court-image-wrapper {
+    height: 180px;
   }
   
   .admin-actions {
@@ -523,7 +570,7 @@
 }
 
 @media (max-width: 480px) {
-  .account-shell {
+  .account-container {
     padding: var(--spacing-sm);
   }
   
@@ -531,13 +578,7 @@
     font-size: 20px;
   }
   
-  .profile-card,
-  .password-card,
-  .bookings-panel {
+  .profile-card {
     padding: var(--spacing-md);
-  }
-  
-  .team-modal {
-    padding: var(--spacing-lg);
   }
 }

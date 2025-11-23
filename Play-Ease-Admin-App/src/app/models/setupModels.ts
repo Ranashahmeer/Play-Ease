@@ -38,6 +38,19 @@ export interface Pitch {
     bankName?: string; // only if type = BANK
   }
 
+  export interface OwnerPaymentDetail {
+    PaymentID: number;
+    OwnerID: number;
+    MethodID: number;
+    AccountTitle: string;
+    AccountNumber: string;
+    BankName: string | null;
+    MethodName: string;
+    OwnerName: string;
+    OwnerPhone: string;
+    OwnerEmail: string | null;
+  }
+
   export interface SaveBookings {
   CourtId?:number,
   userId:number,
@@ -49,4 +62,5 @@ export interface Pitch {
   startTime: string;
   endTime: string;
   price: number;
+  selectedSlots?: string[]; // Array of selected time slots for multiple bookings
 }

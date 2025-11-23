@@ -1,0 +1,121 @@
+<div class="manage-slots-container">
+  <div class="manage-slots-header">
+    <h2>Manage Slot Availability</h2>
+    <p class="subtitle">Block slots for external bookings or maintenance</p>
+  </div>
+
+  <div class="manage-slots-content">
+    <!-- Block New Slot Form -->
+    <div class="block-slot-section">
+      <h3>Block New Slot</h3>
+      
+      <form [formGroup]="form" class="block-form">
+        <div class="form-group">
+          <label>Select Court *</label>
+          <select formControlName="courtId" (change)="onCourtChange()" class="form-control">
+            <option [value]="0">Select a court</option>
+            <option *ngFor="let court of ownerCourts" [value]="court.courtId">
+              {{ court.name }} - {{ court.location }}
+            </option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Select Date *</label>
+          <dx-calendar 
+            [(value)]="selectedDate" 
+            [min]="minDate"
+            (onValueChanged)="onDateChange($event)">
+          </dx-calendar>
+        </div>
+
+        <div class="form-group" *ngIf="selectedCourtId > 0">
+          <label>Select Time Slot *</label>
+          <div class="time-slot-selector">
+            <div class="time-group">
+              <label class="time-label">Start Time</label>
+              <div class="time-slots-grid">
+                <button 
+                  type="button"
+                  *ngFor="let slot of timeSlotItems"
+                  class="time-slot-btn"
+                  [class.selected]="selectedStartTime === slot.text"
+                  (click)="onStartTimeSelect(slot.text)">
+                  {{ slot.text }}
+                </button>
+              </div>
+            </div>
+            
+            <div class="time-group" *ngIf="selectedStartTime">
+              <label class="time-label">End Time</label>
+              <div class="time-slots-grid">
+                <button 
+                  type="button"
+                  *ngFor="let slot of timeSlotItems"
+                  class="time-slot-btn"
+                  [class.selected]="selectedEndTime === slot.text"
+                  [class.disabled]="slot.minutes <= timeStringToMinutes(selectedStartTime)"
+                  [disabled]="slot.minutes <= timeStringToMinutes(selectedStartTime)"
+                  (click)="onEndTimeSelect(slot.text)">
+                  {{ slot.text }}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Reason (Optional)</label>
+          <input 
+            type="text" 
+            formControlName="reason" 
+            class="form-control"
+            placeholder="e.g., External booking, Maintenance, Event">
+        </div>
+
+        <div class="form-actions">
+          <dx-button 
+            text="Block Slot" 
+            type="success"
+            [disabled]="!selectedCourtId || !selectedDate || !selectedStartTime || !selectedEndTime || isLoading"
+            (onClick)="blockSlot()">
+          </dx-button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Blocked Slots List -->
+    <div class="blocked-slots-section">
+      <h3>Blocked Slots for Selected Date</h3>
+      
+      <div *ngIf="blockedSlots.length === 0" class="no-slots">
+        <p>No blocked slots for this date</p>
+      </div>
+
+      <div *ngIf="blockedSlots.length > 0" class="blocked-slots-list">
+        <div *ngFor="let slot of blockedSlots" class="blocked-slot-item">
+          <div class="slot-info">
+            <div class="slot-time">
+              <strong>{{ convertTimeSpanTo12Hour(slot.startTime) }} - {{ convertTimeSpanTo12Hour(slot.endTime) }}</strong>
+            </div>
+            <div class="slot-details">
+              <span *ngIf="slot.courtName">{{ slot.courtName }}</span>
+              <span *ngIf="slot.pitchType" class="pitch-type">{{ slot.pitchType }}</span>
+              <span *ngIf="slot.reason" class="reason">{{ slot.reason }}</span>
+            </div>
+          </div>
+          <button 
+            class="unblock-btn"
+            (click)="unblockSlot(slot.blockedSlotId)"
+            title="Unblock slot">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+

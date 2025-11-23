@@ -1,0 +1,134 @@
+.alert-container {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 10000;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-width: 400px;
+  pointer-events: none;
+}
+
+.alert-box {
+  pointer-events: auto;
+  background: white;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-xl);
+  padding: 0;
+  overflow: hidden;
+  animation: slideIn 0.3s ease-out;
+  border-left: 4px solid;
+  min-width: 300px;
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.alert-content {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 16px;
+}
+
+.alert-icon {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 2px;
+}
+
+.alert-message {
+  flex: 1;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--gray-800);
+  word-wrap: break-word;
+  white-space: pre-line;
+}
+
+.alert-close {
+  flex-shrink: 0;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--gray-400);
+  transition: color var(--transition-fast);
+  border-radius: var(--radius-sm);
+}
+
+.alert-close:hover {
+  color: var(--gray-600);
+  background: var(--gray-100);
+}
+
+/* Error Style */
+.alert-error {
+  border-left-color: var(--error);
+  background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+}
+
+.alert-error .alert-icon {
+  color: var(--error);
+}
+
+/* Success Style */
+.alert-success {
+  border-left-color: var(--success);
+  background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+}
+
+.alert-success .alert-icon {
+  color: var(--success);
+}
+
+/* Warning Style */
+.alert-warning {
+  border-left-color: var(--warning);
+  background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+}
+
+.alert-warning .alert-icon {
+  color: var(--warning);
+}
+
+/* Info Style */
+.alert-info {
+  border-left-color: var(--info);
+  background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+}
+
+.alert-info .alert-icon {
+  color: var(--info);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .alert-container {
+    top: 10px;
+    right: 10px;
+    left: 10px;
+    max-width: none;
+  }
+
+  .alert-box {
+    min-width: auto;
+  }
+}
+

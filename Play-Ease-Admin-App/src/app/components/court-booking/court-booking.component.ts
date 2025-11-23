@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
@@ -8,42 +8,49 @@ import { PaymentPopupComponent } from "../payment-popup/payment-popup.component"
 import { GetDatabyDatasourceService } from '../../services/get-data/get-databy-datasource.service';
 import { CourtAdapter } from '../../adapters/court.adapter';
 import { SaveBookings } from '../../models/setupModels';
+import { AlertService } from '../../services/alert.service';
+import { BlockedSlotsService } from '../../services/blocked-slots.service';
+import { SaveBookingsService } from '../../services/bookings/save-bookings.service';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-court-booking',
   standalone: true,
   imports: [
     CommonModule, ReactiveFormsModule, DxDateBoxModule, DxButtonModule, DxListModule, DxTagBoxModule, DxSliderModule, DxGalleryModule, DxFileUploaderModule, DxPopupModule, DxDropDownBoxModule,
-    CourtListComponent,
-    PaymentPopupComponent,
-    DxCalendarComponent
+    CourtListComponent, PaymentPopupComponent, DxCalendarComponent
   ],
   templateUrl: './court-booking.component.html',
   styleUrl: './court-booking.component.css'
 })
-export class CourtBookingComponent implements OnInit {
+export class CourtBookingComponent implements OnInit, OnDestroy {
   form: FormGroup;
   courtId!: number;
   courtDetails: any = null;
   selectedPitchSize: string = '';
   selectedBookingDate: Date = new Date();
-  selectedBookingTime: string = '';
+  selectedTimeSlots: string[] = [];
   timeSlotItems: any[] = [];
   bookedForDay: string[] = [];
+  bookedSlotsFromAPI: any[] = [];
+  blockedSlotsFromAPI: any[] = [];
   allSlotsDisabled = false;
   paymentPopupVisible: boolean = false;
-  ddBox: any;
-  selectedCourt: any[] = [];
   minDate: Date = new Date();
   currentUserId: number = 0;
   bookingData!: SaveBookings;
-  selectedPaymentMethodId: number = 0;
+  ownerPaymentMethods: any[] = [];
+  isLoadingBookedSlots: boolean = false;
+  private bookingCancelledSubscription?: Subscription;
 
   constructor(
     private fb: FormBuilder,
     private route: ActivatedRoute,
     private dataService: GetDatabyDatasourceService,
-    private router: Router
+    private router: Router,
+    private alertService: AlertService,
+    private blockedSlotsService: BlockedSlotsService,
+    private saveBookingsService: SaveBookingsService
   ) {
     this.form = this.fb.group({
       matchDuration: [60],
@@ -52,163 +59,342 @@ export class CourtBookingComponent implements OnInit {
     });
   }
 
-  ngOnInit() {
-    // Get user ID from localStorage
+  ngOnInit(): void {
     this.currentUserId = Number(localStorage.getItem('userId')) || 0;
-    
     if (!this.currentUserId) {
-      alert('Please login first!');
+      this.alertService.warning('Please login first!');
       this.router.navigate(['/login']);
       return;
     }
-
     this.courtId = +this.route.snapshot.paramMap.get('courtId')!;
     this.fetchCourtDetails();
+    
+    // Subscribe to booking cancellation events to refresh slots
+    this.bookingCancelledSubscription = this.saveBookingsService.bookingCancelled$.subscribe((bookingId: number) => {
+      // Refresh slots for the currently selected date
+      if (this.selectedBookingDate) {
+        this.fetchBookedSlotsForDate(this.selectedBookingDate);
+      }
+    });
   }
 
-  fetchCourtDetails() {
-    const whereclause = `c.CourtID = ${this.courtId}`;
-    this.dataService.getData(1, whereclause).subscribe({
+  ngOnDestroy(): void {
+    // Unsubscribe to prevent memory leaks
+    this.bookingCancelledSubscription?.unsubscribe();
+  }
+
+  fetchCourtDetails(): void {
+    this.dataService.getData(1, `c.CourtID = ${this.courtId}`).subscribe({
       next: (data: any[]) => {
         const adapter = new CourtAdapter();
         const apiData = Array.isArray(data) ? data : [];
         this.courtDetails = apiData.length > 0 ? adapter.fromApi(apiData[0]) : null;
-        if (!this.courtDetails) {
+        if (this.courtDetails) {
+          this.fetchOwnerPaymentMethods(this.courtDetails.OwnerId);
+          this.fetchBookedSlotsForDate(this.selectedBookingDate);
+        } else {
           console.warn('Court not found for ID:', this.courtId);
         }
       },
       error: (err: any) => {
         console.error('Error loading courts:', err);
+        this.alertService.error('Failed to load court details. Please try again.');
       }
     });
   }
 
-  selectPitch(pitch: any) {
+  fetchOwnerPaymentMethods(ownerId: number): void {
+    if (!ownerId || ownerId <= 0) return;
+    this.dataService.getData(21, `cop.OwnerID = ${ownerId}`).subscribe({
+      next: (data: any[]) => {
+        this.ownerPaymentMethods = Array.isArray(data) ? data : [];
+      },
+      error: (err: any) => console.error('Error loading payment methods:', err)
+    });
+  }
+
+  selectPitch(pitch: any): void {
     this.selectedPitchSize = pitch.pitchtype;
   }
 
-  onBookingDateChanged(e: any) {
+  onBookingDateChanged(e: any): void {
     this.selectedBookingDate = e.value;
-    this.recomputeAvailability();
+    this.fetchBookedSlotsForDate(this.selectedBookingDate);
   }
 
-  onTimeItemClick(e: any, ddBox: any) {
-    const item = e.itemData;
-    if (item.disabled) return;
-    this.selectedBookingTime = item.text;
-    try { ddBox.instance.close(); } catch { }
+  fetchBookedSlotsForDate(date: Date): void {
+    if (!this.courtId || !date) return;
+    this.isLoadingBookedSlots = true;
+    const dateKey = this.toKey(date);
+    const whereClause = `b.CourtID = ${this.courtId} AND CAST(b.BookingDate AS DATE) = '${dateKey}' AND b.IsActive = 1`;
+    
+    // Fetch booked slots
+    this.dataService.getData(22, whereClause).subscribe({
+      next: (data: any[]) => {
+        this.bookedSlotsFromAPI = Array.isArray(data) ? data : [];
+        this.bookedForDay = this.bookedSlotsFromAPI
+          .map(b => this.convertTimeSpanTo12Hour(b.starttime || b.StartTime))
+          .filter(t => t)
+          .sort();
+        this.fetchBlockedSlotsForDate(date);
+      },
+      error: (err: any) => {
+        console.error('Error fetching booked slots:', err);
+        this.bookedSlotsFromAPI = [];
+        this.bookedForDay = [];
+        this.fetchBlockedSlotsForDate(date);
+      }
+    });
   }
 
-  recomputeAvailability() {
+  fetchBlockedSlotsForDate(date: Date): void {
+    if (!this.courtId || !date) {
+      this.recomputeAvailability();
+      this.isLoadingBookedSlots = false;
+      return;
+    }
+
+    const dateKey = this.toKey(date);
+    this.blockedSlotsService.getBlockedSlotsByCourtAndDate(this.courtId, dateKey).subscribe({
+      next: (data: any[]) => {
+        this.blockedSlotsFromAPI = Array.isArray(data) ? data : [];
+        this.recomputeAvailability();
+        this.isLoadingBookedSlots = false;
+      },
+      error: (err: any) => {
+        console.error('Error fetching blocked slots:', err);
+        this.blockedSlotsFromAPI = [];
+        this.recomputeAvailability();
+        this.isLoadingBookedSlots = false;
+      }
+    });
+  }
+
+  toggleTimeSlot(slot: any): void {
+    if (slot.disabled) {
+      this.alertService.warning((this.isPastSlot(this.timeStringToMinutes(slot.text), this.selectedBookingDate) 
+        ? 'This time slot is in the past' 
+        : 'This time slot is already booked') + '. Please select another time slot.');
+      return;
+    }
+    
+    const index = this.selectedTimeSlots.indexOf(slot.text);
+    if (index > -1) {
+      this.selectedTimeSlots.splice(index, 1);
+    } else {
+      const currentSlot = this.timeSlotItems.find(s => s.text === slot.text);
+      if (currentSlot?.disabled) {
+        this.alertService.warning('This time slot has just been booked. Please select another time slot.');
+        this.recomputeAvailability();
+        return;
+      }
+      
+      const duration = Number(this.form.get('matchDuration')?.value) || 60;
+      const slotMin = this.timeStringToMinutes(slot.text);
+      const hasConflict = this.selectedTimeSlots.some(selected => {
+        const selectedMin = this.timeStringToMinutes(selected);
+        return this.intervalsOverlap(slotMin, duration, selectedMin, duration);
+      });
+      
+      if (hasConflict) {
+        this.alertService.warning('This time slot overlaps with a previously selected slot. Please select non-overlapping slots.');
+        return;
+      }
+      
+      this.selectedTimeSlots.push(slot.text);
+      this.selectedTimeSlots.sort((a, b) => this.timeStringToMinutes(a) - this.timeStringToMinutes(b));
+    }
+  }
+
+  recomputeAvailability(): void {
     if (!this.courtDetails) return;
-
-    const key = this.toKey(this.selectedBookingDate);
-    const booked = this.courtDetails.bookedSlots?.[key] ?? [];
-    this.bookedForDay = booked.slice().sort();
 
     const duration = Number(this.form.get('matchDuration')?.value) || 60;
     const openMin = this.timeStringToMinutes(this.courtDetails.openingTime);
     const closeMin = this.timeStringToMinutes(this.courtDetails.closingTime);
-
     const generatedSlots = this.generateSlots(openMin, closeMin, duration, duration);
-    const bookedMinutes = booked.map((b: any) => this.timeStringToMinutes(b));
 
     this.timeSlotItems = generatedSlots.map(slot => {
       const slotMin = this.timeStringToMinutes(slot);
-      const overlaps = bookedMinutes.some((bMin: any) => this.intervalsOverlap(slotMin, duration, bMin, duration));
+      
+      // Check overlap with booked slots
+      const overlapsBooked = this.bookedSlotsFromAPI.some(booking => {
+        const startTime = booking.starttime || booking.StartTime;
+        const endTime = booking.endtime || booking.EndTime;
+        if (!startTime || !endTime) return false;
+        const bookingStartMin = this.timeSpanToMinutes(startTime);
+        const bookingEndMin = this.timeSpanToMinutes(endTime);
+        return this.intervalsOverlap(slotMin, duration, bookingStartMin, bookingEndMin - bookingStartMin);
+      });
+
+      // Check overlap with blocked slots
+      const overlapsBlocked = this.blockedSlotsFromAPI.some(blocked => {
+        const startTime = blocked.startTime || blocked.starttime;
+        const endTime = blocked.endTime || blocked.endtime;
+        if (!startTime || !endTime) return false;
+        const blockedStartMin = this.timeSpanToMinutes(startTime);
+        const blockedEndMin = this.timeSpanToMinutes(endTime);
+        return this.intervalsOverlap(slotMin, duration, blockedStartMin, blockedEndMin - blockedStartMin);
+      });
+
       const isPast = this.isPastSlot(slotMin, this.selectedBookingDate);
-      return { text: slot, disabled: overlaps || isPast };
+      return { text: slot, disabled: overlapsBooked || overlapsBlocked || isPast };
     });
 
-    // Reset selected time if invalid
-    if (this.selectedBookingTime) {
-      const sel = this.timeSlotItems.find(i => i.text === this.selectedBookingTime);
-      if (!sel || sel.disabled) this.selectedBookingTime = '';
-    }
+    this.selectedTimeSlots = this.selectedTimeSlots.filter(slotText => {
+      const slot = this.timeSlotItems.find(i => i.text === slotText);
+      return slot && !slot.disabled;
+    });
 
     this.allSlotsDisabled = this.timeSlotItems.every(i => i.disabled);
   }
 
-  getComputedPrice() {
+  getComputedPrice(): number {
     if (!this.courtDetails) return 0;
     const duration = Number(this.form.get('matchDuration')?.value) || 60;
     const basePrice = this.selectedPitchSize
       ? this.courtDetails.pitches.find((p: any) => p.pitchtype === this.selectedPitchSize)?.price
       : Math.min(...this.courtDetails.pitches.map((p: any) => p.price));
-    return Math.round(basePrice * (duration / 60));
+    const slotCount = this.selectedTimeSlots.length || 0;
+    return Math.round(basePrice * (duration / 60) * slotCount);
   }
 
-  proceedToPayment() {
-    if (!this.selectedPitchSize || !this.selectedBookingTime) {
-      alert('Please select pitch & time first!');
+  proceedToPayment(): void {
+    const errors: string[] = [];
+    if (!this.selectedPitchSize) errors.push('Please select a pitch size');
+    if (this.selectedTimeSlots.length === 0) errors.push('Please select at least one booking time slot');
+    if (!this.selectedBookingDate) errors.push('Please select a booking date');
+    
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const selectedDate = new Date(this.selectedBookingDate);
+    selectedDate.setHours(0, 0, 0, 0);
+    if (selectedDate < today) errors.push('Cannot book for a past date');
+    if (!this.courtDetails) errors.push('Court details not loaded. Please refresh the page.');
+    if (!this.currentUserId || this.currentUserId <= 0) {
+      errors.push('User session expired. Please login again.');
+      this.router.navigate(['/login']);
       return;
     }
 
-    if (!this.courtDetails) {
-      alert('Court details not loaded yet!');
+    if (errors.length > 0) {
+      this.alertService.error('Please fix the following errors:\n' + errors.join('\n'));
       return;
     }
 
-    // Find selected pitch
-    const selectedPitch = this.courtDetails.pitches.find(
-      (p: any) => p.pitchtype === this.selectedPitchSize
-    );
-
-    if (!selectedPitch) {
-      alert('Invalid pitch selection!');
+    const selectedPitch = this.courtDetails.pitches.find((p: any) => p.pitchtype === this.selectedPitchSize);
+    if (!selectedPitch?.pitchId || selectedPitch.pitchId <= 0) {
+      this.alertService.error('Invalid pitch selection!');
       return;
     }
 
-    // Calculate end time
+    this.recomputeAvailability();
+    if (this.selectedTimeSlots.length === 0) {
+      this.alertService.warning('Please select at least one time slot');
+      return;
+    }
+
     const duration = Number(this.form.get('matchDuration')?.value) || 60;
-    const startMinutes = this.timeStringToMinutes(this.selectedBookingTime);
-    const endMinutes = startMinutes + duration;
-    const endTime = this.minutesToTimeString(endMinutes);
+    const unavailableSlots: string[] = [];
+    
+    for (const slot of this.selectedTimeSlots) {
+      const slotItem = this.timeSlotItems.find(s => s.text === slot);
+      if (!slotItem || slotItem.disabled) {
+        unavailableSlots.push(slot);
+        continue;
+      }
+      
+      const slotMin = this.timeStringToMinutes(slot);
+      if (this.isPastSlot(slotMin, this.selectedBookingDate)) {
+        unavailableSlots.push(slot);
+        continue;
+      }
+      
+      const overlapsBooked = this.bookedSlotsFromAPI.some(booking => {
+        const startTime = booking.starttime || booking.StartTime;
+        const endTime = booking.endtime || booking.EndTime;
+        if (!startTime || !endTime) return false;
+        const bookingStartMin = this.timeSpanToMinutes(startTime);
+        const bookingEndMin = this.timeSpanToMinutes(endTime);
+        return this.intervalsOverlap(slotMin, duration, bookingStartMin, bookingEndMin - bookingStartMin);
+      });
 
-    // Prepare booking data
+      const overlapsBlocked = this.blockedSlotsFromAPI.some(blocked => {
+        const startTime = blocked.startTime || blocked.starttime;
+        const endTime = blocked.endTime || blocked.endtime;
+        if (!startTime || !endTime) return false;
+        const blockedStartMin = this.timeSpanToMinutes(startTime);
+        const blockedEndMin = this.timeSpanToMinutes(endTime);
+        return this.intervalsOverlap(slotMin, duration, blockedStartMin, blockedEndMin - blockedStartMin);
+      });
+      
+      if (overlapsBooked || overlapsBlocked) unavailableSlots.push(slot);
+    }
+    
+    if (unavailableSlots.length > 0) {
+      this.selectedTimeSlots = this.selectedTimeSlots.filter(s => !unavailableSlots.includes(s));
+      this.alertService.warning(`The following time slot(s) are no longer available and have been removed:\n${unavailableSlots.join(', ')}\n\nPlease select different time slots.`);
+      this.recomputeAvailability();
+      if (this.selectedTimeSlots.length === 0) return;
+    }
+
+    const firstSlot = this.selectedTimeSlots[0];
+    const startMinutes = this.timeStringToMinutes(firstSlot);
+    const endTime = this.minutesToTimeString(startMinutes + duration);
+
     this.bookingData = {
       CourtId: this.courtId,
       userId: this.currentUserId,
-      courtPitchId: selectedPitch.pitchId || 0,
+      courtPitchId: selectedPitch.pitchId,
       ownerId: this.courtDetails.OwnerId,
-      paymentMethodId: 1,
+      paymentMethodId: 0,
       paymentProof: '',
       bookingDate: this.toKey(this.selectedBookingDate),
-      startTime: this.selectedBookingTime,
+      startTime: firstSlot,
       endTime: endTime,
-      price: this.getComputedPrice()
-    };
-      console.log('Prepared booking data:', this.bookingData);
-  
-  // Check for missing required fields
-  const missingFields = [];
-  if (!this.bookingData.CourtId) missingFields.push('CourtId');
-  if (!this.bookingData.userId) missingFields.push('userId');
-  if (!this.bookingData.courtPitchId) missingFields.push('courtPitchId');
-  if (!this.bookingData.ownerId) missingFields.push('ownerId');
-  if (!this.bookingData.paymentMethodId) missingFields.push('paymentMethodId');
-  
-  if (missingFields.length > 0) {
-    console.error('Missing required fields:', missingFields);
-    alert('Missing required booking data: ' + missingFields.join(', '));
-    return;
-  }
+      price: this.getComputedPrice(),
+      selectedSlots: this.selectedTimeSlots
+    } as any;
+
+    if (!this.bookingData.CourtId || !this.bookingData.userId || !this.bookingData.courtPitchId || !this.bookingData.ownerId || this.bookingData.price <= 0) {
+      this.alertService.error('Invalid booking data. Please try again.');
+      return;
+    }
+
     this.paymentPopupVisible = true;
   }
 
-  toKey(d: Date): string {
+  private toKey(d: Date): string {
     return d.toISOString().split('T')[0];
   }
 
   private timeStringToMinutes(t: string): number {
     if (!t) return 0;
     const [timePart, ampm] = t.split(' ');
-    const [hhStr, mmStr] = timePart.split(':');
-    let hh = parseInt(hhStr, 10);
-    const mm = parseInt(mmStr, 10);
-    if ((ampm || '').toUpperCase() === 'PM' && hh !== 12) hh += 12;
-    if ((ampm || '').toUpperCase() === 'AM' && hh === 12) hh = 0;
-    return hh * 60 + mm;
+    const [hh, mm] = timePart.split(':').map(Number);
+    let hours = hh;
+    if (ampm?.toUpperCase() === 'PM' && hh !== 12) hours += 12;
+    if (ampm?.toUpperCase() === 'AM' && hh === 12) hours = 0;
+    return hours * 60 + mm;
+  }
+
+  private timeSpanToMinutes(timeSpan: string): number {
+    if (!timeSpan) return 0;
+    const parts = timeSpan.split(':');
+    if (parts.length < 2) return 0;
+    const [hours, minutes] = parts.map(Number);
+    return isNaN(hours) || isNaN(minutes) ? 0 : hours * 60 + minutes;
+  }
+
+  private convertTimeSpanTo12Hour(timeSpan: string): string {
+    if (!timeSpan) return '';
+    const parts = timeSpan.split(':');
+    if (parts.length < 2) return '';
+    const [hours, minutes] = parts.map(Number);
+    if (isNaN(hours) || isNaN(minutes)) return '';
+    const ampm = hours >= 12 ? 'PM' : 'AM';
+    const displayHour = hours === 0 ? 12 : (hours > 12 ? hours - 12 : hours);
+    return `${String(displayHour).padStart(2, '0')}:${String(minutes).padStart(2, '0')} ${ampm}`;
   }
 
   private generateSlots(startMin: number, endMin: number, stepMinutes: number, duration: number): string[] {
@@ -223,7 +409,7 @@ export class CourtBookingComponent implements OnInit {
   }
 
   private minutesToTimeString(mins: number): string {
-    mins = ((mins % (24 * 60)) + (24 * 60)) % (24 * 60);
+    mins = ((mins % 1440) + 1440) % 1440;
     const hh = Math.floor(mins / 60);
     const mm = mins % 60;
     const ampm = hh >= 12 ? 'PM' : 'AM';
@@ -232,9 +418,7 @@ export class CourtBookingComponent implements OnInit {
   }
 
   private intervalsOverlap(startA: number, durationA: number, startB: number, durationB: number): boolean {
-    const endA = startA + durationA;
-    const endB = startB + durationB;
-    return startA < endB && startB < endA;
+    return startA < startB + durationB && startB < startA + durationA;
   }
 
   private isPastSlot(slotMinutes: number, date: Date): boolean {
@@ -242,7 +426,6 @@ export class CourtBookingComponent implements OnInit {
     const slotDateKey = this.toKey(date);
     const todayKey = this.toKey(now);
     if (slotDateKey !== todayKey) return false;
-    const nowMinutes = now.getHours() * 60 + now.getMinutes();
-    return slotMinutes <= nowMinutes;
+    return slotMinutes <= now.getHours() * 60 + now.getMinutes();
   }
 }

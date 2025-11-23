@@ -1,223 +1,161 @@
-<div class="account-shell">
+<div class="account-container">
   <!-- USER VIEW -->
-  <div *ngIf="!isOwner && !isAdmin" class="owner-section">
-  <!-- Top bar -->
-  <div class="account-top">
-    <h1>My Account</h1>
-    <div class="top-actions">
-      <button class="team-cta dashboard-btn" (click)="openDashboard()">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <rect x="3" y="3" width="7" height="7"></rect>
-          <rect x="14" y="3" width="7" height="7"></rect>
-          <rect x="14" y="14" width="7" height="7"></rect>
-          <rect x="3" y="14" width="7" height="7"></rect>
-        </svg>
-        Dashboard
-      </button>
-      <button class="team-cta" (click)="toggleTeamModal(true)">Want a Team?</button>
-    </div>
-  </div>
-
-  <div class="account-grid">
-    <!-- LEFT: Profile -->
-    <div class="left-col">
-      <div class="profile-card profile-card-no-avatar">
-        <div class="profile-heading">
-          <h2>{{ user.name }}</h2>
-          <div class="small">Member since <strong>2024</strong></div>
-        </div>
-
-        <div class="info-tiles">
-          <div class="tile"><div class="tile-label">Name</div><div class="tile-value">{{ user.name }}</div></div>
-          <div class="tile"><div class="tile-label">Age</div><div class="tile-value">{{ user.age }}</div></div>
-          <div class="tile"><div class="tile-label">Contact</div><div class="tile-value">{{ user.contact }}</div></div>
-          <div class="tile"><div class="tile-label">Email</div><div class="tile-value">{{ user.email }}</div></div>
-          <div class="tile"><div class="tile-label">About</div><div class="tile-value">{{ user.about }}</div></div>
-        </div>
-      </div>
-    </div> 
-
-    <!-- RIGHT: Bookings -->
-    <div class="right-col">
-      <div class="bookings-panel">
-        <h3>Upcoming Bookings</h3>
-        <div *ngIf="upcomingBookings.length; else noUpcoming">
-          <div class="booking-card" *ngFor="let b of upcomingBookings">
-            <img class="thumb" [src]="b.image || 'assets/placeholder-court.jpg'" alt="court" />
-            <div class="info">
-              <div class="title">{{ b.courtName }}</div>
-              <div class="meta">{{ b.date }} • {{ b.time }} • {{ b.duration }}</div>
-              <div class="meta small">{{ b.location }}</div>
-            </div>
-            <div class="actions">
-              <div class="price">Rs {{ b.price }}</div>
-              <button class="btn btn-danger" (click)="cancelUpcoming(b.id)">Cancel</button>
-            </div>
-          </div>
-        </div>
-        <ng-template #noUpcoming><div class="empty">No upcoming bookings yet.</div></ng-template>
-      </div>
-
-      <div class="bookings-panel">
-        <h3>Booking History</h3>
-        <div *ngIf="pastBookings.length; else noPast">
-          <div class="booking-card" *ngFor="let b of pastBookings">
-            <img class="thumb" [src]="b.image || 'assets/placeholder-court.jpg'" alt="court" />
-            <div class="info">
-              <div class="title">{{ b.courtName }}</div>
-              <div class="meta">{{ b.date }} • {{ b.time }} • {{ b.duration }}</div>
-              <div class="meta small">{{ b.location }}</div>
-            </div>
-            <div class="actions">
-              <div class="price">Rs {{ b.price }}</div>
-              <div class="status done">Completed</div>
-            </div>
-          </div>
-        </div>
-        <ng-template #noPast><div class="empty">No booking history yet.</div></ng-template>
-      </div>
-
-      <div *ngIf="hasNoBookings" class="empty-big">No bookings yet. Book a court to see it here.</div>
-    </div>
-  </div>
-  <div class="modal-backdrop" *ngIf="showTeamModal" (click)="toggleTeamModal(false)"></div>
-<div class="team-modal" *ngIf="showTeamModal" role="dialog" aria-modal="true">
-  <h3 class="modal-title">Request a Team</h3>
-  
-  <form [formGroup]="teamForm" (ngSubmit)="sendTeamRequest()" class="modal-form">
-    <div class="form-group">
-      <label for="phone">Your contact number</label>
-      <input id="phone" formControlName="phone" placeholder="Enter your phone number" />
-    </div>
-
-    <div class="form-group">
-      <label for="message">Message (tell us what you need)</label>
-      <textarea id="message" formControlName="message" rows="4" placeholder="Write your message..."></textarea>
-    </div>
-
-    <div class="modal-actions">
-      <button type="button" class="btn btn-outline" (click)="toggleTeamModal(false)">
-        ← Back
-      </button>
-      <button type="submit" class="btn btn-primary">
-        🚀 Send Request
-      </button>
-    </div>
-  </form>
-</div>
-
-</div>
-<!-- OWNER VIEW -->
-<div *ngIf="isOwner" class="owner-section">
-  <!-- Top bar for Owner -->
-  <div class="account-top">
-    <h1>My Account</h1>
-    <div class="top-actions">
-      <button class="team-cta dashboard-btn" (click)="openDashboard()">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <rect x="3" y="3" width="7" height="7"></rect>
-          <rect x="14" y="3" width="7" height="7"></rect>
-          <rect x="14" y="14" width="7" height="7"></rect>
-          <rect x="3" y="14" width="7" height="7"></rect>
-        </svg>
-        Dashboard
-      </button>
-    </div>
-  </div>
-  
-  <!-- Owner Info Card -->
-  <div class="profile-card">
-    <h2>Owner Details</h2>
-    <div class="info-tiles">
-      <div class="tile">
-        <div class="tile-label">Full Name</div>
-        <div class="tile-value">{{ owner?.fullname }}</div>
-      </div>
-      <div class="tile">
-        <div class="tile-label">Email</div>
-        <div class="tile-value">{{ owner?.email }}</div>
-      </div>
-      <div class="tile">
-        <div class="tile-label">Phone</div>
-        <div class="tile-value">{{ owner?.phone }}</div>
-      </div>
-      <div class="tile">
-        <div class="tile-label">CNIC</div>
-        <div class="tile-value">{{ owner?.cnic }}</div>
-      </div>
-    </div>
-    <p class="owner-about">{{ owner?.about }}</p>
-  </div>
-
-  <!-- Courts Owned -->
-  <div class="courts-panel">
-    <h2>Your Courts</h2>
-    <div *ngIf="!ownerCourts.length" class="empty">You don’t own any courts yet.</div>
-    
-    <div *ngFor="let court of ownerCourts" class="court-card">
-      <img [src]="court.image" alt="{{court.name}}" class="court-thumb" />
-      <div class="court-info">
-        <div class="court-name">{{ court.name }}</div>
-        <div class="court-meta">
-          📍 {{ court.location }} | ⏰ {{ court.opening }} - {{ court.closing }}
-        </div>
-        <div class="court-rating">⭐ {{ court.rating }}</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Register Court Button -->
-  <div class="register-court-btn">
-    <button class="btn btn-primary" (click)=addCourt()>
-      + Register New Court
-    </button>
-  </div>
-</div>
-
-<!-- ADMIN VIEW -->
-<div *ngIf="isAdmin" class="admin-section">
-  <!-- Top bar for Admin -->
-  <div class="account-top">
-    <h1>My Account</h1>
-    <div class="top-actions">
-      <button class="team-cta dashboard-btn" (click)="openDashboard()">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <rect x="3" y="3" width="7" height="7"></rect>
-          <rect x="14" y="3" width="7" height="7"></rect>
-          <rect x="14" y="14" width="7" height="7"></rect>
-          <rect x="3" y="14" width="7" height="7"></rect>
-        </svg>
-        Dashboard
-      </button>
-    </div>
-  </div>
-  
-  <div class="profile-card">
-    <h2>Admin Panel</h2>
-    <p class="admin-description">Manage courts and view system information</p>
-    
-    <div class="admin-actions">
-      <button class="btn btn-primary admin-btn" (click)="toggleDashboard()">
-        <span class="btn-icon">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+  <div *ngIf="!isOwner && !isAdmin" class="user-section">
+    <div class="account-top">
+      <h1>My Account</h1>
+      <div class="top-actions">
+        <button class="team-cta dashboard-btn" (click)="openDashboard()">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <rect x="3" y="3" width="7" height="7"></rect>
             <rect x="14" y="3" width="7" height="7"></rect>
             <rect x="14" y="14" width="7" height="7"></rect>
             <rect x="3" y="14" width="7" height="7"></rect>
           </svg>
-        </span>
-        <span>Manage Courts</span>
+          Dashboard
+        </button>
+      </div>
+    </div>
+
+    <div class="profile-card">
+      <div class="profile-heading">
+        <h2>{{ user.name }}</h2>
+        <div class="small">Member since <strong>2024</strong></div>
+      </div>
+      <div class="info-tiles">
+        <div class="tile">
+          <div class="tile-label">Name</div>
+          <div class="tile-value">{{ user.name }}</div>
+        </div>
+        <div class="tile">
+          <div class="tile-label">Age</div>
+          <div class="tile-value">{{ user.age }}</div>
+        </div>
+        <div class="tile">
+          <div class="tile-label">Contact</div>
+          <div class="tile-value">{{ user.contact }}</div>
+        </div>
+        <div class="tile">
+          <div class="tile-label">Email</div>
+          <div class="tile-value">{{ user.email }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- OWNER VIEW -->
+  <div *ngIf="isOwner" class="owner-section">
+    <div class="account-top">
+      <h1>My Account</h1>
+      <div class="top-actions">
+        <button class="team-cta dashboard-btn" (click)="openDashboard()">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="3" width="7" height="7"></rect>
+            <rect x="14" y="3" width="7" height="7"></rect>
+            <rect x="14" y="14" width="7" height="7"></rect>
+            <rect x="3" y="14" width="7" height="7"></rect>
+          </svg>
+          Dashboard
+        </button>
+      </div>
+    </div>
+    
+    <div class="profile-card">
+      <h2>Owner Details</h2>
+      <div class="info-tiles">
+        <div class="tile">
+          <div class="tile-label">Full Name</div>
+          <div class="tile-value">{{ owner?.fullname }}</div>
+        </div>
+        <div class="tile">
+          <div class="tile-label">Email</div>
+          <div class="tile-value">{{ owner?.email }}</div>
+        </div>
+        <div class="tile">
+          <div class="tile-label">Phone</div>
+          <div class="tile-value">{{ owner?.phone }}</div>
+        </div>
+        <div class="tile">
+          <div class="tile-label">CNIC</div>
+          <div class="tile-value">{{ owner?.cnic }}</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="courts-panel">
+      <div class="courts-panel-header">
+        <h2>Your Courts</h2>
+        <p class="courts-subtitle">Manage and view all your registered courts</p>
+      </div>
+      
+      <div *ngIf="!ownerCourts.length" class="empty-courts">
+        <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+          <circle cx="12" cy="10" r="3"></circle>
+        </svg>
+        <p>You don't own any courts yet.</p>
+        <button class="btn btn-primary" (click)="addCourt()">Register Your First Court</button>
+      </div>
+      
+      <div *ngIf="ownerCourts.length > 0" class="courts-grid">
+        <div *ngFor="let court of ownerCourts" class="court-card">
+          <div class="court-image-wrapper">
+            <img [src]="court.image" alt="{{court.name}}" class="court-image" />
+            <div class="court-overlay"></div>
+          </div>
+          <div class="court-content">
+            <h3 class="court-name">{{ court.name }}</h3>
+            <div class="court-details">
+              <div class="court-detail-item">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                  <circle cx="12" cy="10" r="3"></circle>
+                </svg>
+                <span>{{ court.location }}</span>
+              </div>
+              <div class="court-detail-item">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <polyline points="12 6 12 12 16 14"></polyline>
+                </svg>
+                <span>{{ court.opening }} - {{ court.closing }}</span>
+              </div>
+              <div class="court-detail-item">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                </svg>
+                <span>{{ court.rating }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="owner-actions">
+      <!-- <button class="btn btn-primary" (click)="addCourt()">
+        + Register New Court
+      </button> -->
+      <button class="btn btn-secondary" (click)="navigateToManageSlots()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+          <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+        </svg>
+        Manage Slot Availability
+      </button>
+      <button class="btn btn-tertiary" (click)="navigateToPaymentApprovals()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="20 6 9 17 4 12"></polyline>
+        </svg>
+        Payment Approvals
       </button>
     </div>
   </div>
+
+  <!-- ADMIN VIEW -->
+  <div *ngIf="isAdmin" class="admin-section">
+    <app-admin-dashboard></app-admin-dashboard>
+  </div>
 </div>
 
-<button *ngIf="AuthLoginLogoutService.isAuthenticated()" (click)="logout()" class="team-cta">
-  Logout
-</button>
-</div>
-
-<!-- Add Court Modal (Admin Only) -->
 <div class="dashboard-modal-overlay" *ngIf="showDashboard" (click)="closeDashboard()">
   <div class="dashboard-modal" (click)="$event.stopPropagation()">
     <div class="dashboard-modal-header">

@@ -1,9 +1,10 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { NavbarFooterComponent } from '../navbar-footer/navbar-footer.component';
-import { NavbarComponent } from '../navbar-header/navbar.component';
 import { AddCourtComponent } from '../add-court/add-court.component';
+import { GetDatabyDatasourceService } from '../../services/get-data/get-databy-datasource.service';
+import { AlertService } from '../../services/alert.service';
+import { HttpClient } from '@angular/common/http';
 
 export interface User {
   id: string;
@@ -31,8 +32,6 @@ export interface Booking {
   imports: [
     CommonModule,
     FormsModule,
-    NavbarComponent,
-    NavbarFooterComponent,
     AddCourtComponent
   ],
   templateUrl: './admin-dashboard.component.html',
@@ -49,6 +48,8 @@ export class AdminDashboardComponent implements OnInit {
   // Data
   users: User[] = [];
   bookings: Booking[] = [];
+  isLoadingUsers = false;
+  isLoadingBookings = false;
 
   // Filtered data
   filteredUsers: User[] = [];
@@ -62,92 +63,122 @@ export class AdminDashboardComponent implements OnInit {
   showNotification = false;
   notificationText = '';
 
+  private apiUrl = 'http://localhost:5000/api';
+
+  constructor(
+    private dataService: GetDatabyDatasourceService,
+    private alertService: AlertService,
+    private http: HttpClient
+  ) {}
+
   ngOnInit(): void {
-    this.loadMockData();
-    this.applyFilters();
+    this.loadUsers();
+    this.loadBookings();
   }
 
-  // Load mock data (replace with API calls)
-  private loadMockData(): void {
-    // Mock Users
-    this.users = [
-      {
-        id: '1',
-        name: 'Ahmed Khan',
-        email: 'ahmed.khan@email.com',
-        phone: '+92 300 1234567',
-        role: 'player',
-        joinedDate: '2024-01-15'
+  // Load users from backend
+  loadUsers(): void {
+    this.isLoadingUsers = true;
+    this.dataService.getData(23, 'U.isactive = 1 AND R.RoleID <> 1').subscribe({
+      next: (apiData: any[] | null | undefined) => {
+        const data = Array.isArray(apiData) ? apiData : [];
+        this.users = data.map((item, index) => {
+          const roleName = item.RoleName ;
+          return {
+            id: item.UserID?.toString(),
+            name: item.FullName,
+            email: item.Email ,
+            phone: item.Phone ,
+            role: roleName.toLowerCase().includes('owner') ? 'courtOwner' : 'player',
+            joinedDate: item.CreatedAt.split('T')[0]
+          } as User;
+        });
+        this.isLoadingUsers = false;
+        this.applyFilters();
       },
-      {
-        id: '2',
-        name: 'Sara Ali',
-        email: 'sara.ali@email.com',
-        phone: '+92 321 9876543',
-        role: 'player',
-        joinedDate: '2024-02-20'
-      },
-      {
-        id: '3',
-        name: 'Bilal Sports Complex',
-        email: 'bilal@sportsplex.com',
-        phone: '+92 333 5555555',
-        role: 'courtOwner',
-        joinedDate: '2024-01-10'
-      },
-      {
-        id: '4',
-        name: 'Hassan Malik',
-        email: 'hassan@email.com',
-        phone: '+92 345 7777777',
-        role: 'player',
-        joinedDate: '2024-03-05'
+      error: (err: any) => {
+        console.error('Error loading users:', err);
+        this.alertService.error('Failed to load users');
+        this.isLoadingUsers = false;
       }
-    ];
+    });
+  }
 
-    // Mock Bookings
-    this.bookings = [
-      {
-        id: '1',
-        courtName: 'City Basketball Court',
-        playerName: 'Ahmed Khan',
-        date: '2024-11-10',
-        time: '10:00 AM - 12:00 PM',
-        paymentStatus: 'confirmed',
-        price: 1500,
-        bookedDate: '2024-11-08'
+  // Load bookings from backend
+  loadBookings(): void {
+    this.isLoadingBookings = true;
+    // Using datasource 3 for bookings (as seen in other components)
+    this.dataService.getData(3, 'b.IsActive = 1').subscribe({
+      next: (apiData: any[] | null | undefined) => {
+        const data = Array.isArray(apiData) ? apiData : [];
+        this.bookings = data.map((item, index) => {
+          // Map backend data to Booking interface
+          const bookingDate = item.BookingDate || item.bookingDate;
+          const startTime = item.StartTime || item.startTime || '';
+          const endTime = item.EndTime || item.endTime || '';
+          
+          // Format time
+          const timeStr = this.formatTimeRange(startTime, endTime);
+          
+          // Determine payment status
+          let paymentStatus: 'confirmed' | 'pending' | 'completed' = 'pending';
+          if (item.PaymentApprovalStatus === 'Approved' || item.PaymentStatus === 'Confirmed') {
+            paymentStatus = 'confirmed';
+          } else if (item.PaymentApprovalStatus === 'Pending' || item.PaymentStatus === 'Pending') {
+            paymentStatus = 'pending';
+          }
+          
+          // Check if booking is completed (date has passed)
+          if (bookingDate) {
+            const bookingDateObj = new Date(bookingDate);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            if (bookingDateObj < today) {
+              paymentStatus = 'completed';
+            }
+          }
+          
+          return {
+            id: item.BookingID?.toString() || item.bookingID?.toString() || (index + 1).toString(),
+            courtName: item.NAME || item.CourtName || item.courtName || 'Unknown Court',
+            playerName: item.FullName || item.fullName || item.UserName || 'Unknown User',
+            date: bookingDate ? new Date(bookingDate).toISOString().split('T')[0] : '',
+            time: timeStr,
+            paymentStatus: paymentStatus,
+            price: item.Price || item.price || 0,
+            bookedDate: item.CreatedAt || item.createdAt || new Date().toISOString().split('T')[0]
+          } as Booking;
+        });
+        this.isLoadingBookings = false;
+        this.applyFilters();
       },
-      {
-        id: '2',
-        courtName: 'Greenfield Football Arena',
-        playerName: 'Sara Ali',
-        date: '2024-11-12',
-        time: '4:00 PM - 6:00 PM',
-        paymentStatus: 'confirmed',
-        price: 2500,
-        bookedDate: '2024-11-07'
-      },
-      {
-        id: '3',
-        courtName: 'Tennis Academy Courts',
-        playerName: 'Ahmed Khan',
-        date: '2025-11-20',
-        time: '8:00 AM - 10:00 AM',
-        paymentStatus: 'pending',
-        price: 3000,
-        bookedDate: '2025-11-15'
-      },
-      {
-        id: '4',
-        courtName: 'City Basketball Court',
-        playerName: 'Hassan Malik',
-        date: '2025-12-01',
-        time: '2:00 PM - 4:00 PM',
-        paymentStatus: 'pending',
-        price: 1500,
-        bookedDate: '2025-11-20'
+      error: (err: any) => {
+        console.error('Error loading bookings:', err);
+        this.alertService.error('Failed to load bookings');
+        this.isLoadingBookings = false;
       }
-    ];
+    });
+  }
+
+  private formatTimeRange(startTime: string, endTime: string): string {
+    if (!startTime || !endTime) return '';
+    
+    // Handle TimeSpan format (HH:MM:SS) or time string
+    const formatTime = (time: string): string => {
+      if (!time) return '';
+      // If it's in HH:MM:SS format, extract HH:MM
+      if (time.includes(':')) {
+        const parts = time.split(':');
+        const hours = parseInt(parts[0]);
+        const minutes = parts[1];
+        const period = hours >= 12 ? 'PM' : 'AM';
+        const displayHours = hours > 12 ? hours - 12 : (hours === 0 ? 12 : hours);
+        return `${displayHours}:${minutes} ${period}`;
+      }
+      return time;
+    };
+    
+    return `${formatTime(startTime)} - ${formatTime(endTime)}`;
   }
 
   // Tab switching
@@ -155,7 +186,15 @@ export class AdminDashboardComponent implements OnInit {
     this.activeTab = tab;
     this.searchQuery = '';
     this.selectedFilter = 'all';
-    this.applyFilters();
+    
+    // Load data when switching tabs
+    if (tab === 'users' && this.users.length === 0) {
+      this.loadUsers();
+    } else if (tab === 'bookings' && this.bookings.length === 0) {
+      this.loadBookings();
+    } else {
+      this.applyFilters();
+    }
   }
 
   // Apply filters
@@ -223,12 +262,33 @@ export class AdminDashboardComponent implements OnInit {
   }
 
   confirmDeleteUser(): void {
-    if (this.selectedUser) {
-      this.users = this.users.filter(u => u.id !== this.selectedUser!.id);
-      this.applyFilters();
-      this.displayNotification(`User ${this.selectedUser.name} has been deleted.`);
+    if (!this.selectedUser) return;
+
+    const userId = parseInt(this.selectedUser.id);
+    if (!userId || isNaN(userId)) {
+      this.alertService.error('Invalid user ID');
       this.closeDeleteUserModal();
+      return;
     }
+
+    const userName = this.selectedUser.name;
+    const userIdToRemove = this.selectedUser.id;
+
+    // Call backend API to deactivate user (soft delete)
+    this.http.put(`${this.apiUrl}/Users/deactivate/${userId}`, {}).subscribe({
+      next: () => {
+        // Remove from local array and refresh
+        this.users = this.users.filter(u => u.id !== userIdToRemove);
+        this.applyFilters();
+        this.alertService.success(`User ${userName} has been deactivated.`);
+        this.closeDeleteUserModal();
+      },
+      error: (err: any) => {
+        console.error('Error deactivating user:', err);
+        this.alertService.error(err?.error?.error || 'Failed to deactivate user');
+        this.closeDeleteUserModal();
+      }
+    });
   }
 
   closeDeleteUserModal(): void {

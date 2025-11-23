@@ -9,6 +9,9 @@ import {
   DxGalleryModule
 } from 'devextreme-angular';
 import { Subscription } from 'rxjs';
+import { CourtService, CourtDto, PitchDto } from '../../services/courts/court.service';
+import { GetDatabyDatasourceService } from '../../services/get-data/get-databy-datasource.service';
+import { AlertService } from '../../services/alert.service';
 
 type Court = {
   id?: string;
@@ -54,24 +57,64 @@ export class AddCourtComponent {
   selectedCourt: Court | null = null;
   isBrowser = false;
   
+  ownerId?: number;
+  userId?: number;
+  isAdmin: boolean = false;
+
   constructor(
     private fb: FormBuilder,
-    @Inject(PLATFORM_ID) platformId: Object
+    @Inject(PLATFORM_ID) platformId: Object,
+    private courtService: CourtService,
+    private dataService: GetDatabyDatasourceService,
+    private alertService: AlertService
   ) {
     this.isBrowser = isPlatformBrowser(platformId);
   }
 
   ngOnInit(): void {
+    // Get logged in user info
+    const saved = localStorage.getItem('loggedInUser');
+    if (saved) {
+      try {
+        const user = JSON.parse(saved);
+        this.userId = user.userID;
+        // Check if admin
+        if (user.roleID === 1) {
+          this.isAdmin = true;
+        } else {
+          // Get owner ID for non-admin users
+          this.loadOwnerId();
+        }
+      } catch {}
+    }
+
     this.form = this.fb.group({
       name: ['', Validators.required],
-      location: [''],
-      ownerName: ['', Validators.required],
-      ownerCnic: ['', [Validators.required, Validators.pattern(/^\d{5}-\d{7}-\d{1}$/)]],
+      location: ['', Validators.required],
+      ownerID: [this.ownerId || 0, this.isAdmin ? Validators.required : []],
+      ownerName: ['', this.isAdmin ? Validators.required : []],
+      ownerCnic: ['', this.isAdmin ? [Validators.required, Validators.pattern(/^\d{5}-\d{7}-\d{1}$/)] : []],
       openingTime: [''],
       closingTime: [''],
       about: ['']
     });
-    this.courts = this.loadFromStorage();
+  }
+
+  loadOwnerId(): void {
+    if (!this.userId) return;
+    const whereclause = `co.userid = ${this.userId}`;
+    this.dataService.getData(5, whereclause).subscribe({
+      next: (apiData: any[] | null | undefined) => {
+        const ownerData = Array.isArray(apiData) ? apiData : [];
+        if (ownerData.length > 0) {
+          this.ownerId = ownerData[0].ownerid || ownerData[0].OwnerID;
+          this.form.patchValue({ ownerID: this.ownerId });
+        }
+      },
+      error: (err: any) => {
+        console.error('Error loading owner data:', err);
+      }
+    });
   }
 
   ngOnDestroy(): void {
@@ -265,10 +308,13 @@ export class AddCourtComponent {
     
     if (!this.form.value.name || this.form.get('name')?.invalid) 
       missing.push('Court Name');
-    if (!this.form.value.ownerName || this.form.get('ownerName')?.invalid) 
-      missing.push('Owner Name');
-    if (!this.form.value.ownerCnic || this.form.get('ownerCnic')?.invalid) 
-      missing.push('Owner CNIC (format: xxxxx-xxxxxxx-x)');
+    if (!this.form.value.location || this.form.get('location')?.invalid) 
+      missing.push('Location');
+    
+    const ownerID = this.form.value.ownerID || this.ownerId;
+    if (!ownerID || ownerID <= 0) 
+      missing.push('Owner ID');
+    
     if (!this.pitches || this.pitches.length === 0) 
       missing.push('At least one pitch (add via "Add pitch")');
     else {
@@ -279,46 +325,54 @@ export class AddCourtComponent {
       }
     }
     
-    if (missing.length > 0) { 
+    if (missing.length > 0) {
+      this.alertService.error('Please fill in all required fields:\n' + missing.join('\n'));
       return; 
     }
 
-    const cleaned: Record<string, number> = {};
-    for (const p of this.pitches) cleaned[p] = Math.round(this.pricePerPitch[p]);
-    const prices = Object.values(cleaned);
-    const minPrice = prices.length ? Math.min(...prices) : 0;
+    // Build pitches array
+    const pitches: PitchDto[] = this.pitches.map(p => ({
+      PitchType: p,
+      Price: this.pricePerPitch[p]
+    }));
 
-    const payload: Court = {
-      id: this.editingId ?? undefined,
-      name: this.form.value.name,
-      location: this.form.value.location,
-      ownerName: this.form.value.ownerName,
-      ownerCnic: this.form.value.ownerCnic,
-      rating: this.editingId ? this.originalRating : undefined,
-      pitches: [...this.pitches],
-      pricePerPitch: Object.keys(cleaned).length ? cleaned : undefined,
-      price: minPrice,
-      openingTime: this.form.value.openingTime || undefined,
-      closingTime: this.form.value.closingTime || undefined,
-      image: this.mainImage || (this.images[0] ?? ''),
-      images: [...this.images],
-      offers: [...this.offers],
-      about: this.form.value.about,
-      bookedSlots: {}
+    // Prepare court DTO
+    const courtDto: CourtDto = {
+      CourtID: this.editingId ? parseInt(this.editingId) : undefined,
+      Name: this.form.value.name,
+      Location: this.form.value.location,
+      Rating: this.editingId ? this.originalRating : undefined,
+      OpeningTime: this.form.value.openingTime || undefined,
+      ClosingTime: this.form.value.closingTime || undefined,
+      About: this.form.value.about || undefined,
+      MainImage: this.mainImage || (this.images[0] ?? undefined),
+      OwnerID: ownerID,
+      Pitches: pitches,
+      Images: this.images.length > 0 ? this.images : undefined
     };
 
-    const all = this.loadFromStorage();
+    // Call backend API
+    const apiCall = this.editingId 
+      ? this.courtService.updateCourt(parseInt(this.editingId), courtDto)
+      : this.courtService.createCourt(courtDto);
 
-    if (this.editingId) {
-      const next = all.map(x => (x.id === this.editingId ? { ...payload, id: this.editingId } : x));
-      this.saveToStorage(next);
-    } else {
-      payload.id = this.generateId();
-      all.push(payload);
-      this.saveToStorage(all);
-    }
-
-    this.startCreateNew();
+    apiCall.subscribe({
+      next: (response: any) => {
+        this.alertService.success(
+          this.editingId 
+            ? 'Court updated successfully!' 
+            : 'Court created successfully!'
+        );
+        this.startCreateNew();
+        // Optionally reload courts list if needed
+      },
+      error: (err: any) => {
+        console.error('Error saving court:', err);
+        this.alertService.error(
+          err?.error?.error || 'Failed to save court. Please try again.'
+        );
+      }
+    });
   }
 
   getPreviewImage(c: Court) { 

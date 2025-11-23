@@ -9,7 +9,7 @@ export class CourtAdapter implements Adapter<Court> {
 
     return {
       courtId: item.courtid,
-      name: item.name,
+      name: item.NAME ,
       location: item.location,
       rating: Number(item.rating) || 0,
       openingTime: item.openingtime,
@@ -21,9 +21,8 @@ export class CourtAdapter implements Adapter<Court> {
       images: this.parseImages(item.images),
       offers: this.parseOffers(item.offers),
       pitches: this.parsePitches(item.pitches),
-      
-      bookedSlots: this.parseBookedSlots(item.bookedslots),
-      OwnerId: item.OwnerID
+      OwnerId: item.ownerid || item.OwnerID || item.ownerId || 0,
+      bookedSlots: this.parseBookedSlots(item.bookedslots)
     };
   }
  

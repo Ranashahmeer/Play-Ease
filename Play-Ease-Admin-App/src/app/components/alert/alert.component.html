@@ -1,0 +1,35 @@
+<div class="alert-container">
+  <div 
+    *ngFor="let alert of alerts" 
+    class="alert-box"
+    [class.alert-error]="alert.type === 'error'"
+    [class.alert-success]="alert.type === 'success'"
+    [class.alert-warning]="alert.type === 'warning'"
+    [class.alert-info]="alert.type === 'info'">
+    <div class="alert-content">
+      <div class="alert-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path *ngIf="alert.type === 'error'" d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+          <line *ngIf="alert.type === 'error'" x1="12" y1="9" x2="12" y2="13"></line>
+          <line *ngIf="alert.type === 'error'" x1="12" y1="17" x2="12.01" y2="17"></line>
+          
+          <polyline *ngIf="alert.type === 'success'" points="20 6 9 17 4 12"></polyline>
+          
+          <path *ngIf="alert.type === 'warning'" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+          
+          <circle *ngIf="alert.type === 'info'" cx="12" cy="12" r="10"></circle>
+          <line *ngIf="alert.type === 'info'" x1="12" y1="16" x2="12" y2="12"></line>
+          <line *ngIf="alert.type === 'info'" x1="12" y1="8" x2="12.01" y2="8"></line>
+        </svg>
+      </div>
+      <div class="alert-message">{{ alert.message }}</div>
+      <button class="alert-close" (click)="removeAlert(alert.id)" aria-label="Close">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+    </div>
+  </div>
+</div>
+

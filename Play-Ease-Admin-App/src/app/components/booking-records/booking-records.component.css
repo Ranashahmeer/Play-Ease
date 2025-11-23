@@ -2,42 +2,142 @@
 .right-col {
   display: flex;
   flex-direction: column;
-  gap: 30px;
-  max-width: 900px;
-  margin: 0 auto;
+  gap: 20px;
   width: 100%;
+  margin: 0;
+  padding: 0;
 }
 
 .bookings-panel {
-  background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
-  border-radius: 12px;
+  background: #fff;
+  border-radius: 16px;
   padding: 0;
-  box-shadow: 0 2px 8px rgba(0, 69, 38, 0.08);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
   overflow: hidden;
   display: flex;
   flex-direction: column;
   width: 100%;
+  margin: 0;
 }
 
 .bookings-panel h3 {
   margin: 0;
-  padding: 20px 20px;
-  font-size: 24px;
+  padding: 20px 24px;
+  font-size: 22px;
   font-weight: 700;
-  background: linear-gradient(135deg, #004526 0%, #006b3d 100%);
+  background: linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-primary-dark) 100%);
   color: white;
   letter-spacing: 0.5px;
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
+  box-shadow: 0 2px 8px rgba(0, 122, 51, 0.2);
+}
+
+.bookings-panel h3 svg {
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+  opacity: 0.95;
 }
 
 .bookings-panel h3::before {
   content: '';
   width: 4px;
-  height: 20px;
-  background: rgba(255, 255, 255, 0.5);
+  height: 24px;
+  background: rgba(255, 255, 255, 0.4);
   border-radius: 2px;
+  margin-right: -4px;
+}
+
+/* Search Filter Bar */
+.search-filter-bar {
+  padding: 16px 24px;
+  background: var(--gray-50);
+  border-bottom: 1px solid var(--gray-200);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.search-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.search-icon {
+  position: absolute;
+  left: 14px;
+  color: var(--gray-400);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.search-input {
+  width: 100%;
+  padding: 12px 44px 12px 44px;
+  border: 2px solid var(--gray-200);
+  border-radius: var(--radius-lg);
+  font-size: 0.9rem;
+  font-family: inherit;
+  background: #fff;
+  color: var(--gray-900);
+  transition: all var(--transition-base);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.search-input::placeholder {
+  color: var(--gray-400);
+}
+
+.search-input:hover {
+  border-color: var(--gray-300);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: var(--brand-primary);
+  box-shadow: 0 0 0 4px rgba(0, 122, 51, 0.1), 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+
+.clear-search-btn {
+  position: absolute;
+  right: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: none;
+  background: var(--gray-200);
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  transition: all var(--transition-base);
+  color: var(--gray-600);
+  z-index: 2;
+}
+
+.clear-search-btn:hover {
+  background: var(--gray-300);
+  color: var(--gray-900);
+  transform: scale(1.1);
+}
+
+.clear-search-btn svg {
+  width: 14px;
+  height: 14px;
+}
+
+.search-results-count {
+  font-size: 0.85rem;
+  color: var(--gray-600);
+  font-weight: 500;
+  padding-left: 4px;
 }
 
 /* Bookings Container */
@@ -46,90 +146,413 @@
   flex: 1;
   overflow-y: auto;
   min-height: 0;
-}
-
-/* AG-Grid Styling */
-.ag-theme-alpine {
   width: 100%;
-  height: 450px;
-  border-radius: 12px;
+  background: #fff;
+}
+
+/* Booking Cards Horizontal Scroll */
+.booking-cards-grid {
+  display: flex;
+  gap: 16px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 8px 12px 16px 12px;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  width: 100%;
+}
+
+.booking-cards-grid {
+  scrollbar-width: thin;
+  scrollbar-color: var(--gray-300) transparent;
+}
+
+.booking-cards-grid::-webkit-scrollbar {
+  height: 6px;
+}
+
+.booking-cards-grid::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.booking-cards-grid::-webkit-scrollbar-thumb {
+  background: var(--gray-300);
+  border-radius: var(--radius-full);
+}
+
+.booking-cards-grid::-webkit-scrollbar-thumb:hover {
+  background: var(--gray-400);
+}
+
+.booking-cards-horizontal {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 8px 12px 16px 12px;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  width: 100%;
+}
+
+.booking-cards-horizontal {
+  scrollbar-width: thin;
+  scrollbar-color: var(--gray-300) transparent;
+}
+
+.booking-cards-horizontal::-webkit-scrollbar {
+  height: 6px;
+}
+
+.booking-cards-horizontal::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.booking-cards-horizontal::-webkit-scrollbar-thumb {
+  background: var(--gray-300);
+  border-radius: var(--radius-full);
+}
+
+.booking-cards-horizontal::-webkit-scrollbar-thumb:hover {
+  background: var(--gray-400);
+}
+
+/* Booking Card - Matching Court List Style */
+.booking-card {
+  flex: 0 0 auto;
+  width: 260px;
+  min-height: 360px;
+  background: #fff;
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius-xl);
+  cursor: pointer;
+  transition: all var(--transition-base);
   overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  position: relative;
 }
 
-/* Custom AG-Grid overrides */
-::ng-deep .ag-theme-alpine .ag-header {
-  background: #f8f9fa;
-  border-bottom: 2px solid #e0e0e0;
+.booking-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, var(--brand-primary), var(--brand-primary-light));
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform var(--transition-base);
+  z-index: 1;
+}
+
+.booking-card:hover {
+  transform: translateY(-8px);
+  box-shadow: var(--shadow-xl);
+  border-color: var(--brand-primary);
+}
+
+.booking-card:hover::before {
+  transform: scaleX(1);
+}
+
+.booking-card.booking-completed {
+  opacity: 0.9;
+}
+
+.booking-card.booking-completed:hover {
+  opacity: 1;
+}
+
+/* Card Image */
+.card-image {
+  position: relative;
+  width: 100%;
+  height: 160px;
+  overflow: hidden;
+}
+
+.card-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-top-left-radius: var(--radius-xl);
+  border-top-right-radius: var(--radius-xl);
+  transition: transform var(--transition-slow);
+  loading: lazy;
+  decoding: async;
+}
+
+.booking-card:hover .card-image img {
+  transform: scale(1.05);
+}
+
+.status-badge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 9px;
   font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
 }
 
-::ng-deep .ag-theme-alpine .ag-header-cell-label {
-  color: #1a1a1a;
-  font-weight: 700;
+.status-badge.status-upcoming {
+  background: linear-gradient(135deg, #007a33 0%, #005a26 100%);
+  color: white;
 }
 
-::ng-deep .ag-theme-alpine .ag-row-odd {
-  background: #fafafa;
+.status-badge.status-completed {
+  background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+  color: white;
 }
 
-::ng-deep .ag-theme-alpine .ag-row-even {
-  background: white;
+/* Card Content */
+.card-content {
+  padding: var(--spacing-lg);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
 }
 
-::ng-deep .ag-theme-alpine .ag-row:hover {
-  background: #f5f5f5;
+.court-name {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--gray-900);
+  line-height: 1.3;
+  margin-bottom: var(--spacing-xs);
 }
 
-::ng-deep .ag-theme-alpine .ag-cell {
+.booking-details {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.detail-item {
   display: flex;
   align-items: center;
+  gap: var(--spacing-xs);
+  color: var(--gray-600);
+  font-size: 0.85rem;
+  line-height: 1.5;
 }
 
-/* Price cell styling */
-::ng-deep .price-cell {
-  font-size: 16px;
+.detail-item svg {
+  width: 16px;
+  height: 16px;
+  color: var(--gray-600);
+  flex-shrink: 0;
+}
+
+.detail-item span {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Card Footer */
+.card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: var(--spacing-sm);
+  border-top: 1px solid var(--gray-200);
+  margin-top: auto;
+}
+
+.price {
+  margin-top: var(--spacing-xs);
   font-weight: 700;
-  background: linear-gradient(135deg, #8B6914 0%, #B8860B 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  font-size: 1.1rem;
+  color: var(--brand-primary);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
 }
 
-/* Status badge */
-::ng-deep .status-badge {
-  padding: 6px 12px;
-  border-radius: 20px;
-  font-size: 11px;
+.price svg {
+  width: 18px;
+  height: 18px;
+  color: var(--brand-primary);
+}
+
+/* Compact Card for Booking History - Matching Court List Style */
+.booking-card-compact {
+  flex: 0 0 auto;
+  width: 230px;
+  min-height: 280px;
+  background: #fff;
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius-xl);
+  cursor: pointer;
+  transition: all var(--transition-base);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.booking-card-compact::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, var(--brand-primary), var(--brand-primary-light));
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform var(--transition-base);
+  z-index: 1;
+}
+
+.booking-card-compact:hover {
+  transform: translateY(-8px);
+  box-shadow: var(--shadow-xl);
+  border-color: var(--brand-primary);
+}
+
+.booking-card-compact:hover::before {
+  transform: scaleX(1);
+}
+
+.card-content-compact {
+  padding: var(--spacing-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.compact-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--spacing-xs);
+  margin-bottom: var(--spacing-xs);
+}
+
+.court-name-compact {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--gray-900);
+  line-height: 1.3;
+  flex: 1;
+}
+
+.status-badge-inline {
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 9px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  background: linear-gradient(135deg, #004526 0%, #006b3d 100%);
-  color: white;
-  display: inline-block;
+  white-space: nowrap;
 }
 
-/* Cancel button */
-::ng-deep .cancel-btn {
-  padding: 8px 16px;
-  border-radius: 6px;
-  font-size: 12px;
+.status-badge-inline.status-completed {
+  background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+  color: white;
+}
+
+.booking-details-compact {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.detail-item-compact {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  color: var(--gray-600);
+  font-size: 0.8rem;
+  line-height: 1.5;
+}
+
+.detail-item-compact svg {
+  width: 16px;
+  height: 16px;
+  color: var(--gray-600);
+  flex-shrink: 0;
+}
+
+.detail-item-compact span {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.card-footer-compact {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: var(--spacing-sm);
+  border-top: 1px solid var(--gray-200);
+  margin-top: var(--spacing-xs);
+}
+
+.price-compact {
+  margin-top: var(--spacing-xs);
   font-weight: 700;
+  font-size: 1rem;
+  color: var(--brand-primary);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+.price-compact svg {
+  width: 18px;
+  height: 18px;
+  color: var(--brand-primary);
+}
+
+.cancel-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 14px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
   border: none;
   cursor: pointer;
-  transition: all 0.3s ease;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+  transition: all 0.2s ease;
   background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
   color: white;
+  box-shadow: 0 2px 4px rgba(220, 53, 69, 0.2);
+  white-space: nowrap;
 }
 
-::ng-deep .cancel-btn:hover {
-  background: linear-gradient(135deg, #c82333 0%, #bd2130 100%);
-  box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
-  transform: translateY(-2px);
+.cancel-btn svg {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
 }
+
+.cancel-btn:hover {
+  background: linear-gradient(135deg, #c82333 0%, #bd2130 100%);
+  box-shadow: 0 4px 12px rgba(220, 53, 69, 0.4);
+  transform: translateY(-1px);
+}
+
+.cancel-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(220, 53, 69, 0.3);
+}
+
 
 /* Empty State */
 .empty {
@@ -143,147 +566,102 @@
   border: 2px dashed #95d5b2;
 }
 
-/* Owner Section */
-.owner-section {
-  width: 100%;
-}
-
-/* Courts Panel */
-.courts-panel {
-  background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
-  border-radius: 16px;
-  padding: 0;
-  box-shadow: 0 4px 16px rgba(0, 69, 38, 0.12);
-  overflow: hidden;
-}
-
-.courts-panel h2 {
-  margin: 0;
-  padding: 20px 20px;
-  font-size: 24px;
-  font-weight: 700;
-  background: linear-gradient(135deg, #004526 0%, #006b3d 100%);
-  color: white;
-  letter-spacing: 0.5px;
-}
-
-/* Court Card */
-.court-card {
-  display: grid;
-  grid-template-columns: 120px 1fr;
-  gap: 24px;
-  align-items: center;
-  padding: 20px;
-  background: white;
-  border-radius: 12px;
-  margin: 24px;
-  margin-top: 0;
-  margin-bottom: 16px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-  transition: all 0.3s ease;
-  border-left: 4px solid transparent;
-}
-
-.court-card:first-of-type {
-  margin-top: 24px;
-}
-
-.court-card:hover {
-  box-shadow: 0 6px 20px rgba(0, 69, 38, 0.15);
-  transform: translateX(4px);
-  border-left-color: #B8860B;
-}
-
-.court-card:last-child {
-  margin-bottom: 24px;
-}
-
-.court-card .court-thumb {
-  width: 120px;
-  height: 120px;
-  border-radius: 10px;
-  object-fit: cover;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-.court-card .court-info {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.court-card .court-name {
-  font-size: 20px;
-  font-weight: 700;
-  color: #1a1a1a;
-  background: linear-gradient(135deg, #004526 0%, #006b3d 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-.court-card .court-meta {
-  font-size: 15px;
-  color: #555;
-  font-weight: 500;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.court-card .court-rating {
-  font-size: 16px;
-  font-weight: 700;
-  color: #8B6914;
-}
 
 /* Responsive Design */
 @media (max-width: 768px) {
-  .bookings-panel h3,
-  .courts-panel h2 {
+  .bookings-panel h3 {
     padding: 16px 20px;
     font-size: 20px;
   }
 
+  .search-filter-bar {
+    padding: 12px 16px;
+  }
+
+  .search-input {
+    padding: 10px 14px 10px 40px;
+    font-size: 0.85rem;
+  }
+
+  .search-icon {
+    left: 12px;
+    width: 16px;
+    height: 16px;
+  }
+
+  .clear-search-btn {
+    right: 10px;
+    width: 24px;
+    height: 24px;
+  }
+
+  .clear-search-btn svg {
+    width: 12px;
+    height: 12px;
+  }
+
   .bookings-container {
-    padding: 16px;
+    padding: 12px 16px;
   }
 
-  .ag-theme-alpine {
-    height: 350px;
+  .booking-cards-grid,
+  .booking-cards-horizontal {
+    margin: 0 -16px;
+    padding-left: 16px;
+    padding-right: 16px;
+    width: calc(100% + 32px);
   }
 
-  ::ng-deep .ag-theme-alpine {
-    font-size: 12px;
+  .booking-card {
+    width: 240px;
+    min-height: 340px;
   }
 
-  .court-card {
-    grid-template-columns: 1fr;
-    gap: 16px;
-    padding: 16px;
-    margin: 16px;
+  .booking-card-compact {
+    width: 210px;
+    min-height: 260px;
   }
 
-  .court-card:first-of-type {
-    margin-top: 16px;
+  .card-image {
+    height: 140px;
   }
 
-  .court-card:last-child {
-    margin-bottom: 16px;
+  .card-content {
+    padding: var(--spacing-md);
+    gap: var(--spacing-sm);
   }
 
-  .court-card .court-thumb {
-    width: 100%;
-    height: 200px;
+  .card-content-compact {
+    padding: var(--spacing-md);
+    gap: var(--spacing-xs);
   }
 
-  .court-card .court-name {
-    font-size: 18px;
+  .court-name {
+    font-size: 1rem;
   }
 
-  .court-card .court-meta {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 6px;
+  .court-name-compact {
+    font-size: 0.95rem;
+  }
+
+  .detail-item {
+    font-size: 0.8rem;
+  }
+
+  .detail-item-compact {
+    font-size: 0.75rem;
+  }
+
+  .price {
+    font-size: 1rem;
+  }
+
+  .price-compact {
+    font-size: 0.9rem;
+  }
+
+  .cancel-btn {
+    padding: 6px 12px;
+    font-size: 10px;
   }
 }

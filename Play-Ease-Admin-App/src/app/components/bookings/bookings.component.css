@@ -21,6 +21,103 @@ app-filter-drawer {
   flex-shrink: 0;
 }
 
+/* Collapsed Filter Summary Box */
+.filter-summary-box {
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto;
+  background: linear-gradient(135deg, #006b3d 0%, #005a33 100%);
+  border-radius: 12px;
+  padding: 12px 16px;
+  box-shadow: 0 4px 16px rgba(0, 107, 61, 0.3);
+  animation: slideDown 0.3s ease-out;
+  flex-shrink: 0;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.filter-summary-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.filter-summary-items {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  flex: 1;
+  min-width: 0;
+}
+
+.filter-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 12px;
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 500;
+  color: white;
+  white-space: nowrap;
+}
+
+.filter-summary-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.btn-expand,
+.btn-close-summary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 8px;
+  color: white;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  padding: 0;
+}
+
+.btn-expand:hover,
+.btn-close-summary:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: translateY(-1px);
+}
+
+.btn-expand:active,
+.btn-close-summary:active {
+  transform: translateY(0);
+}
+
+.btn-expand svg,
+.btn-close-summary svg {
+  width: 16px;
+  height: 16px;
+  stroke: white;
+}
+
 /* Top Half: Court List */
 .top-section {
   flex: 0 0 50%;

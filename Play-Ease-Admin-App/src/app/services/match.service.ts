@@ -49,7 +49,7 @@ export interface Application {
   providedIn: 'root'
 })
 export class MatchService {
-  private apiUrl = "http://localhost:5105/api";
+  private apiUrl = "http://localhost:5000/api";
 
   constructor(private http: HttpClient) {}
 

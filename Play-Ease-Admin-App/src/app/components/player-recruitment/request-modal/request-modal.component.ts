@@ -2,6 +2,7 @@ import { Component, EventEmitter, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RequestPlayerService } from '../../../services/request-player.service';
+import { AuthService } from '../../../services/auth/auth.service';
 import { HttpErrorResponse } from '@angular/common/http';
 import { DxDateBoxModule } from 'devextreme-angular';
 
@@ -48,21 +49,31 @@ export class RequestModalComponent {
   notificationText = '';
   fullname?: string;
 
- ngOnInit(): void {
+  ngOnInit(): void {
+    this.loadUserInfo();
+  }
+
+  constructor(
+    private requestService: RequestPlayerService,
+    private authService: AuthService
+  ) {
+    // minDate is set to today
+  }
+
+  // Load user info dynamically (not just once in ngOnInit)
+  private loadUserInfo(): void {
+    // Use AuthService methods which read from loggedInUser JSON
+    this.userId = this.authService.getUserId();
+    this.fullname = this.authService.getUserName();
+    
+    // Also get roleId from localStorage if needed
     const saved = localStorage.getItem('loggedInUser');
     if (saved) {
       try {
         const p = JSON.parse(saved);
-        this.userId = p.userID;
-        this.fullname=p.fullName
-        this.roleId = p.roleID
+        this.roleId = p.roleID ?? p.roleId ?? undefined;
       } catch {}
     }
-  }
-
-
-  constructor(private requestService: RequestPlayerService) {
-    // minDate is set to today
   }
 
   closeModal(): void {
@@ -84,6 +95,15 @@ export class RequestModalComponent {
       return;
     }
 
+    // Reload user info to ensure we have the latest logged-in user data
+    this.loadUserInfo();
+
+    // Validate user info before proceeding
+    if (!this.userId || this.userId === 0 || !this.fullname) {
+      this.displayNotification('Error: User information not found. Please log in again.');
+      return;
+    }
+
     // Format date and time for backend
     const dateStr = this.formatDate(this.matchDate);
     const startTimeStr = this.formatTime(this.startTime);
@@ -99,8 +119,8 @@ export class RequestModalComponent {
       roles: this.roles,
       numPlayers: this.numPlayers,
       price: this.price,
-      organizer: this.fullname!,
-      organizerId: this.userId!,
+      organizer: this.fullname,
+      organizerId: this.userId,
       createdAt: new Date().toISOString()
     };
 

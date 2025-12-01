@@ -49,32 +49,55 @@ setUser(data: any) {
     return userStr ? JSON.parse(userStr) : null;
   }
 
-  // ✅ Get user ID
-getUserId(): number {
-  if (typeof window !== 'undefined') {
-    const id = localStorage.getItem('userId');
-    return id ? Number(id) : 0;   // return 0 if null
+  // ✅ Get user ID from loggedInUser JSON
+  getUserId(): number {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('loggedInUser');
+      if (saved) {
+        try {
+          const user = JSON.parse(saved);
+          // Handle different possible field names
+          return user.userID ?? user.userId ?? user.id ?? 0;
+        } catch (err) {
+          return 0;
+        }
+      }
+    }
+    return 0;  // server-side rendering fallback
   }
-  return 0;  // server-side rendering fallback
-}
 
-
-getUserName(): string {
-  if (typeof window !== 'undefined') {
-    return localStorage.getItem('userName') || "";
+  // ✅ Get user name from loggedInUser JSON
+  getUserName(): string {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('loggedInUser');
+      if (saved) {
+        try {
+          const user = JSON.parse(saved);
+          // Handle different possible field names
+          return user.fullName ?? user.fullname ?? user.name ?? user.userName ?? "";
+        } catch (err) {
+          return "";
+        }
+      }
+    }
+    return "";
   }
-  return "";
-}
 
   // ✅ Check if user is logged in
   isLoggedIn(): boolean {
-    return !!localStorage.getItem('currentUser');
+    if (typeof window !== 'undefined') {
+      return !!localStorage.getItem('loggedInUser');
+    }
+    return false;
   }
 
   // ✅ Logout
   logout(): void {
-    localStorage.removeItem('currentUser');
-    localStorage.removeItem('userId');
-    localStorage.removeItem('userName');
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('loggedInUser');
+      localStorage.removeItem('currentUser');
+      localStorage.removeItem('userId');
+      localStorage.removeItem('userName');
+    }
   }
 }

@@ -5,15 +5,40 @@
     (search)="onSearch(form.get('searchQuery')?.value)"
   ></app-searchbar>
 
+  <!-- Collapsed Filter Summary Box -->
+  <div class="filter-summary-box" *ngIf="filtersCollapsed && getActiveFiltersCount() > 0">
+    <div class="filter-summary-content">
+      <div class="filter-summary-items">
+        <span class="filter-badge" *ngFor="let filter of getActiveFiltersSummary()">
+          {{ filter }}
+        </span>
+      </div>
+      <div class="filter-summary-actions">
+        <button type="button" class="btn-expand" (click)="expandFilters()" title="Expand filters">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="18 15 12 9 6 15"></polyline>
+          </svg>
+        </button>
+        <button type="button" class="btn-close-summary" (click)="closeFilters()" title="Close filters">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
   <app-filter-drawer
-    *ngIf="filtersOpened"
+    [isOpen]="filtersOpened"
     [form]="form"
     [timeOptions]="timeOptionsSidebar"
     [minDate]="minDate"
     (applyFilters)="onApplyFilters()"
     (clearFilters)="onClearFilters()"
-    (useCurrentLocation)="onUseLocation()"
     (selectTime)="onTimeSelect($event)"
+    (close)="closeFilters()"
+    (filterChange)="applyFiltersRealtime()"
   ></app-filter-drawer>
 
   <!-- Top Half: Court List -->

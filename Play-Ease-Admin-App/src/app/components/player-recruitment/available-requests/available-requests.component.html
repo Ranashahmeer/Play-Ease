@@ -10,7 +10,12 @@
       [attr.data-match-time]="request.endTime">
       <header class="request-header">
         <h3 class="request-title">{{ request.title }}</h3>
-        <span class="request-badge">Looking for {{ request.numPlayers }} Players</span>
+        <span class="request-badge" *ngIf="getRemainingSlots(request) > 0">
+          {{ getRemainingSlots(request) }} Slot{{ getRemainingSlots(request) > 1 ? 's' : '' }} Remaining
+        </span>
+        <span class="request-badge" style="background-color: #28a745;" *ngIf="getRemainingSlots(request) === 0">
+          Fully Booked ✓
+        </span>
       </header>
       <div class="request-details">
         <div class="detail-item">
@@ -54,9 +59,16 @@
         <button 
           class="btn-apply" 
           [class.applied]="isApplied(request.id)"
-          [disabled]="isApplied(request.id)"
-          (click)="applyToRequest(request)">
-          {{ isApplied(request.id) ? 'Applied ✓' : 'Apply' }}
+          [class.pending]="getApplicantStatus(request.id) === 'pending'"
+          [class.accepted]="getApplicantStatus(request.id) === 'accepted'"
+          [class.rejected]="getApplicantStatus(request.id) === 'rejected'"
+          [disabled]="isApplied(request.id) || isFullyBooked(request)"
+          (click)="applyToRequest(request)"
+          [title]="isFullyBooked(request) ? 'Request is fully booked' : (getApplicantStatus(request.id) ? 'Status: ' + getApplicantStatus(request.id) : 'Click to apply')">
+          <span *ngIf="!isApplied(request.id)">Apply</span>
+          <span *ngIf="getApplicantStatus(request.id) === 'pending'">Pending ⏳</span>
+          <span *ngIf="getApplicantStatus(request.id) === 'accepted'">Accepted ✓</span>
+          <span *ngIf="getApplicantStatus(request.id) === 'rejected'">Rejected ✗</span>
         </button>
           <button 
             *ngIf="isAcceptedApplicant(request.id)"

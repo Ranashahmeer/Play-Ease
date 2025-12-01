@@ -1,6 +1,6 @@
 <section class="my-requests-section">
   <h2 class="section-title">My Requests</h2>
-  <p class="section-subtitle">View and manage applicants for your posted match requests</p>
+  <p class="section-subtitle">Manage your posted requests and view accepted applications</p>
 
   <div id="myRequestsList">
     <article 
@@ -10,8 +10,40 @@
       [attr.data-match-time]="request.endTime">
       <header class="request-header">
         <h3 class="request-title">{{ request.title }}</h3>
-        <span class="request-badge">{{ getApplicantCount(request) }}</span>
+        <div class="request-badges">
+          <span class="request-badge" *ngIf="isOwnRequest(request)">
+            {{ getRemainingSlots(request) }} Slot{{ getRemainingSlots(request) !== 1 ? 's' : '' }} Left
+          </span>
+          <span class="request-badge" style="background-color: #28a745;" *ngIf="isOwnRequest(request) && getRemainingSlots(request) === 0">
+            Fully Booked ✓
+          </span>
+          <span class="accepted-badge" *ngIf="isAcceptedApplicant(request)">✓ Accepted</span>
+        </div>
       </header>
+      
+      <!-- Show organizer info for accepted applications -->
+      <div class="organizer-info" *ngIf="isAcceptedApplicant(request) && !isOwnRequest(request)">
+        <span class="organizer-label">Organizer:</span>
+        <span class="organizer-name">{{ request.organizer }}</span>
+        <span class="organizer-label" style="margin-left: 16px;">Your Role:</span>
+        <span class="organizer-name">{{ getMyApplicantInfo(request)?.role }}</span>
+      </div>
+      
+      <!-- Show accepted applicants info for organizer -->
+      <div class="accepted-applicants-info" *ngIf="isOwnRequest(request) && hasAcceptedApplicants(request)">
+        <div class="info-header">
+          <span class="info-label">✓ Accepted Players:</span>
+        </div>
+        <div class="accepted-players-list">
+          <div class="player-tag" *ngFor="let applicant of getAcceptedApplicants(request)">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M20 6L9 17l-5-5"></path>
+            </svg>
+            <span class="player-name">{{ applicant.userName }}</span>
+            <span class="player-role">({{ applicant.role }})</span>
+          </div>
+        </div>
+      </div>
       <div class="request-details">
         <div class="detail-item">
           <svg class="icon" viewBox="0 0 24 24">
@@ -46,10 +78,35 @@
         </div>
       </div>
 
-      <div class="applicants-list" *ngIf="request.applicants && request.applicants.length > 0">
-        <div class="applicant-item" *ngFor="let applicant of request.applicants">
+      <!-- Chat button for accepted applicants -->
+      <div class="accepted-actions" *ngIf="isAcceptedApplicant(request) && !isOwnRequest(request)">
+        <div class="match-info-text">
+          <p><strong>Your application has been accepted!</strong></p>
+          <p>Match is scheduled for {{ formatDate(request.date) }} from {{ formatTime(request.startTime) }} to {{ formatTime(request.endTime) }}</p>
+        </div>
+        <button 
+          class="btn-chat-organizer"
+          [class.active]="isChatAvailableWithOrganizer(request)"
+          [disabled]="!isChatAvailableWithOrganizer(request)"
+          (click)="startChatWithOrganizer(request)"
+          [title]="!isChatAvailableWithOrganizer(request) ? 'Chat only available until match ends' : 'Chat with organizer'">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+          </svg>
+          Chat with Organizer
+        </button>
+      </div>
+
+      <!-- Applicants list (only for own requests) -->
+      <div class="applicants-list" *ngIf="isOwnRequest(request) && request.applicants && request.applicants.length > 0">
+        <div class="applicant-item" *ngFor="let applicant of request.applicants" [class.status-pending]="applicant.status === 'pending'" [class.status-accepted]="applicant.status === 'accepted'" [class.status-rejected]="applicant.status === 'rejected'">
           <div class="applicant-info">
-            <span class="applicant-name">{{ applicant.userName }}</span>
+            <div class="applicant-header">
+              <span class="applicant-name">{{ applicant.userName }}</span>
+              <span class="status-badge" [class.badge-pending]="applicant.status === 'pending'" [class.badge-accepted]="applicant.status === 'accepted'" [class.badge-rejected]="applicant.status === 'rejected'">
+                {{ applicant.status === 'pending' ? 'Pending' : applicant.status === 'accepted' ? 'Accepted' : 'Rejected' }}
+              </span>
+            </div>
             <span class="applicant-position">{{ applicant.role }}</span>
           </div>
           <div class="applicant-actions">
@@ -57,7 +114,9 @@
               class="btn-accept"
               [class.accepted]="applicant.status === 'accepted'"
               [disabled]="applicant.status !== 'pending'"
-              (click)="acceptApplicant(request, applicant)">
+              [disabled]="applicant.status === 'accepted' || isFullyBooked(request)"
+              (click)="acceptApplicant(request, applicant)"
+              [title]="isFullyBooked(request) ? 'Request is fully booked' : (applicant.status === 'accepted' ? 'Already accepted' : 'Accept applicant')">
               {{ applicant.status === 'accepted' ? 'Accepted' : 'Accept' }}
             </button>
             <button 
@@ -81,17 +140,19 @@
     </article>
 
     <div class="empty-state" *ngIf="requests.length === 0">
-      You haven't posted any match requests yet.
+      <p>You haven't posted any match requests yet.</p>
+      <p>You also don't have any accepted applications.</p>
     </div>
   </div>
 </section>
 
 <!-- Chat Popup -->
-<div class="chat-popup" [class.active]="showChat" *ngIf="currentChatApplicant && currentChatRequest">
+<div class="chat-popup" [class.active]="showChat" *ngIf="currentChatRequest">
   <div class="chat-header">
     <div class="chat-header-info">
-      <div class="chat-participant-name">Chat with {{ currentChatApplicant.userName }}</div>
-      <div class="chat-match-info">{{ currentChatRequest.title }} - {{ currentChatApplicant.role }}</div>
+      <div class="chat-participant-name" *ngIf="currentChatApplicant">Chat with {{ currentChatApplicant.userName }}</div>
+      <div class="chat-participant-name" *ngIf="!currentChatApplicant">Chat with {{ currentChatRequest.organizer }}</div>
+      <div class="chat-match-info">{{ currentChatRequest.title }}<span *ngIf="currentChatApplicant"> - {{ currentChatApplicant.role }}</span></div>
     </div>
     <button class="btn-close" (click)="closeChat()" aria-label="Close chat">&times;</button>
   </div>
@@ -114,15 +175,15 @@
       [(ngModel)]="chatInput"
       (keypress)="handleChatKeyPress($event)"
       placeholder="Type a message..."
-      [disabled]="!isChatAvailable(currentChatRequest, currentChatApplicant)"/>
+      [disabled]="(currentChatApplicant && !isChatAvailable(currentChatRequest, currentChatApplicant)) || (!currentChatApplicant && !isChatAvailableWithOrganizer(currentChatRequest))"/>
     <button 
       class="chat-send-btn" 
       (click)="sendMessage()"
-      [disabled]="!chatInput.trim() || !isChatAvailable(currentChatRequest, currentChatApplicant)">
+      [disabled]="!chatInput.trim() || (currentChatApplicant && !isChatAvailable(currentChatRequest, currentChatApplicant)) || (!currentChatApplicant && !isChatAvailableWithOrganizer(currentChatRequest))">
       Send
     </button>
   </div>
-  <div class="chat-status" *ngIf="!isChatAvailable(currentChatRequest, currentChatApplicant)">
+  <div class="chat-status" *ngIf="(currentChatApplicant && !isChatAvailable(currentChatRequest, currentChatApplicant)) || (!currentChatApplicant && !isChatAvailableWithOrganizer(currentChatRequest))">
     Chat is no longer available. The match has ended.
   </div>
 </div>

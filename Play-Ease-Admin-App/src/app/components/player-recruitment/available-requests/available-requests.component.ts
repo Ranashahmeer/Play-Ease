@@ -6,6 +6,7 @@ import { isPlatformBrowser } from '@angular/common';
 import { Inject, PLATFORM_ID } from '@angular/core';
 import { ChatService, ChatMessage } from '../../../services/chat.service';
 import { MatchService, Applicant } from '../../../services/match.service';
+import { AlertService } from '../../../services/alert.service';
 import { Subscription } from 'rxjs';
 
 
@@ -64,6 +65,7 @@ export class AvailableRequestsComponent implements OnInit, OnDestroy, OnChanges 
     private getDataService: GetDatabyDatasourceService,
     private chatService: ChatService,
     private matchService: MatchService,
+    private alertService: AlertService,
     @Inject(PLATFORM_ID) private platformId: Object
   ) {}
 
@@ -89,7 +91,20 @@ export class AvailableRequestsComponent implements OnInit, OnDestroy, OnChanges 
     // Refresh accepted applicants when requests input changes
     if (changes['requests']) {
       this.processAcceptedApplicants();
+      // Update appliedRequests Set based on actual applicants data
+      this.updateAppliedRequests();
     }
+  }
+
+  // Update appliedRequests Set based on actual applicants data
+  private updateAppliedRequests(): void {
+    if (!this.userId) return;
+    
+    this.requests.forEach(request => {
+      if (request.applicants && request.applicants.some((a: Applicant) => a.userId === this.userId)) {
+        this.appliedRequests.add(request.id);
+      }
+    });
   }
 
   ngOnDestroy(): void {
@@ -303,21 +318,51 @@ export class AvailableRequestsComponent implements OnInit, OnDestroy, OnChanges 
 
   selectRole(role: string): void {
     if (this.selectedMatch) {
+      // Check if already applied using actual applicants data
+      if (this.isAlreadyApplied(this.selectedMatch.id)) {
+        this.alertService.warning('You have already applied to this match.');
+        this.closeRoleModal();
+        return;
+      }
+
       this.appliedRequests.add(this.selectedMatch.id);
       this.applicationSubmitted.emit({
-      matchId: this.selectedMatch.id,
-      userId: this.userId,
-      userName: this.fullname,  // We'll define it below
-      role: role
-    });
+        matchId: this.selectedMatch.id,
+        userId: this.userId,
+        userName: this.fullname,
+        role: role
+      });
 
       this.closeRoleModal();
       this.displayNotification(`Application submitted for ${role} position!`);
     }
   }
 
+  // Check if user has already applied to a request (using actual applicants data)
+  isAlreadyApplied(requestId: number): boolean {
+    if (!this.userId) return false;
+    
+    const request = this.requests.find(r => r.id === requestId);
+    if (!request || !request.applicants) return false;
+    
+    return request.applicants.some((a: Applicant) => a.userId === this.userId);
+  }
+
+  // Check if user has applied (for UI display)
   isApplied(requestId: number): boolean {
-    return this.appliedRequests.has(requestId);
+    // Check both local Set (for immediate feedback) and actual applicants data
+    return this.appliedRequests.has(requestId) || this.isAlreadyApplied(requestId);
+  }
+
+  // Get applicant status for a request
+  getApplicantStatus(requestId: number): 'pending' | 'accepted' | 'rejected' | null {
+    if (!this.userId) return null;
+    
+    const request = this.requests.find(r => r.id === requestId);
+    if (!request || !request.applicants) return null;
+    
+    const applicant = request.applicants.find((a: Applicant) => a.userId === this.userId);
+    return applicant ? applicant.status : null;
   }
 
   formatDate(dateString: string): string {
@@ -335,6 +380,20 @@ export class AvailableRequestsComponent implements OnInit, OnDestroy, OnChanges 
     const ampm = hour >= 12 ? 'PM' : 'AM';
     const displayHour = hour % 12 || 12;
     return `${displayHour}:${minutes} ${ampm}`;
+  }
+
+  // Get remaining slots for a request
+  getRemainingSlots(request: MatchRequest): number {
+    const numPlayers = request.numPlayers || 0;
+    const acceptedCount = request.applicants?.filter(
+      (a: Applicant) => a.status === 'accepted'
+    ).length || 0;
+    return Math.max(0, numPlayers - acceptedCount);
+  }
+
+  // Check if request is fully booked
+  isFullyBooked(request: MatchRequest): boolean {
+    return this.getRemainingSlots(request) === 0;
   }
 
   private displayNotification(message: string): void {

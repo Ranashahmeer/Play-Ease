@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import { AddCourtComponent } from '../add-court/add-court.component';
 import { GetDatabyDatasourceService } from '../../services/get-data/get-databy-datasource.service';
 import { AlertService } from '../../services/alert.service';
@@ -68,7 +69,8 @@ export class AdminDashboardComponent implements OnInit {
   constructor(
     private dataService: GetDatabyDatasourceService,
     private alertService: AlertService,
-    private http: HttpClient
+    private http: HttpClient,
+    private router: Router
   ) {}
 
   ngOnInit(): void {
@@ -113,21 +115,22 @@ export class AdminDashboardComponent implements OnInit {
         const data = Array.isArray(apiData) ? apiData : [];
         this.bookings = data.map((item, index) => {
           // Map backend data to Booking interface
-          const bookingDate = item.BookingDate || item.bookingDate;
-          const startTime = item.StartTime || item.startTime || '';
-          const endTime = item.EndTime || item.endTime || '';
+          const bookingDate = item.bookingdate;
+          const startTime = item.starttime;
+          const endTime = item.endtime ;
           
           // Format time
           const timeStr = this.formatTimeRange(startTime, endTime);
           
           // Determine payment status
-          let paymentStatus: 'confirmed' | 'pending' | 'completed' = 'pending';
-          if (item.PaymentApprovalStatus === 'Approved' || item.PaymentStatus === 'Confirmed') {
-            paymentStatus = 'confirmed';
-          } else if (item.PaymentApprovalStatus === 'Pending' || item.PaymentStatus === 'Pending') {
-            paymentStatus = 'pending';
+          let paymentStatus: 'Confirmed' | 'Pending' |'Rejected'| 'completed' = 'Pending';
+          if (item.paymentstatus === 'Confirmed') {
+            paymentStatus = 'Confirmed';
+          } else if (item.paymentstatus === 'Pending' || item.PaymentStatus === 'Pending') {
+            paymentStatus = 'Pending';
+          } else {
+            paymentStatus = 'Rejected';
           }
-          
           // Check if booking is completed (date has passed)
           if (bookingDate) {
             const bookingDateObj = new Date(bookingDate);
@@ -140,13 +143,13 @@ export class AdminDashboardComponent implements OnInit {
           
           return {
             id: item.BookingID?.toString() || item.bookingID?.toString() || (index + 1).toString(),
-            courtName: item.NAME || item.CourtName || item.courtName || 'Unknown Court',
-            playerName: item.FullName || item.fullName || item.UserName || 'Unknown User',
+            courtName: item.NAME,
+            playerName: item.FullName,
             date: bookingDate ? new Date(bookingDate).toISOString().split('T')[0] : '',
             time: timeStr,
             paymentStatus: paymentStatus,
-            price: item.Price || item.price || 0,
-            bookedDate: item.CreatedAt || item.createdAt || new Date().toISOString().split('T')[0]
+            price: item.price,
+            bookedDate:  item.CreatedAt  || new Date().toISOString().split('T')[0]
           } as Booking;
         });
         this.isLoadingBookings = false;
@@ -322,5 +325,9 @@ export class AdminDashboardComponent implements OnInit {
     setTimeout(() => {
       this.showNotification = false;
     }, 3000);
+  }
+
+  navigateToDashboard(): void {
+    this.router.navigate(['/dashboard']);
   }
 }

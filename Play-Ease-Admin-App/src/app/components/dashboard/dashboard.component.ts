@@ -129,7 +129,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
     // Admin-only overview charts
     this.loadChart(9, 'userRegistration', 'User registration trends');
     this.loadChart(10, 'roleDistribution', 'Role distribution');
-    this.loadChart(12, 'applicationStatus', 'Application status');
+    // this.loadChart(12, 'applicationStatus', 'Application status');
     this.loadChart(19, 'activeUsers', 'Active vs Inactive users');
     // Admin business charts
     this.loadChart(11, 'matchTrends', 'Match creation trends');
@@ -186,7 +186,28 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
     const sub = this.dataService.getData(dataSourceId, whereClause).subscribe({
       next: (data: any[]) => {
-        this.charts[chartKey].dataSource = Array.isArray(data) ? data : [];
+        // Transform datasource 11 data from TotalMatches to MatchCount format
+        if (dataSourceId === 11) {
+          if (Array.isArray(data) && data.length > 0) {
+            // Check if data has TotalMatches field (new format)
+            if (data[0].TotalMatches !== undefined) {
+              // Transform to chart format: create a single data point with today's date
+              const today = new Date().toISOString().split('T')[0];
+              this.charts[chartKey].dataSource = [{
+                Date: today,
+                MatchCount: data[0].TotalMatches || 0
+              }];
+            } else {
+              // Old format with MatchCount and Date
+              this.charts[chartKey].dataSource = Array.isArray(data) ? data : [];
+            }
+          } else {
+            // Empty data array - set to empty to avoid showing stale data
+            this.charts[chartKey].dataSource = [];
+          }
+        } else {
+          this.charts[chartKey].dataSource = Array.isArray(data) ? data : [];
+        }
         this.charts[chartKey].loading = false;
       },
       error: (err) => {
@@ -222,14 +243,40 @@ export class DashboardComponent implements OnInit, OnDestroy {
       }
     });
 
-    // Total Matches
-    this.dataService.getData(11).subscribe({
-      next: (data: any[]) => {
-        if (data && data.length > 0) {
-          this.kpis.totalMatches = data.reduce((sum, item) => sum + (item.MatchCount || 0), 0);
+    // Total Matches - Role-based logic
+    if (this.userRole === 'Admin') {
+      // Admin: Get all matches without where clause
+      this.dataService.getData(11).subscribe({
+        next: (data: any[]) => {
+          if (data && data.length > 0) {
+            // Handle new format with TotalMatches
+            if (data[0].TotalMatches !== undefined) {
+              this.kpis.totalMatches = data[0].TotalMatches || 0;
+            } else {
+              // Old format with MatchCount
+              this.kpis.totalMatches = data.reduce((sum, item) => sum + (item.MatchCount || 0), 0);
+            }
+          }
         }
+      });
+    } else {
+      // Non-Admin: Get matches with where clause for user-specific data
+      if (this.userId) {
+        this.dataService.getData(11, `OrganizerId = ${this.userId}`).subscribe({
+          next: (data: any[]) => {
+            if (data && data.length > 0) {
+              // Handle new format with TotalMatches
+              if (data[0].TotalMatches !== undefined) {
+                this.kpis.totalMatches = data[0].TotalMatches || 0;
+              } else {
+                // Old format with MatchCount
+                this.kpis.totalMatches = data.reduce((sum, item) => sum + (item.MatchCount || 0), 0);
+              }
+            }
+          }
+        });
       }
-    });
+    }
 
     // Acceptance Rate
     this.dataService.getData(12).subscribe({

@@ -209,7 +209,7 @@
     </div>
 
     <!-- Admin & User: Application Status -->
-    <div class="chart-card" *ngIf="userRole === 'Admin' || userRole === 'User'">
+    <!-- <div class="chart-card" *ngIf="userRole === 'Admin' || userRole === 'User'">
       <h3>Application Status</h3>
       <div *ngIf="charts['applicationStatus'].loading" class="loading">Loading...</div>
       <div *ngIf="charts['applicationStatus'].error" class="error">{{ charts['applicationStatus'].error }}</div>
@@ -224,7 +224,7 @@
         </dxi-series>
         <dxo-legend [visible]="true"></dxo-legend>
       </dx-pie-chart>
-    </div>
+    </div> -->
 
     <!-- Admin Only: Active vs Inactive Users -->
     <div class="chart-card" *ngIf="userRole === 'Admin'">

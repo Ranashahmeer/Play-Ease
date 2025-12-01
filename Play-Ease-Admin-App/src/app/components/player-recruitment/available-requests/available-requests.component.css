@@ -122,8 +122,22 @@
 
 .btn-apply:disabled,
 .btn-apply.applied {
-  background: #6a6a6a;
   cursor: not-allowed;
+}
+
+.btn-apply.pending {
+  background: #ffa726;
+  color: #fff;
+}
+
+.btn-apply.accepted {
+  background: #4caf50;
+  color: #fff;
+}
+
+.btn-apply.rejected {
+  background: #ef5350;
+  color: #fff;
 }
 
 .icon {

@@ -1,6 +1,17 @@
 <main class="admin-page">
   <header class="page-header">
     <h1 class="page-title">Admin Dashboard</h1>
+    <div class="header-actions">
+      <button class="dashboard-btn" (click)="navigateToDashboard()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="3" width="7" height="7"></rect>
+          <rect x="14" y="3" width="7" height="7"></rect>
+          <rect x="14" y="14" width="7" height="7"></rect>
+          <rect x="3" y="14" width="7" height="7"></rect>
+        </svg>
+        Dashboard
+      </button>
+    </div>
   </header>
 
   <!-- Tabs -->
@@ -58,6 +69,7 @@
       <option *ngIf="activeTab === 'users'" value="courtOwner">Court Owners Only</option>
       <option *ngIf="activeTab === 'bookings'" value="confirmed">Payment Confirmed</option>
       <option *ngIf="activeTab === 'bookings'" value="pending">Payment Pending</option>
+      <option *ngIf="activeTab === 'bookings'" value="rejected">Payment Rejected</option>
       <option *ngIf="activeTab === 'bookings'" value="completed">Completed</option>
     </select>
   </section>

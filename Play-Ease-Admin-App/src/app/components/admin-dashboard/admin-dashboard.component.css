@@ -123,6 +123,45 @@
   letter-spacing: -0.5px;
 }
 
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.dashboard-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1.25rem;
+  background: linear-gradient(135deg, #004526 0%, #006b3d 50%, #41B783 100%);
+  color: #ffffff;
+  border: none;
+  border-radius: 0.5rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 8px rgba(0, 69, 38, 0.2);
+  white-space: nowrap;
+}
+
+.dashboard-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 69, 38, 0.3);
+  background: linear-gradient(135deg, #006b3d 0%, #41B783 50%, #2e8f63 100%);
+}
+
+.dashboard-btn:active {
+  transform: translateY(0);
+}
+
+.dashboard-btn svg {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
 /* Tabs Section */
 .tabs-section {
   padding: 0;

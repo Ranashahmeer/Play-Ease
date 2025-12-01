@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, Input, Output, EventEmitter, OnInit,ViewChild, ElementRef} from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit, AfterViewInit, ViewChild, ElementRef} from '@angular/core';
 import { GetDatabyDatasourceService } from '../../services/get-data/get-databy-datasource.service';
 import { CourtAdapter } from '../../adapters/court.adapter';
 import { Pitch } from '../../models/setupModels';
@@ -10,7 +10,7 @@ import { Pitch } from '../../models/setupModels';
   templateUrl: './court-list.component.html',
   styleUrl: './court-list.component.css'
 })
-export class CourtListComponent implements OnInit {
+export class CourtListComponent implements OnInit, AfterViewInit {
    @ViewChild('scrollContainer') scrollContainer!: ElementRef;
   allCourts: any[] = [];       // All courts fetched from API
   courts: any[] = [];          // Filtered courts
@@ -92,41 +92,46 @@ export class CourtListComponent implements OnInit {
       // ---------- DATE FILTER ----------
       let matchesDate = true;
       if (filters.selectedDate) {
-        const selectedDate = new Date(filters.selectedDate);
-        const dateStr = selectedDate.toISOString().split('T')[0]; // Format: YYYY-MM-DD
-        
-        // Check if court has booked slots for this date
-        // If date is selected, court should be available (not fully booked)
-        if (court.bookedSlots && court.bookedSlots[dateStr]) {
-          // Court has some bookings on this date, but might still have available slots
-          // We'll consider it available if it has pitches (can check availability later)
-          matchesDate = true;
+        // Handle both Date objects and string dates (YYYY-MM-DD format)
+        let dateStr: string = '';
+        if (filters.selectedDate instanceof Date) {
+          dateStr = filters.selectedDate.toISOString().split('T')[0];
+        } else if (typeof filters.selectedDate === 'string') {
+          // If it's already a string in YYYY-MM-DD format, use it directly
+          dateStr = filters.selectedDate.split('T')[0];
         } else {
-          // No bookings on this date, court is available
-          matchesDate = true;
+          // Try to parse it as a date
+          const selectedDate = new Date(filters.selectedDate);
+          if (isNaN(selectedDate.getTime())) {
+            matchesDate = false; // Invalid date
+            dateStr = '';
+          } else {
+            dateStr = selectedDate.toISOString().split('T')[0];
+          }
+        }
+        
+        // If we have a valid date string, check availability
+        if (matchesDate && dateStr) {
+          // Check if court has pitches (basic availability check)
+          // If court has no pitches, it's not available
+          if (!court.pitches || court.pitches.length === 0) {
+            matchesDate = false;
+          } else {
+            // Court has pitches, so it's available for booking
+            // Additional check: if court has bookedSlots data, we could check if fully booked
+            // For now, we consider it available if it has pitches
+            matchesDate = true;
+          }
         }
       }
 
       // ---------- TIME FILTER ----------
       let matchesTime = true;
-      if (filters.selectedTime && filters.selectedDate) {
-        const selectedDate = new Date(filters.selectedDate);
-        const dateStr = selectedDate.toISOString().split('T')[0];
+      if (filters.selectedTime) {
         const selectedTime = filters.selectedTime;
         
-        // Check if the selected time slot is booked
-        if (court.bookedSlots && court.bookedSlots[dateStr]) {
-          const bookedTimes = court.bookedSlots[dateStr];
-          // Check if selected time conflicts with booked slots
-          // This is a simple check - you might want to enhance this based on duration
-          matchesTime = !bookedTimes.includes(selectedTime);
-        } else {
-          // No bookings, time is available
-          matchesTime = true;
-        }
-        
-        // Also check if time is within court operating hours
-        if (matchesTime && court.openingTime && court.closingTime) {
+        // Check if time is within court operating hours
+        if (court.openingTime && court.closingTime && court.openingMinutes !== undefined && court.closingMinutes !== undefined) {
           const timeMatch = selectedTime.match(/(\d+):(\d+)\s*(AM|PM)/i);
           if (timeMatch) {
             let hours = parseInt(timeMatch[1]);
@@ -139,6 +144,33 @@ export class CourtListComponent implements OnInit {
             const selectedMinutes = hours * 60 + minutes;
             matchesTime = selectedMinutes >= court.openingMinutes && 
                          selectedMinutes <= court.closingMinutes;
+          } else {
+            // Invalid time format
+            matchesTime = false;
+          }
+        }
+        
+        // If date is also selected, check for booked slots
+        if (matchesTime && filters.selectedDate) {
+          let dateStr: string = '';
+          if (filters.selectedDate instanceof Date) {
+            dateStr = filters.selectedDate.toISOString().split('T')[0];
+          } else if (typeof filters.selectedDate === 'string') {
+            dateStr = filters.selectedDate.split('T')[0];
+          } else {
+            const selectedDate = new Date(filters.selectedDate);
+            if (!isNaN(selectedDate.getTime())) {
+              dateStr = selectedDate.toISOString().split('T')[0];
+            }
+          }
+          
+          // Check if the selected time slot is booked
+          if (court.bookedSlots && court.bookedSlots[dateStr]) {
+            const bookedTimes = court.bookedSlots[dateStr];
+            // Check if selected time conflicts with booked slots
+            // Handle both array and single value
+            const bookedTimesArray = Array.isArray(bookedTimes) ? bookedTimes : [bookedTimes];
+            matchesTime = !bookedTimesArray.includes(selectedTime);
           }
         }
       }
@@ -147,14 +179,20 @@ export class CourtListComponent implements OnInit {
       let matchesDuration = true;
       if (filters.matchDuration) {
         // Check if court has pitches that can accommodate the duration
-        // For now, we'll just check if court has any pitches
-        // You can enhance this to check specific pitch availability
+        // For now, we check if court has any pitches (basic check)
+        // In a real scenario, you might check if the duration fits within available time slots
         matchesDuration = court.pitches && court.pitches.length > 0;
+        
+        // Additional check: if court has operating hours, ensure duration fits
+        if (matchesDuration && court.openingMinutes !== undefined && court.closingMinutes !== undefined) {
+          const totalAvailableMinutes = court.closingMinutes - court.openingMinutes;
+          matchesDuration = totalAvailableMinutes >= filters.matchDuration;
+        }
       }
 
       // ---------- PITCH SIZES FILTER ----------
       let matchesPitch = true;
-      if (filters.selectedPitchSizes?.length) {
+      if (filters.selectedPitchSizes && Array.isArray(filters.selectedPitchSizes) && filters.selectedPitchSizes.length > 0) {
         matchesPitch = filters.selectedPitchSizes.some((size: string) =>
           court.pitches?.some((p: Pitch) => p.pitchtype === size)
         );

@@ -211,6 +211,12 @@ ngOnInit(): void {
   }
 
   sendMessage(): void {
+    // If chatting with organizer (accepted applicant), use different method
+    if (!this.currentChatApplicant && this.currentChatRequest) {
+      this.sendMessageToOrganizer();
+      return;
+    }
+
     const text = this.chatInput.trim();
     if (!text || !this.currentChatRequest || !this.currentChatApplicant || !this.userId) {
       return;
@@ -240,7 +246,7 @@ ngOnInit(): void {
     this.chatService.sendMessage(message).subscribe({
       next: (sentMessage) => {
         this.chatMessages.push(sentMessage);
-    this.chatInput = '';
+        this.chatInput = '';
       },
       error: (err) => {
         // Error sending message
@@ -295,5 +301,171 @@ ngOnInit(): void {
     const count = request.applicants?.length || 0;
     if (count === 0) return 'No Applicants';
     return `${count} Applicant${count > 1 ? 's' : ''}`;
+  }
+
+  // Get remaining slots for a request
+  getRemainingSlots(request: MyRequest): number {
+    const numPlayers = request.numPlayers || 0;
+    const acceptedCount = request.applicants?.filter(
+      (a: Applicant) => a.status === 'accepted'
+    ).length || 0;
+    return Math.max(0, numPlayers - acceptedCount);
+  }
+
+  // Check if request is fully booked
+  isFullyBooked(request: MyRequest): boolean {
+    return this.getRemainingSlots(request) === 0;
+  }
+
+  // Check if this request is owned by the current user
+  isOwnRequest(request: MyRequest): boolean {
+    return request.organizerId === this.userId;
+  }
+
+  // Check if user is an accepted applicant for this request
+  isAcceptedApplicant(request: MyRequest): boolean {
+    if (!this.userId || !request.applicants) return false;
+    return request.applicants.some(
+      (a: Applicant) => a.userId === this.userId && a.status === 'accepted'
+    );
+  }
+
+  // Get the user's applicant info for this request
+  getMyApplicantInfo(request: MyRequest): Applicant | null {
+    if (!this.userId || !request.applicants) return null;
+    return request.applicants.find(
+      (a: Applicant) => a.userId === this.userId && a.status === 'accepted'
+    ) || null;
+  }
+
+  // Start chat with organizer (for accepted applicants)
+  startChatWithOrganizer(request: MyRequest): void {
+    const myApplicant = this.getMyApplicantInfo(request);
+    if (!myApplicant) return;
+
+    // Check if chat is available
+    if (!this.chatService.isChatAvailable(request.date, request.endTime, myApplicant.acceptedAt)) {
+      return;
+    }
+
+    this.currentChatMatchId = request.id;
+    this.currentChatRequest = request;
+    // For accepted applicant chatting with organizer, we set applicant to null and use organizer info
+    this.currentChatApplicant = null;
+    this.showChat = true;
+    this.chatMessages = [];
+
+    // Load existing messages with organizer
+    this.loadMessagesWithOrganizer();
+
+    // Start polling for new messages
+    this.startMessagePollingWithOrganizer();
+  }
+
+  // Load messages with organizer
+  loadMessagesWithOrganizer(): void {
+    if (!this.currentChatRequest || !this.userId) {
+      return;
+    }
+
+    this.chatService.getMessages(
+      this.currentChatRequest.id,
+      this.userId,
+      this.currentChatRequest.organizerId
+    ).subscribe({
+      next: (messages) => {
+        this.chatMessages = messages.sort((a, b) => {
+          const timeA = new Date(a.timestamp || a.createdAt || '').getTime();
+          const timeB = new Date(b.timestamp || b.createdAt || '').getTime();
+          return timeA - timeB;
+        });
+      },
+      error: (err) => {
+        // Error loading messages
+      }
+    });
+  }
+
+  // Start polling for messages with organizer
+  startMessagePollingWithOrganizer(): void {
+    if (!this.currentChatRequest || !this.userId) {
+      return;
+    }
+
+    // Poll every 3 seconds for new messages
+    this.messagePollingSubscription = this.chatService.getMessagesWithPolling(
+      this.currentChatRequest.id,
+      this.userId,
+      this.currentChatRequest.organizerId,
+      3000
+    ).subscribe({
+      next: (messages) => {
+        this.chatMessages = messages.sort((a, b) => {
+          const timeA = new Date(a.timestamp || a.createdAt || '').getTime();
+          const timeB = new Date(b.timestamp || b.createdAt || '').getTime();
+          return timeA - timeB;
+        });
+      },
+      error: (err) => {
+        // Error polling messages
+      }
+    });
+  }
+
+  // Check if chat is available with organizer
+  isChatAvailableWithOrganizer(request: MyRequest): boolean {
+    const myApplicant = this.getMyApplicantInfo(request);
+    if (!myApplicant) return false;
+
+    return this.chatService.isChatAvailable(
+      request.date,
+      request.endTime,
+      myApplicant.acceptedAt
+    );
+  }
+
+  // Get accepted applicants for a request (for organizer view)
+  getAcceptedApplicants(request: MyRequest): Applicant[] {
+    if (!request.applicants) return [];
+    return request.applicants.filter((a: Applicant) => a.status === 'accepted');
+  }
+
+  // Check if request has accepted applicants (for organizer view)
+  hasAcceptedApplicants(request: MyRequest): boolean {
+    return this.getAcceptedApplicants(request).length > 0;
+  }
+
+  // Send message to organizer (for accepted applicants)
+  sendMessageToOrganizer(): void {
+    const text = this.chatInput.trim();
+    if (!text || !this.currentChatRequest || !this.userId) {
+      return;
+    }
+
+    // Check if chat is still available
+    if (!this.isChatAvailableWithOrganizer(this.currentChatRequest)) {
+      this.closeChat();
+      return;
+    }
+
+    const message: ChatMessage = {
+      matchId: this.currentChatRequest.id,
+      senderId: this.userId,
+      senderName: this.currentUserName,
+      receiverId: this.currentChatRequest.organizerId,
+      receiverName: this.currentChatRequest.organizer,
+      message: text,
+      timestamp: new Date().toISOString()
+    };
+
+    this.chatService.sendMessage(message).subscribe({
+      next: (sentMessage) => {
+        this.chatMessages.push(sentMessage);
+        this.chatInput = '';
+      },
+      error: (err) => {
+        // Error sending message
+      }
+    });
   }
 }

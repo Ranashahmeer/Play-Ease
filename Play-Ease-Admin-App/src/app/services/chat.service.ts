@@ -61,8 +61,21 @@ export class ChatService {
     try {
       const now = new Date();
       
+      // Extract HH:MM from database time format (e.g., "12:00:00.0000000" -> "12:00")
+      const extractTime = (timeStr: string): { hours: number; minutes: number } => {
+        if (!timeStr) return { hours: 0, minutes: 0 };
+        const parts = timeStr.split(':');
+        if (parts.length >= 2) {
+          return {
+            hours: parseInt(parts[0], 10) || 0,
+            minutes: parseInt(parts[1], 10) || 0
+          };
+        }
+        return { hours: 0, minutes: 0 };
+      };
+      
       // Parse match date and end time
-      const [hours, minutes] = matchEndTime.split(':').map(Number);
+      const { hours, minutes } = extractTime(matchEndTime);
       const matchDateTime = new Date(matchDate);
       matchDateTime.setHours(hours, minutes, 0, 0);
       
@@ -71,15 +84,17 @@ export class ChatService {
         return false;
       }
 
-      // If acceptance time is provided, chat is only available after acceptance
+      // If acceptance time is provided, chat is only available between acceptance time and match end time
       if (applicantAcceptedAt) {
         const acceptedAt = new Date(applicantAcceptedAt);
-        return now >= acceptedAt;
+        // Chat must be after acceptance AND before match end
+        return now >= acceptedAt && now <= matchDateTime;
       }
 
-      // If no acceptance time provided, assume chat is available (for organizer or if backend doesn't track acceptance time)
-      return true;
+      // If no acceptance time provided (for organizer), chat is available until match ends
+      return now <= matchDateTime;
     } catch (error) {
+      console.error('Error checking chat availability:', error);
       return false;
     }
   }

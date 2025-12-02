@@ -271,5 +271,55 @@ export class ManageSlotsComponent implements OnInit {
     const displayHour = hours === 0 ? 12 : (hours > 12 ? hours - 12 : hours);
     return `${String(displayHour).padStart(2, '0')}:${String(minutes).padStart(2, '0')} ${ampm}`;
   }
+
+  isSlotBlocked(slotText: string): boolean {
+    if (!this.blockedSlots.length) return false;
+    const slotMinutes = this.timeStringToMinutes(slotText);
+    return this.blockedSlots.some(blocked => {
+      const startMin = this.timeSpanToMinutes(blocked.startTime);
+      const endMin = this.timeSpanToMinutes(blocked.endTime);
+      return slotMinutes >= startMin && slotMinutes < endMin;
+    });
+  }
+
+  timeSpanToMinutes(timeSpan: string): number {
+    if (!timeSpan) return 0;
+    const parts = timeSpan.split(':');
+    if (parts.length < 2) return 0;
+    const [hours, minutes] = parts.map(Number);
+    if (isNaN(hours) || isNaN(minutes)) return 0;
+    return hours * 60 + minutes;
+  }
+
+  getDuration(): string {
+    if (!this.selectedStartTime || !this.selectedEndTime) return '';
+    const startMin = this.timeStringToMinutes(this.selectedStartTime);
+    const endMin = this.timeStringToMinutes(this.selectedEndTime);
+    const duration = endMin - startMin;
+    const hours = Math.floor(duration / 60);
+    const minutes = duration % 60;
+    if (hours > 0 && minutes > 0) {
+      return `${hours}h ${minutes}m`;
+    } else if (hours > 0) {
+      return `${hours}h`;
+    } else {
+      return `${minutes}m`;
+    }
+  }
+
+  getSlotDuration(startTime: string, endTime: string): string {
+    const startMin = this.timeSpanToMinutes(startTime);
+    const endMin = this.timeSpanToMinutes(endTime);
+    const duration = endMin - startMin;
+    const hours = Math.floor(duration / 60);
+    const minutes = duration % 60;
+    if (hours > 0 && minutes > 0) {
+      return `(${hours}h ${minutes}m)`;
+    } else if (hours > 0) {
+      return `(${hours}h)`;
+    } else {
+      return `(${minutes}m)`;
+    }
+  }
 }
 

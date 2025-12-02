@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { GetDatabyDatasourceService } from '../../services/get-data/get-databy-datasource.service';
 import {
   DxChartModule,
@@ -23,7 +23,8 @@ import { Subscription } from 'rxjs';
     DxButtonModule
   ],
   templateUrl: './dashboard.component.html',
-  styleUrls: ['./dashboard.component.css']
+  styleUrls: ['./dashboard.component.css'],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA]
 })
 export class DashboardComponent implements OnInit, OnDestroy {
   userRole: string = '';
@@ -147,13 +148,13 @@ export class DashboardComponent implements OnInit, OnDestroy {
     if (!this.userId) return;
     
     // DataSource 13 has no WHERE, so use WHERE
-    const courtWhereClause = `co.OwnerID = (SELECT OwnerID FROM courtowners WHERE UserId = ${this.userId})`;
+    const courtWhereClause = `c.OwnerID = (SELECT OwnerID FROM courtowner WHERE UserId = ${this.userId})`;
     // DataSource 14 already has WHERE IsActive = 1, so use AND
-    const bookingWhereClause = `AND b.CourtId IN (SELECT CourtID FROM courts WHERE OwnerID = (SELECT OwnerID FROM courtowners WHERE UserId = ${this.userId}))`;
+    const bookingWhereClause = `  b.CourtId IN (SELECT CourtID FROM courts WHERE OwnerID = (SELECT OwnerID FROM courtowner WHERE UserId = ${this.userId})) AND IsActive = 1`;
     // DataSource 16 already has WHERE IsActive = 1, so use AND
-    const timeSlotWhereClause = `AND CourtId IN (SELECT CourtID FROM courts WHERE OwnerID = (SELECT OwnerID FROM courtowners WHERE UserId = ${this.userId}))`;
+    const timeSlotWhereClause = `CourtId IN (SELECT CourtID FROM courts WHERE OwnerID = (SELECT OwnerID FROM courtowner WHERE UserId = ${this.userId}))`;
     // DataSource 20 already has WHERE IsActive = 1, so use AND
-    const monthlyWhereClause = `AND CourtId IN (SELECT CourtID FROM courts WHERE OwnerID = (SELECT OwnerID FROM courtowners WHERE UserId = ${this.userId}))`;
+    const monthlyWhereClause = `CourtId IN (SELECT CourtID FROM courts WHERE OwnerID = (SELECT OwnerID FROM courtowner WHERE UserId = ${this.userId})) and IsActive = 1`;
     
     this.loadChart(13, 'revenueByCourt', 'My Court Revenue', courtWhereClause);
     this.loadChart(14, 'bookingTrends', 'My Booking Trends', bookingWhereClause);
@@ -166,7 +167,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
     if (!this.userId) return;
     
     // DataSource 14 already has WHERE IsActive = 1, so use AND
-    const bookingWhereClause = `AND UserID = ${this.userId}`;
+    const bookingWhereClause = ` UserID = ${this.userId} AND IsActive = 1`;
     // DataSource 11 has no WHERE, so use WHERE
     const matchWhereClause = `OrganizerId = ${this.userId}`;
     // DataSource 12 has no WHERE, so use WHERE
@@ -231,7 +232,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
     });
 
     // Total Revenue
-    this.dataService.getData(14).subscribe({
+    this.dataService.getData(14,' IsActive = 1').subscribe({
       next: (data: any[]) => {
         if (data && data.length > 0) {
           const total = data.reduce((sum, item) => sum + (item.DailyRevenue || 0), 0);
@@ -291,9 +292,69 @@ export class DashboardComponent implements OnInit, OnDestroy {
   }
 
   customizeTooltip(arg: any): any {
+    const point = arg.point || arg;
+    const seriesName = arg.seriesName || point.seriesName || '';
+    const valueText = arg.valueText || point.valueText || '';
+    const argumentText = arg.argumentText || point.argumentText || '';
+    
     return {
-      text: `${arg.seriesName}: ${arg.valueText}`
+      text: `<div style="font-weight: 600; margin-bottom: 4px;">${argumentText}</div>
+             <div style="color: ${arg.point?.color || '#2563eb'};">
+               <strong>${seriesName}:</strong> ${valueText}
+             </div>`
     };
+  }
+
+  customizeRevenueTooltip(arg: any): any {
+    const point = arg.point || arg;
+    const seriesName = arg.seriesName || point.seriesName || '';
+    const valueText = arg.valueText || point.valueText || '';
+    const argumentText = arg.argumentText || point.argumentText || '';
+    
+    return {
+      text: `<div style="font-weight: 600; margin-bottom: 4px;">${argumentText}</div>
+             <div style="color: ${arg.point?.color || '#10b981'};">
+               <strong>${seriesName}:</strong> Rs ${valueText}
+             </div>`
+    };
+  }
+
+  customizeBookingTooltip(arg: any): any {
+    const point = arg.point || arg;
+    const seriesName = arg.seriesName || point.seriesName || '';
+    const valueText = arg.valueText || point.valueText || '';
+    const argumentText = arg.argumentText || point.argumentText || '';
+    
+    return {
+      text: `<div style="font-weight: 600; margin-bottom: 4px;">${argumentText}</div>
+             <div style="color: ${arg.point?.color || '#8b5cf6'};">
+               <strong>${seriesName}:</strong> ${valueText}
+             </div>`
+    };
+  }
+
+  customizeMultiSeriesTooltip(arg: any): any {
+    const point = arg.point || arg;
+    const argumentText = arg.argumentText || point.argumentText || '';
+    let tooltipText = `<div style="font-weight: 600; margin-bottom: 6px; padding-bottom: 4px; border-bottom: 1px solid #e5e7eb;">${argumentText}</div>`;
+    
+    if (arg.points) {
+      arg.points.forEach((p: any) => {
+        const color = p.seriesColor || p.color || '#2563eb';
+        tooltipText += `<div style="margin: 4px 0; color: ${color};">
+          <strong>${p.seriesName}:</strong> ${p.valueText}
+        </div>`;
+      });
+    } else {
+      const seriesName = arg.seriesName || point.seriesName || '';
+      const valueText = arg.valueText || point.valueText || '';
+      const color = arg.point?.color || '#2563eb';
+      tooltipText += `<div style="color: ${color};">
+        <strong>${seriesName}:</strong> ${valueText}
+      </div>`;
+    }
+    
+    return { text: tooltipText };
   }
 
   customizeLabel(arg: any): string {
@@ -302,6 +363,38 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   customizePieLabel(arg: any): string {
     return `${arg.argument}: ${arg.valueText} (${arg.percentText})`;
+  }
+
+  customizePieTooltip(arg: any): any {
+    const point = arg.point || arg;
+    const argument = point.argument || arg.argument || '';
+    const value = point.value || arg.value || 0;
+    const percent = point.percentText || arg.percentText || '';
+    
+    return {
+      text: `<div style="font-weight: 600; margin-bottom: 6px;">${argument}</div>
+             <div style="color: ${point.color || '#8b5cf6'};">
+               <strong>Count:</strong> ${value}
+             </div>
+             <div style="color: #6b7280; font-size: 12px; margin-top: 4px;">
+               ${percent}
+             </div>`
+    };
+  }
+
+  formatDateLabel(arg: any): string {
+    if (!arg.value) return '';
+    const date = new Date(arg.value);
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  }
+
+  formatMonthLabel(arg: any): string {
+    return arg.value || '';
+  }
+
+  formatHourLabel(arg: any): string {
+    const hour = arg.value;
+    return `${hour}:00`;
   }
 
   pointClick(e: any): void {

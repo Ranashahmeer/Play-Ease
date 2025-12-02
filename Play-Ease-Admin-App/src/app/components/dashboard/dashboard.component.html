@@ -182,10 +182,18 @@
           type="area"
           [color]="'#2e8f63'">
         </dxi-series>
-        <dxo-legend [visible]="true"></dxo-legend>
+        <dxo-legend [visible]="true" [margin]="{ bottom: 20 }"></dxo-legend>
         <dxo-common-series-settings>
-          <dxo-point [visible]="false"></dxo-point>
+          <dxo-point [visible]="true" [size]="6"></dxo-point>
         </dxo-common-series-settings>
+        <dxo-tooltip [enabled]="true" [customizeTooltip]="customizeMultiSeriesTooltip"></dxo-tooltip>
+        <dxi-argument-axis>
+          <dxo-title text="Date"></dxo-title>
+          <dxo-label [customizeText]="formatDateLabel"></dxo-label>
+        </dxi-argument-axis>
+        <dxi-value-axis>
+          <dxo-title text="Number of Users"></dxo-title>
+        </dxi-value-axis>
       </dx-chart>
     </div>
 
@@ -203,8 +211,8 @@
           valueField="UserCount">
           <dxo-label [visible]="true" [customizeText]="customizePieLabel"></dxo-label>
         </dxi-series>
-        <dxo-legend [visible]="true" orientation="horizontal"></dxo-legend>
-        <dxo-tooltip [enabled]="true"></dxo-tooltip>
+        <dxo-legend [visible]="true" orientation="horizontal" [margin]="{ top: 20 }"></dxo-legend>
+        <dxo-tooltip [enabled]="true" [customizeTooltip]="customizePieTooltip"></dxo-tooltip>
       </dx-pie-chart>
     </div>
 
@@ -240,7 +248,8 @@
           valueField="UserCount">
           <dxo-label [visible]="true" [customizeText]="customizePieLabel"></dxo-label>
         </dxi-series>
-        <dxo-legend [visible]="true"></dxo-legend>
+        <dxo-legend [visible]="true" [margin]="{ top: 20 }"></dxo-legend>
+        <dxo-tooltip [enabled]="true" [customizeTooltip]="customizePieTooltip"></dxo-tooltip>
       </dx-pie-chart>
     </div>
 
@@ -262,6 +271,14 @@
             type="bar">
           </dxi-series>
           <dxo-legend [visible]="false"></dxo-legend>
+          <dxo-tooltip [enabled]="true" [customizeTooltip]="customizeTooltip"></dxo-tooltip>
+          <dxi-argument-axis>
+            <dxo-title text="Date"></dxo-title>
+            <dxo-label [customizeText]="formatDateLabel"></dxo-label>
+          </dxi-argument-axis>
+          <dxi-value-axis>
+            <dxo-title text="Number of Matches"></dxo-title>
+          </dxi-value-axis>
         </dx-chart>
       </div>
 
@@ -281,9 +298,14 @@
             type="bar">
           </dxi-series>
           <dxo-legend [visible]="false"></dxo-legend>
-          <dxo-common-axis-settings>
-            <dxo-label [rotationAngle]="-45"></dxo-label>
-          </dxo-common-axis-settings>
+          <dxo-tooltip [enabled]="true" [customizeTooltip]="customizeRevenueTooltip"></dxo-tooltip>
+          <dxi-argument-axis>
+            <dxo-title text="Court Name"></dxo-title>
+            <dxo-label [rotationAngle]="-45" [overlappingBehavior]="'rotate'"></dxo-label>
+          </dxi-argument-axis>
+          <dxi-value-axis>
+            <dxo-title text="Revenue (Rs)"></dxo-title>
+          </dxi-value-axis>
         </dx-chart>
       </div>
 
@@ -301,6 +323,7 @@
             argumentField="Date"
             name="Bookings"
             type="line">
+            <dxo-point [visible]="true" [size]="6"></dxo-point>
           </dxi-series>
           <dxi-series
             valueField="DailyRevenue"
@@ -309,8 +332,18 @@
             type="area"
             axis="revenue">
           </dxi-series>
-          <dxo-legend [visible]="true"></dxo-legend>
-          <dxi-value-axis name="revenue" position="right"></dxi-value-axis>
+          <dxo-legend [visible]="true" [margin]="{ bottom: 20 }"></dxo-legend>
+          <dxo-tooltip [enabled]="true" [customizeTooltip]="customizeMultiSeriesTooltip"></dxo-tooltip>
+          <dxi-argument-axis>
+            <dxo-title text="Date"></dxo-title>
+            <dxo-label [customizeText]="formatDateLabel"></dxo-label>
+          </dxi-argument-axis>
+          <dxi-value-axis>
+            <dxo-title text="Number of Bookings"></dxo-title>
+          </dxi-value-axis>
+          <dxi-value-axis name="revenue" position="right">
+            <dxo-title text="Revenue (Rs)"></dxo-title>
+          </dxi-value-axis>
         </dx-chart>
       </div>
 
@@ -330,6 +363,13 @@
             type="bar">
           </dxi-series>
           <dxo-legend [visible]="false"></dxo-legend>
+          <dxo-tooltip [enabled]="true" [customizeTooltip]="customizeRevenueTooltip"></dxo-tooltip>
+          <dxi-argument-axis>
+            <dxo-title text="Owner Name"></dxo-title>
+          </dxi-argument-axis>
+          <dxi-value-axis>
+            <dxo-title text="Revenue (Rs)"></dxo-title>
+          </dxi-value-axis>
         </dx-chart>
       </div>
 
@@ -349,6 +389,14 @@
             type="bar">
           </dxi-series>
           <dxo-legend [visible]="false"></dxo-legend>
+          <dxo-tooltip [enabled]="true" [customizeTooltip]="customizeBookingTooltip"></dxo-tooltip>
+          <dxi-argument-axis>
+            <dxo-title text="Hour of Day"></dxo-title>
+            <dxo-label [customizeText]="formatHourLabel"></dxo-label>
+          </dxi-argument-axis>
+          <dxi-value-axis>
+            <dxo-title text="Number of Bookings"></dxo-title>
+          </dxi-value-axis>
         </dx-chart>
       </div>
 
@@ -368,9 +416,14 @@
             type="bar">
           </dxi-series>
           <dxo-legend [visible]="false"></dxo-legend>
-          <dxo-common-axis-settings>
-            <dxo-label [rotationAngle]="-45"></dxo-label>
-          </dxo-common-axis-settings>
+          <dxo-tooltip [enabled]="true" [customizeTooltip]="customizeTooltip"></dxo-tooltip>
+          <dxi-argument-axis>
+            <dxo-title text="Match Title"></dxo-title>
+            <dxo-label [rotationAngle]="-45" [overlappingBehavior]="'rotate'"></dxo-label>
+          </dxi-argument-axis>
+          <dxi-value-axis>
+            <dxo-title text="Number of Applicants"></dxo-title>
+          </dxi-value-axis>
         </dx-chart>
       </div>
 
@@ -388,7 +441,8 @@
             valueField="BookingCount">
             <dxo-label [visible]="true" [customizeText]="customizePieLabel"></dxo-label>
           </dxi-series>
-          <dxo-legend [visible]="true"></dxo-legend>
+          <dxo-legend [visible]="true" [margin]="{ top: 20 }"></dxo-legend>
+          <dxo-tooltip [enabled]="true" [customizeTooltip]="customizePieTooltip"></dxo-tooltip>
         </dx-pie-chart>
       </div>
 
@@ -406,8 +460,17 @@
             argumentField="MonthLabel"
             name="Revenue"
             type="line">
+            <dxo-point [visible]="true" [size]="7"></dxo-point>
           </dxi-series>
           <dxo-legend [visible]="false"></dxo-legend>
+          <dxo-tooltip [enabled]="true" [customizeTooltip]="customizeRevenueTooltip"></dxo-tooltip>
+          <dxi-argument-axis>
+            <dxo-title text="Month"></dxo-title>
+            <dxo-label [customizeText]="formatMonthLabel"></dxo-label>
+          </dxi-argument-axis>
+          <dxi-value-axis>
+            <dxo-title text="Revenue (Rs)"></dxo-title>
+          </dxi-value-axis>
         </dx-chart>
       </div>
     </ng-container>
@@ -428,6 +491,13 @@
             name="Revenue"
             type="bar">
           </dxi-series>
+          <dxo-tooltip [enabled]="true" [customizeTooltip]="customizeRevenueTooltip"></dxo-tooltip>
+          <dxi-argument-axis>
+            <dxo-title text="Court Name"></dxo-title>
+          </dxi-argument-axis>
+          <dxi-value-axis>
+            <dxo-title text="Revenue (Rs)"></dxo-title>
+          </dxi-value-axis>
         </dx-chart>
       </div>
 
@@ -462,6 +532,14 @@
             name="Bookings"
             type="bar">
           </dxi-series>
+          <dxo-tooltip [enabled]="true" [customizeTooltip]="customizeBookingTooltip"></dxo-tooltip>
+          <dxi-argument-axis>
+            <dxo-title text="Hour of Day"></dxo-title>
+            <dxo-label [customizeText]="formatHourLabel"></dxo-label>
+          </dxi-argument-axis>
+          <dxi-value-axis>
+            <dxo-title text="Number of Bookings"></dxo-title>
+          </dxi-value-axis>
         </dx-chart>
       </div>
 
@@ -479,6 +557,14 @@
             name="Revenue"
             type="area">
           </dxi-series>
+          <dxo-tooltip [enabled]="true" [customizeTooltip]="customizeRevenueTooltip"></dxo-tooltip>
+          <dxi-argument-axis>
+            <dxo-title text="Month"></dxo-title>
+            <dxo-label [customizeText]="formatMonthLabel"></dxo-label>
+          </dxi-argument-axis>
+          <dxi-value-axis>
+            <dxo-title text="Revenue (Rs)"></dxo-title>
+          </dxi-value-axis>
         </dx-chart>
       </div>
     </ng-container>
@@ -499,7 +585,8 @@
             valueField="Count">
             <dxo-label [visible]="true" [customizeText]="customizePieLabel"></dxo-label>
           </dxi-series>
-          <dxo-legend [visible]="true"></dxo-legend>
+          <dxo-legend [visible]="true" [margin]="{ top: 20 }"></dxo-legend>
+          <dxo-tooltip [enabled]="true" [customizeTooltip]="customizePieTooltip"></dxo-tooltip>
         </dx-pie-chart>
       </div>
 
@@ -536,6 +623,14 @@
             name="Matches"
             type="bar">
           </dxi-series>
+          <dxo-tooltip [enabled]="true" [customizeTooltip]="customizeTooltip"></dxo-tooltip>
+          <dxi-argument-axis>
+            <dxo-title text="Date"></dxo-title>
+            <dxo-label [customizeText]="formatDateLabel"></dxo-label>
+          </dxi-argument-axis>
+          <dxi-value-axis>
+            <dxo-title text="Number of Matches"></dxo-title>
+          </dxi-value-axis>
         </dx-chart>
       </div>
 
@@ -554,6 +649,14 @@
             name="Applicants"
             type="bar">
           </dxi-series>
+          <dxo-tooltip [enabled]="true" [customizeTooltip]="customizeTooltip"></dxo-tooltip>
+          <dxi-argument-axis>
+            <dxo-title text="Match Title"></dxo-title>
+            <dxo-label [rotationAngle]="-45" [overlappingBehavior]="'rotate'"></dxo-label>
+          </dxi-argument-axis>
+          <dxi-value-axis>
+            <dxo-title text="Number of Applicants"></dxo-title>
+          </dxi-value-axis>
         </dx-chart>
       </div>
     </ng-container>

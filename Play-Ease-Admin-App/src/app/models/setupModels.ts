@@ -14,6 +14,8 @@ export interface Court {
   pitches: Pitch[];
   bookedSlots: Record<string, string[]>; // e.g. { "2025-08-17": ["10:00", "12:00"] }
   OwnerId: number;
+  ownerName?: string;
+  ownerPhone?: string;
 }
 
 export interface Pitch {
@@ -22,38 +24,38 @@ export interface Pitch {
   price: number;
 }
 
-  
-  export interface CourtOwner {
-    ownerId: number;
-    name: string;
-    phone: string;
-    email: string;
-  }
-  
-  export interface PaymentMethod {
-    methodId: number;
-    ownerId: number;
-    type: 'EASYPAISA' | 'JAZZCASH' | 'BANK';
-    accountNumber: string;
-    bankName?: string; // only if type = BANK
-  }
 
-  export interface OwnerPaymentDetail {
-    PaymentID: number;
-    OwnerID: number;
-    MethodID: number;
-    AccountTitle: string;
-    AccountNumber: string;
-    BankName: string | null;
-    MethodName: string;
-    OwnerName: string;
-    OwnerPhone: string;
-    OwnerEmail: string | null;
-  }
+export interface CourtOwner {
+  ownerId: number;
+  name: string;
+  phone: string;
+  email: string;
+}
 
-  export interface SaveBookings {
-  CourtId?:number,
-  userId:number,
+export interface PaymentMethod {
+  methodId: number;
+  ownerId: number;
+  type: 'EASYPAISA' | 'JAZZCASH' | 'BANK';
+  accountNumber: string;
+  bankName?: string; // only if type = BANK
+}
+
+export interface OwnerPaymentDetail {
+  PaymentID: number;
+  OwnerID: number;
+  MethodID: number;
+  AccountTitle: string;
+  AccountNumber: string;
+  BankName: string | null;
+  MethodName: string;
+  OwnerName: string;
+  OwnerPhone: string;
+  OwnerEmail: string | null;
+}
+
+export interface SaveBookings {
+  CourtId?: number,
+  userId: number,
   courtPitchId: number;
   ownerId?: number;
   paymentMethodId: number;

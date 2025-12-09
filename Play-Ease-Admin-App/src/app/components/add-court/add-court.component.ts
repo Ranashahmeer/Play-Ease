@@ -1,50 +1,30 @@
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { Component, OnInit, OnDestroy, PLATFORM_ID, Inject } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormsModule } from '@angular/forms';
 
 import {
   DxButtonModule,
-  DxFileUploaderModule,
-  DxPopupModule,
-  DxGalleryModule
+  DxFileUploaderModule
 } from 'devextreme-angular';
 import { Subscription } from 'rxjs';
 import { CourtService, CourtDto, PitchDto } from '../../services/courts/court.service';
 import { GetDatabyDatasourceService } from '../../services/get-data/get-databy-datasource.service';
 import { AlertService } from '../../services/alert.service';
-
-type Court = {
-  id?: string;
-  name: string;
-  location?: string;
-  ownerName?: string;
-  ownerCnic?: string;
-  rating?: number;
-  pitches: string[];
-  price: number;
-  pricePerPitch?: Record<string, number>;
-  openingTime?: string;
-  closingTime?: string;
-  image?: string;
-  images?: string[];
-  offers?: string[];
-  about?: string;
-  bookedSlots?: Record<string, string[]>;
-};
-
-const STORAGE_KEY = 'playease_courts';
+import { OwnerService, Owner } from '../../services/owner.service';
+import { HttpClient } from '@angular/common/http';
+import { PaymentMethodService, PaymentMethod, OwnerPaymentMethod } from '../../services/payment-method.service';
 
 @Component({
   selector: 'app-add-court',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, DxButtonModule, DxFileUploaderModule, DxPopupModule, DxGalleryModule],
+  imports: [CommonModule, ReactiveFormsModule, DxButtonModule, DxFileUploaderModule, FormsModule],
   templateUrl: './add-court.component.html',
   styleUrl: './add-court.component.css'
 })
-export class AddCourtComponent {
+export class AddCourtComponent implements OnInit, OnDestroy {
   form!: FormGroup;
   subscriptions: Subscription[] = [];
-  courts: Court[] = [];
   pitches: string[] = [];
   offers: string[] = [];
   images: string[] = [];
@@ -53,20 +33,28 @@ export class AddCourtComponent {
   editingId: string | null = null;
   private originalRating?: number;
   submitted = false;
-  popupVisible = false;
-  selectedCourt: Court | null = null;
   isBrowser = false;
-  
+  owners: Owner[] = [];
   ownerId?: number;
   userId?: number;
   isAdmin: boolean = false;
+  uploadedDocuments: File[] = [];
+  documentPreviews: { name: string; size: number }[] = [];
+
+  // Payment method properties
+  availablePaymentMethods: PaymentMethod[] = [];
+  ownerPaymentMethods: OwnerPaymentMethod[] = [];
+  isLoadingPaymentMethods = false;
 
   constructor(
     private fb: FormBuilder,
     @Inject(PLATFORM_ID) platformId: Object,
     private courtService: CourtService,
     private dataService: GetDatabyDatasourceService,
-    private alertService: AlertService
+    private alertService: AlertService,
+    private ownerService: OwnerService,
+    private http: HttpClient,
+    private paymentMethodService: PaymentMethodService
   ) {
     this.isBrowser = isPlatformBrowser(platformId);
   }
@@ -81,22 +69,37 @@ export class AddCourtComponent {
         // Check if admin
         if (user.roleID === 1) {
           this.isAdmin = true;
+          // Load owners for admin
+          this.loadOwners();
         } else {
           // Get owner ID for non-admin users
           this.loadOwnerId();
         }
-      } catch {}
+      } catch { }
     }
+
+    // Load available payment methods
+    this.loadPaymentMethods();
 
     this.form = this.fb.group({
       name: ['', Validators.required],
       location: ['', Validators.required],
-      ownerID: [this.ownerId || 0, this.isAdmin ? Validators.required : []],
-      ownerName: ['', this.isAdmin ? Validators.required : []],
-      ownerCnic: ['', this.isAdmin ? [Validators.required, Validators.pattern(/^\d{5}-\d{7}-\d{1}$/)] : []],
+      ownerId: [null, this.isAdmin ? Validators.required : []],
       openingTime: [''],
       closingTime: [''],
       about: ['']
+    });
+  }
+
+  loadOwners(): void {
+    this.ownerService.getOwners().subscribe({
+      next: (owners) => {
+        this.owners = owners;
+      },
+      error: (err) => {
+        console.error('Error loading owners:', err);
+        this.alertService.error('Failed to load court owners');
+      }
     });
   }
 
@@ -119,56 +122,6 @@ export class AddCourtComponent {
 
   ngOnDestroy(): void {
     this.subscriptions.forEach(s => s.unsubscribe());
-  }
-
-  private loadFromStorage(): Court[] {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (!raw) return [];
-      const parsed = JSON.parse(raw) as Court[];
-      if (!Array.isArray(parsed)) return [];
-      return parsed;
-    } catch (err) {
-      return [];
-    }
-  }
-
-  private saveToStorage(arr: Court[]) {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(arr));
-      this.courts = arr;
-    } catch (err) {
-      // Failed to save data locally
-    }
-  }
-
-  private generateId() {
-    return `c${Date.now()}${Math.floor(Math.random() * 1000)}`;
-  }
-
-  resetStoreToSample() {
-    const todayKey = this.toKey(new Date());
-    const seed: Court[] = [
-      {
-        id: this.generateId(),
-        name: 'Sample Arena',
-        location: 'Gulberg',
-        ownerName: 'Ahmed Khan',
-        ownerCnic: '42101-1234567-1',
-        rating: 4.4,
-        pitches: ['5x5', '7x7'],
-        pricePerPitch: { '5x5': 2000, '7x7': 2500 },
-        price: 2000,
-        openingTime: '06:00 AM',
-        closingTime: '10:00 PM',
-        image: 'assets/alphaarena.jpg',
-        images: ['assets/alphaarena-1.jpg','assets/alphaarena-2.jpg'],
-        offers: ['Toilet', 'Parking'],
-        about: 'Seed court data - replace with your own.',
-        bookedSlots: { [this.toKey(new Date())]: ['06:00 AM'] }
-      }
-    ];
-    this.saveToStorage(seed);
   }
 
   addPitch(inputEl: HTMLInputElement) {
@@ -240,6 +193,60 @@ export class AddCourtComponent {
 
   setAsMain(img: string) { this.mainImage = img; }
 
+  // Document handling methods
+  onDocumentsSelected(event: any): void {
+    const files: FileList = event.target.files;
+    if (!files || files.length === 0) return;
+
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        this.alertService.error(`File ${file.name} exceeds 5MB limit`);
+        continue;
+      }
+
+      // Validate file type
+      const allowedTypes = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png'];
+      if (!allowedTypes.includes(file.type)) {
+        this.alertService.error(`File ${file.name} has invalid type. Only PDF, JPG, and PNG are allowed.`);
+        continue;
+      }
+
+      this.uploadedDocuments.push(file);
+      this.documentPreviews.push({
+        name: file.name,
+        size: file.size
+      });
+    }
+  }
+
+  removeDocument(index: number): void {
+    this.uploadedDocuments.splice(index, 1);
+    this.documentPreviews.splice(index, 1);
+  }
+
+  async uploadDocuments(): Promise<string[]> {
+    if (this.uploadedDocuments.length === 0) {
+      return [];
+    }
+
+    const formData = new FormData();
+    this.uploadedDocuments.forEach(file => {
+      formData.append('files', file);
+    });
+
+    try {
+      const response: any = await this.http.post('http://localhost:5000/api/DocumentUpload/upload', formData).toPromise();
+      return response.fileUrls || [];
+    } catch (error) {
+      console.error('Error uploading documents:', error);
+      this.alertService.error('Failed to upload documents');
+      return [];
+    }
+  }
+
   startCreateNew() {
     this.editingId = null;
     this.originalRating = undefined;
@@ -247,8 +254,7 @@ export class AddCourtComponent {
     this.form.reset({
       name: '',
       location: '',
-      ownerName: '',
-      ownerCnic: '',
+      ownerId: null,
       openingTime: '',
       closingTime: '',
       about: ''
@@ -258,76 +264,49 @@ export class AddCourtComponent {
     this.images = [];
     this.mainImage = '';
     this.pricePerPitch = {};
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }
-
-  editCourt(c: Court) {
-    this.editingId = c.id ?? null;
-    this.originalRating = c.rating;
-    this.submitted = false;
-    this.form.patchValue({
-      name: c.name,
-      location: c.location ?? '',
-      ownerName: c.ownerName ?? '',
-      ownerCnic: c.ownerCnic ?? '',
-      openingTime: c.openingTime ?? '',
-      closingTime: c.closingTime ?? '',
-      about: c.about ?? ''
-    });
-    this.pitches = [...(c.pitches || [])];
-    this.offers = [...(c.offers || [])];
-    this.images = [...(c.images || (c.image ? [c.image] : []))];
-    this.mainImage = c.image || (this.images[0] ?? '');
-    this.pricePerPitch = { ...(c.pricePerPitch || {}) };
-    for (const p of this.pitches) {
-      if (!(p in this.pricePerPitch)) this.pricePerPitch[p] = NaN;
+    if (this.isBrowser) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
-    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  onEditClick(c: Court, ev: any) { 
-    try { ev?.event?.stopPropagation?.(); } catch {} 
-    this.editCourt(c); 
-  }
 
-  onDeleteClick(c: Court, ev: any) { 
-    try { ev?.event?.stopPropagation?.(); } catch {} 
-    this.deleteCourt(c); 
-  }
-
-  deleteCourt(c: Court) {
-    if (!c.id) return;
-    if (!confirm(`Delete "${c.name}"? This cannot be undone.`)) return;
-    const arr = this.loadFromStorage().filter(x => x.id !== c.id);
-    this.saveToStorage(arr);
-  }
-
-  saveCourt() {
+  async saveCourt() {
     this.submitted = true;
     const missing: string[] = [];
-    
-    if (!this.form.value.name || this.form.get('name')?.invalid) 
+
+    if (!this.form.value.name || this.form.get('name')?.invalid)
       missing.push('Court Name');
-    if (!this.form.value.location || this.form.get('location')?.invalid) 
+    if (!this.form.value.location || this.form.get('location')?.invalid)
       missing.push('Location');
-    
-    const ownerID = this.form.value.ownerID || this.ownerId;
-    if (!ownerID || ownerID <= 0) 
-      missing.push('Owner ID');
-    
-    if (!this.pitches || this.pitches.length === 0) 
+
+    // Get owner ID from form (for admin) or from loaded owner data (for owner users)
+    const ownerID = this.isAdmin ? this.form.value.ownerId : this.ownerId;
+    if (!ownerID || ownerID <= 0)
+      missing.push('Owner selection');
+
+    if (!this.pitches || this.pitches.length === 0)
       missing.push('At least one pitch (add via "Add pitch")');
     else {
       for (const p of this.pitches) {
         const v = this.pricePerPitch[p];
-        if (!Number.isFinite(v) || Number.isNaN(v)) 
+        if (!Number.isFinite(v) || Number.isNaN(v))
           missing.push(`Price for pitch "${p}"`);
       }
     }
-    
+
     if (missing.length > 0) {
-      this.alertService.error('Please fill in all required fields:\n' + missing.join('\n'));
-      return; 
+      this.alertService.error('Please fill in all required fields:\\n' + missing.join('\\n'));
+      return;
+    }
+
+    // Upload documents first
+    let documentUrls: string[] = [];
+    if (this.uploadedDocuments.length > 0) {
+      documentUrls = await this.uploadDocuments();
+      if (documentUrls.length === 0 && this.uploadedDocuments.length > 0) {
+        this.alertService.error('Failed to upload documents. Please try again.');
+        return;
+      }
     }
 
     // Build pitches array
@@ -348,23 +327,42 @@ export class AddCourtComponent {
       MainImage: this.mainImage || (this.images[0] ?? undefined),
       OwnerID: ownerID,
       Pitches: pitches,
-      Images: this.images.length > 0 ? this.images : undefined
+      Images: this.images.length > 0 ? this.images : undefined,
+      Documents: documentUrls.length > 0 ? documentUrls : undefined,
+      Offers: this.offers.length > 0 ? this.offers : undefined
     };
 
     // Call backend API
-    const apiCall = this.editingId 
+    const apiCall = this.editingId
       ? this.courtService.updateCourt(parseInt(this.editingId), courtDto)
       : this.courtService.createCourt(courtDto);
 
+
     apiCall.subscribe({
-      next: (response: any) => {
-        this.alertService.success(
-          this.editingId 
-            ? 'Court updated successfully!' 
-            : 'Court created successfully!'
-        );
+      next: async (response: any) => {
+        // Save payment methods for new courts (not updates) if any were added
+        if (!this.editingId && ownerID && this.ownerPaymentMethods.length > 0) {
+          this.ownerId = ownerID; // Ensure ownerId is set
+          const paymentsSaved = await this.savePaymentMethods();
+
+          if (paymentsSaved) {
+            this.alertService.success('Court and payment methods saved successfully!');
+          } else {
+            this.alertService.warning('Court created but payment methods failed to save. Please add them later from My Account.');
+          }
+        } else {
+          this.alertService.success(
+            this.editingId
+              ? 'Court updated successfully!'
+              : 'Court created successfully!'
+          );
+        }
+
         this.startCreateNew();
-        // Optionally reload courts list if needed
+        // Clear documents and payment methods
+        this.uploadedDocuments = [];
+        this.documentPreviews = [];
+        this.ownerPaymentMethods = [];
       },
       error: (err: any) => {
         console.error('Error saving court:', err);
@@ -375,44 +373,99 @@ export class AddCourtComponent {
     });
   }
 
-  getPreviewImage(c: Court) { 
-    return c.image || (c.images && c.images[0]) || 'assets/placeholder-court.png'; 
+  // ===== Payment Method Functions =====
+
+  loadPaymentMethods(): void {
+    this.paymentMethodService.getPaymentMethods().subscribe({
+      next: (methods) => {
+        this.availablePaymentMethods = methods;
+      },
+      error: (err) => {
+        console.error('Error loading payment methods:', err);
+        this.alertService.error('Failed to load payment methods');
+      }
+    });
   }
 
-  openCourtDetails(c: Court) { 
-    this.selectedCourt = c; 
-    this.popupVisible = true; 
+  addPaymentMethod(): void {
+    const newPayment: OwnerPaymentMethod = {
+      ownerID: this.ownerId || 0,
+      methodID: 0,
+      accountTitle: '',
+      accountNumber: '',
+      bankName: ''
+    };
+    this.ownerPaymentMethods.push(newPayment);
   }
 
-  closePopup() { 
-    this.popupVisible = false; 
-    this.selectedCourt = null; 
+  removePaymentMethod(index: number): void {
+    this.ownerPaymentMethods.splice(index, 1);
   }
 
-  get galleryImages(): string[] {
-    if (!this.selectedCourt) return [];
-    if (this.selectedCourt.images && this.selectedCourt.images.length) 
-      return this.selectedCourt.images;
-    return this.selectedCourt.image ? [this.selectedCourt.image] : [];
+  validatePaymentMethods(): boolean {
+    if (this.ownerPaymentMethods.length === 0) {
+      this.alertService.error('Please add at least one payment method');
+      return false;
+    }
+
+    for (let i = 0; i < this.ownerPaymentMethods.length; i++) {
+      const payment = this.ownerPaymentMethods[i];
+
+      if (!payment.methodID || payment.methodID === 0) {
+        this.alertService.error(`Please select payment type for payment method #${i + 1}`);
+        return false;
+      }
+
+      if (!payment.accountTitle || payment.accountTitle.trim().length < 3) {
+        this.alertService.error(`Please enter valid account title for payment method #${i + 1} (minimum 3 characters)`);
+        return false;
+      }
+
+      if (!payment.accountNumber || payment.accountNumber.trim().length < 5) {
+        this.alertService.error(`Please enter valid account number for payment method #${i + 1} (minimum 5 characters)`);
+        return false;
+      }
+
+      // Validate Bank Name for Bank Transfer (MethodID = 3)
+      if (payment.methodID === 3 && (!payment.bankName || payment.bankName.trim().length === 0)) {
+        this.alertService.error(`Please enter bank name for payment method #${i + 1}`);
+        return false;
+      }
+    }
+
+    return true;
   }
 
-  getOfferIcon(offer: string): string {
-    if (!offer) return '•';
-    const key = offer.toLowerCase();
-    if (key.includes('park')) return '🅿️';
-    if (key.includes('toilet') || key.includes('wc') || key.includes('restroom')) return '🚻';
-    if (key.includes('shower')) return '🚿';
-    if (key.includes('light')) return '💡';
-    if (key.includes('change') || key.includes('changing')) return '🧍‍♂️';
-    if (key.includes('water')) return '💧';
-    if (key.includes('cafe') || key.includes('food')) return '☕';
-    return '⭐';
+  async savePaymentMethods(): Promise<boolean> {
+    if (!this.ownerId) {
+      this.alertService.error('Owner ID is required to save payment methods');
+      return false;
+    }
+
+    if (!this.validatePaymentMethods()) {
+      return false;
+    }
+
+    const payments = this.ownerPaymentMethods.map(p => ({
+      ownerID: this.ownerId!,
+      methodID: p.methodID,
+      accountTitle: p.accountTitle.trim(),
+      accountNumber: p.accountNumber.trim(),
+      bankName: p.methodID === 3 ? p.bankName?.trim() : undefined
+    }));
+
+    try {
+      await this.paymentMethodService.createOwnerPaymentsBulk(payments).toPromise();
+      return true;
+    } catch (error) {
+      console.error('Error saving payment methods:', error);
+      this.alertService.error('Failed to save payment methods');
+      return false;
+    }
   }
 
-  toKey(d: Date): string {
-    const y = d.getFullYear();
-    const m = String(d.getMonth() + 1).padStart(2, '0');
-    const day = String(d.getDate()).padStart(2, '0');
-    return `${y}-${m}-${day}`;
+  getPaymentMethodName(methodID: number): string {
+    const method = this.availablePaymentMethods.find(m => m.methodID === methodID);
+    return method ? method.methodName : '';
   }
 }

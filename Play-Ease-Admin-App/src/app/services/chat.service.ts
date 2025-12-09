@@ -29,7 +29,7 @@ export interface ChatConversation {
 export class ChatService {
   private apiUrl = "http://localhost:5000/api";
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
   // Send a message
   sendMessage(message: ChatMessage): Observable<ChatMessage> {
@@ -56,11 +56,27 @@ export class ChatService {
     return this.http.get<ChatConversation[]>(`${this.apiUrl}/Chat/conversations/${userId}`);
   }
 
+  // Mark messages as read for a conversation
+  markAsRead(matchId: number, userId: number, participantId: number): Observable<any> {
+    return this.http.post(`${this.apiUrl}/Chat/mark-read`, {
+      matchId,
+      userId,
+      participantId
+    });
+  }
+
+  // Get unread message count for a conversation
+  getUnreadCount(matchId: number, userId: number, participantId: number): Observable<{ unreadCount: number }> {
+    return this.http.get<{ unreadCount: number }>(
+      `${this.apiUrl}/Chat/unread-count/${matchId}/${userId}/${participantId}`
+    );
+  }
+
   // Check if chat is available (between acceptance and match end time)
   isChatAvailable(matchDate: string, matchEndTime: string, applicantAcceptedAt?: string): boolean {
     try {
       const now = new Date();
-      
+
       // Extract HH:MM from database time format (e.g., "12:00:00.0000000" -> "12:00")
       const extractTime = (timeStr: string): { hours: number; minutes: number } => {
         if (!timeStr) return { hours: 0, minutes: 0 };
@@ -73,12 +89,12 @@ export class ChatService {
         }
         return { hours: 0, minutes: 0 };
       };
-      
+
       // Parse match date and end time
       const { hours, minutes } = extractTime(matchEndTime);
       const matchDateTime = new Date(matchDate);
       matchDateTime.setHours(hours, minutes, 0, 0);
-      
+
       // Chat is not available if match has ended
       if (now > matchDateTime) {
         return false;

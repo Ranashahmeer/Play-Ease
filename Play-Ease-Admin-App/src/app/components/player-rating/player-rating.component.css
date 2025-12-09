@@ -1,0 +1,230 @@
+/* Player Rating Component Styles */
+
+.player-rating-container {
+  width: 100%;
+  margin-top: var(--spacing-lg);
+  padding: var(--spacing-lg);
+  background: #fff;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--gray-200);
+}
+
+.player-rating-container h3 {
+  margin: 0 0 var(--spacing-sm) 0;
+  font-size: 1.5rem;
+  color: var(--gray-900);
+}
+
+.subtitle {
+  color: var(--gray-600);
+  font-size: 0.9rem;
+  margin-bottom: var(--spacing-lg);
+}
+
+.loading-players,
+.no-players {
+  text-align: center;
+  padding: var(--spacing-xl);
+  color: var(--gray-600);
+  font-style: italic;
+}
+
+.players-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.player-card {
+  padding: var(--spacing-lg);
+  background: var(--gray-50);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--gray-200);
+  transition: all var(--transition-base);
+}
+
+.player-card:hover {
+  box-shadow: var(--shadow-sm);
+  border-color: var(--brand-primary);
+}
+
+.player-info {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-md);
+  flex-wrap: wrap;
+  row-gap: var(--spacing-sm);
+}
+
+.player-name {
+  font-weight: 600;
+  font-size: 1.1rem;
+  color: var(--gray-900);
+}
+
+.player-role {
+  padding: var(--spacing-xs) var(--spacing-sm);
+  background: var(--brand-primary);
+  color: white;
+  border-radius: var(--radius-sm);
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.rating-status {
+  margin-left: auto;
+}
+
+.rated-badge {
+  padding: var(--spacing-xs) var(--spacing-sm);
+  background: #10b981;
+  color: white;
+  border-radius: var(--radius-sm);
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.rate-btn {
+  padding: var(--spacing-sm) var(--spacing-lg);
+  background: linear-gradient(135deg, var(--brand-primary), var(--brand-primary-dark));
+  color: white;
+  border: none;
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-base);
+  box-shadow: var(--shadow-sm);
+}
+
+.rate-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.rating-form-container {
+  margin-top: var(--spacing-md);
+  padding: var(--spacing-lg);
+  background: #fff;
+  border-radius: var(--radius-md);
+  border: 2px solid var(--brand-primary);
+}
+
+.form-group {
+  margin-bottom: var(--spacing-lg);
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: var(--spacing-sm);
+  font-weight: 600;
+  color: var(--gray-700);
+}
+
+.star-rating-input {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.star-input {
+  cursor: pointer;
+  color: var(--gray-300);
+  transition: all var(--transition-base);
+}
+
+.star-input:hover,
+.star-input.filled {
+  color: #fbbf24;
+  transform: scale(1.1);
+}
+
+.rating-value-display {
+  margin-left: var(--spacing-sm);
+  font-weight: 600;
+  color: var(--brand-primary);
+}
+
+.review-textarea {
+  width: 100%;
+  padding: var(--spacing-md);
+  border: 2px solid var(--gray-300);
+  border-radius: var(--radius-md);
+  font-family: inherit;
+  font-size: 0.95rem;
+  resize: vertical;
+  transition: border-color var(--transition-base);
+}
+
+.review-textarea:focus {
+  outline: none;
+  border-color: var(--brand-primary);
+}
+
+.char-count {
+  text-align: right;
+  font-size: 0.85rem;
+  color: var(--gray-500);
+  margin-top: var(--spacing-xs);
+}
+
+.form-actions {
+  display: flex;
+  gap: var(--spacing-md);
+  flex-wrap: wrap;
+}
+
+.submit-rating-btn,
+.cancel-rating-btn {
+  padding: var(--spacing-sm) var(--spacing-lg);
+  border: none;
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-base);
+}
+
+.submit-rating-btn {
+  background: linear-gradient(135deg, var(--brand-primary), var(--brand-primary-dark));
+  color: white;
+}
+
+.submit-rating-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.submit-rating-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.cancel-rating-btn {
+  background: var(--gray-200);
+  color: var(--gray-700);
+}
+
+.cancel-rating-btn:hover {
+  background: var(--gray-300);
+}
+
+@media (max-width: 768px) {
+  .player-info {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .rating-status {
+    margin-left: 0;
+  }
+
+  .form-actions {
+    flex-direction: column;
+  }
+
+  .submit-rating-btn,
+  .cancel-rating-btn {
+    width: 100%;
+  }
+}
+

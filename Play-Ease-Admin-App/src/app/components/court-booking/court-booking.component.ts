@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
-import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { DxDateBoxModule, DxButtonModule, DxGalleryModule, DxFileUploaderModule, DxListModule, DxTagBoxModule, DxSliderModule, DxDropDownBoxModule, DxPopupModule, DxCalendarComponent } from 'devextreme-angular';
 import { CourtListComponent } from '../court-list/court-list.component';
 import { PaymentPopupComponent } from "../payment-popup/payment-popup.component";
@@ -11,14 +11,16 @@ import { SaveBookings } from '../../models/setupModels';
 import { AlertService } from '../../services/alert.service';
 import { BlockedSlotsService } from '../../services/blocked-slots.service';
 import { SaveBookingsService } from '../../services/bookings/save-bookings.service';
+import { ReviewsRatingComponent } from '../reviews-rating/reviews-rating.component';
 import { Subscription } from 'rxjs';
+import { ImageService } from '../../services/image.service';
 
 @Component({
   selector: 'app-court-booking',
   standalone: true,
   imports: [
     CommonModule, ReactiveFormsModule, DxDateBoxModule, DxButtonModule, DxListModule, DxTagBoxModule, DxSliderModule, DxGalleryModule, DxFileUploaderModule, DxPopupModule, DxDropDownBoxModule,
-    CourtListComponent, PaymentPopupComponent, DxCalendarComponent
+    CourtListComponent, PaymentPopupComponent, DxCalendarComponent, ReviewsRatingComponent
   ],
   templateUrl: './court-booking.component.html',
   styleUrl: './court-booking.component.css'
@@ -50,7 +52,8 @@ export class CourtBookingComponent implements OnInit, OnDestroy {
     private router: Router,
     private alertService: AlertService,
     private blockedSlotsService: BlockedSlotsService,
-    private saveBookingsService: SaveBookingsService
+    private saveBookingsService: SaveBookingsService,
+    public imageService: ImageService
   ) {
     this.form = this.fb.group({
       matchDuration: [60],
@@ -60,7 +63,19 @@ export class CourtBookingComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    this.currentUserId = Number(localStorage.getItem('userId')) || 0;
+    // Get logged-in user from localStorage (same pattern as player-recruitment)
+    const saved = localStorage.getItem("loggedInUser");
+    if (saved) {
+      try {
+        const p = JSON.parse(saved);
+        this.currentUserId = p.userID ?? 0;
+      } catch (err) {
+        this.currentUserId = 0;
+      }
+    } else {
+      this.currentUserId = 0;
+    }
+
     if (!this.currentUserId) {
       this.alertService.warning('Please login first!');
       this.router.navigate(['/login']);
@@ -68,7 +83,7 @@ export class CourtBookingComponent implements OnInit, OnDestroy {
     }
     this.courtId = +this.route.snapshot.paramMap.get('courtId')!;
     this.fetchCourtDetails();
-    
+
     // Subscribe to booking cancellation events to refresh slots
     this.bookingCancelledSubscription = this.saveBookingsService.bookingCancelled$.subscribe((bookingId: number) => {
       // Refresh slots for the currently selected date
@@ -88,8 +103,12 @@ export class CourtBookingComponent implements OnInit, OnDestroy {
       next: (data: any[]) => {
         const adapter = new CourtAdapter();
         const apiData = Array.isArray(data) ? data : [];
-        this.courtDetails = apiData.length > 0 ? adapter.fromApi(apiData[0]) : null;
-        if (this.courtDetails) {
+        const court = apiData.length > 0 ? adapter.fromApi(apiData[0]) : null;
+        if (court) {
+          // Transform image URLs using ImageService
+          court.image = this.imageService.getImageUrl(court.image);
+          court.images = this.imageService.getImageUrls(court.images);
+          this.courtDetails = court;
           this.fetchOwnerPaymentMethods(this.courtDetails.OwnerId);
           this.fetchBookedSlotsForDate(this.selectedBookingDate);
         } else {
@@ -127,7 +146,7 @@ export class CourtBookingComponent implements OnInit, OnDestroy {
     this.isLoadingBookedSlots = true;
     const dateKey = this.toKey(date);
     const whereClause = `b.CourtID = ${this.courtId} AND CAST(b.BookingDate AS DATE) = '${dateKey}' AND b.IsActive = 1`;
-    
+
     // Fetch booked slots
     this.dataService.getData(22, whereClause).subscribe({
       next: (data: any[]) => {
@@ -172,12 +191,12 @@ export class CourtBookingComponent implements OnInit, OnDestroy {
 
   toggleTimeSlot(slot: any): void {
     if (slot.disabled) {
-      this.alertService.warning((this.isPastSlot(this.timeStringToMinutes(slot.text), this.selectedBookingDate) 
-        ? 'This time slot is in the past' 
+      this.alertService.warning((this.isPastSlot(this.timeStringToMinutes(slot.text), this.selectedBookingDate)
+        ? 'This time slot is in the past'
         : 'This time slot is already booked') + '. Please select another time slot.');
       return;
     }
-    
+
     const index = this.selectedTimeSlots.indexOf(slot.text);
     if (index > -1) {
       this.selectedTimeSlots.splice(index, 1);
@@ -188,19 +207,19 @@ export class CourtBookingComponent implements OnInit, OnDestroy {
         this.recomputeAvailability();
         return;
       }
-      
+
       const duration = Number(this.form.get('matchDuration')?.value) || 60;
       const slotMin = this.timeStringToMinutes(slot.text);
       const hasConflict = this.selectedTimeSlots.some(selected => {
         const selectedMin = this.timeStringToMinutes(selected);
         return this.intervalsOverlap(slotMin, duration, selectedMin, duration);
       });
-      
+
       if (hasConflict) {
         this.alertService.warning('This time slot overlaps with a previously selected slot. Please select non-overlapping slots.');
         return;
       }
-      
+
       this.selectedTimeSlots.push(slot.text);
       this.selectedTimeSlots.sort((a, b) => this.timeStringToMinutes(a) - this.timeStringToMinutes(b));
     }
@@ -216,7 +235,7 @@ export class CourtBookingComponent implements OnInit, OnDestroy {
 
     this.timeSlotItems = generatedSlots.map(slot => {
       const slotMin = this.timeStringToMinutes(slot);
-      
+
       // Check overlap with booked slots
       const overlapsBooked = this.bookedSlotsFromAPI.some(booking => {
         const startTime = booking.starttime || booking.StartTime;
@@ -264,7 +283,7 @@ export class CourtBookingComponent implements OnInit, OnDestroy {
     if (!this.selectedPitchSize) errors.push('Please select a pitch size');
     if (this.selectedTimeSlots.length === 0) errors.push('Please select at least one booking time slot');
     if (!this.selectedBookingDate) errors.push('Please select a booking date');
-    
+
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const selectedDate = new Date(this.selectedBookingDate);
@@ -296,20 +315,20 @@ export class CourtBookingComponent implements OnInit, OnDestroy {
 
     const duration = Number(this.form.get('matchDuration')?.value) || 60;
     const unavailableSlots: string[] = [];
-    
+
     for (const slot of this.selectedTimeSlots) {
       const slotItem = this.timeSlotItems.find(s => s.text === slot);
       if (!slotItem || slotItem.disabled) {
         unavailableSlots.push(slot);
         continue;
       }
-      
+
       const slotMin = this.timeStringToMinutes(slot);
       if (this.isPastSlot(slotMin, this.selectedBookingDate)) {
         unavailableSlots.push(slot);
         continue;
       }
-      
+
       const overlapsBooked = this.bookedSlotsFromAPI.some(booking => {
         const startTime = booking.starttime || booking.StartTime;
         const endTime = booking.endtime || booking.EndTime;
@@ -327,10 +346,10 @@ export class CourtBookingComponent implements OnInit, OnDestroy {
         const blockedEndMin = this.timeSpanToMinutes(endTime);
         return this.intervalsOverlap(slotMin, duration, blockedStartMin, blockedEndMin - blockedStartMin);
       });
-      
+
       if (overlapsBooked || overlapsBlocked) unavailableSlots.push(slot);
     }
-    
+
     if (unavailableSlots.length > 0) {
       this.selectedTimeSlots = this.selectedTimeSlots.filter(s => !unavailableSlots.includes(s));
       this.alertService.warning(`The following time slot(s) are no longer available and have been removed:\n${unavailableSlots.join(', ')}\n\nPlease select different time slots.`);
@@ -428,4 +447,26 @@ export class CourtBookingComponent implements OnInit, OnDestroy {
     if (slotDateKey !== todayKey) return false;
     return slotMinutes <= now.getHours() * 60 + now.getMinutes();
   }
+
+  getGoogleMapsUrl(): string {
+    if (!this.courtDetails?.location) return '#';
+    const encodedLocation = encodeURIComponent(`${this.courtDetails.location}, Pakistan`);
+    return `https://www.google.com/maps/search/?api=1&query=${encodedLocation}`;
+  }
+
+  getGoogleMapsEmbedUrl(): string {
+    if (!this.courtDetails?.location) return '';
+    const encodedLocation = encodeURIComponent(`${this.courtDetails.location}, Pakistan`);
+    // Using Google Maps embed without API key (works for basic usage)
+    // For production with higher usage, get a free API key from:
+    // https://console.cloud.google.com/google/maps-apis
+    return `https://maps.google.com/maps?q=${encodedLocation}&t=&z=15&ie=UTF8&iwloc=&output=embed`;
+  }
+
+  getDirectionsUrl(): string {
+    if (!this.courtDetails?.location) return '#';
+    const encodedLocation = encodeURIComponent(`${this.courtDetails.location}, Pakistan`);
+    return `https://www.google.com/maps/dir/?api=1&destination=${encodedLocation}`;
+  }
+
 }

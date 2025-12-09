@@ -1,0 +1,116 @@
+<div class="reviews-rating-container">
+  <div class="reviews-header" *ngIf="showHeader">
+    <h3>Reviews & Ratings</h3>
+    <button class="write-review-btn" (click)="toggleReviewForm()" *ngIf="currentUserId">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+      </svg>
+      {{ userHasReviewed ? 'Edit Review' : 'Write a Review' }}
+    </button>
+  </div>
+
+  <!-- Rating Summary -->
+  <div class="rating-summary" *ngIf="ratingSummary">
+    <div class="rating-overview">
+      <div class="average-rating">
+        <div class="rating-value">{{ ratingSummary?.averageRating?.toFixed(1) }}</div>
+        <div class="rating-stars">
+          <span *ngFor="let star of getStarRating(ratingSummary?.averageRating || 0)" 
+                class="star" 
+                [class.filled]="star <= Math.round(ratingSummary?.averageRating || 0)"
+                [class.half]="star === Math.ceil(ratingSummary?.averageRating || 0) && (ratingSummary?.averageRating || 0) % 1 >= 0.5">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+            </svg>
+          </span>
+        </div>
+        <div class="total-reviews">{{ ratingSummary?.totalReviews || 0 }} {{ (ratingSummary?.totalReviews || 0) === 1 ? 'review' : 'reviews' }}</div>
+      </div>
+      <div class="rating-breakdown">
+        <div class="rating-bar" *ngFor="let rating of [5, 4, 3, 2, 1]">
+          <span class="rating-label">{{ rating }}★</span>
+          <div class="bar-container">
+            <div class="bar-fill" [style.width.%]="getRatingPercentage(rating)"></div>
+          </div>
+          <span class="rating-count">{{ ratingSummary?.ratingDistribution?.[rating] || 0 }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Write Review Form -->
+  <div class="review-form-container" *ngIf="showReviewForm">
+    <form [formGroup]="reviewForm" (ngSubmit)="submitReview()">
+      <div class="form-group">
+        <label>Your Rating *</label>
+        <div class="star-rating-input">
+          <span *ngFor="let star of getStarRating(5)" 
+                class="star-input" 
+                [class.filled]="star <= reviewForm.get('rating')?.value"
+                (click)="reviewForm.patchValue({rating: star})">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor">
+              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+            </svg>
+          </span>
+          <span class="rating-value-display">{{ reviewForm.get('rating')?.value }} / 5</span>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Your Review (Optional)</label>
+        <textarea 
+          formControlName="reviewText" 
+          rows="4" 
+          placeholder="Share your experience..."
+          maxlength="500"
+          class="review-textarea"></textarea>
+        <div class="char-count">{{ reviewForm.get('reviewText')?.value?.length || 0 }} / 500</div>
+      </div>
+      <div class="form-actions">
+        <button type="submit" class="submit-review-btn" [disabled]="reviewForm.invalid">
+          {{ userHasReviewed ? 'Update Review' : 'Submit Review' }}
+        </button>
+        <button type="button" class="cancel-review-btn" (click)="toggleReviewForm()">Cancel</button>
+        <button type="button" class="delete-review-btn" (click)="deleteReview()" *ngIf="userHasReviewed">Delete Review</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Reviews List -->
+  <div class="reviews-list" *ngIf="reviews.length > 0">
+    <div class="review-item" *ngFor="let review of reviews">
+      <div class="review-header">
+        <div class="reviewer-info">
+          <div class="reviewer-name">{{ review.userName }}</div>
+          <div class="review-date">{{ review.formattedDate }}</div>
+        </div>
+        <div class="review-rating">
+          <span *ngFor="let star of getStarRating(5)" 
+                class="star-small" 
+                [class.filled]="star <= review.rating">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+            </svg>
+          </span>
+        </div>
+      </div>
+      <div class="review-text" *ngIf="review.reviewText">{{ review.reviewText }}</div>
+      <div class="review-text empty" *ngIf="!review.reviewText">
+        <em>No written review provided</em>
+      </div>
+    </div>
+    
+    <button class="load-more-reviews-btn" (click)="loadAllReviews()" *ngIf="!showAllReviews && reviews.length >= 3">
+      View All Reviews
+    </button>
+  </div>
+
+  <div class="no-reviews" *ngIf="reviews.length === 0 && !isLoadingReviews">
+    <p>No reviews yet. Be the first to review!</p>
+  </div>
+
+  <div class="loading-reviews" *ngIf="isLoadingReviews">
+    <p>Loading reviews...</p>
+  </div>
+</div>
+

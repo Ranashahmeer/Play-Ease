@@ -1,0 +1,70 @@
+<div class="player-rating-container">
+  <h3>Rate Players</h3>
+  <p class="subtitle">Rate the players you played with in this match</p>
+
+  <div class="loading-players" *ngIf="isLoadingPlayers">
+    <p>Loading players...</p>
+  </div>
+
+  <div class="no-players" *ngIf="!isLoadingPlayers && players.length === 0">
+    <p>No players available to rate.</p>
+  </div>
+
+  <div class="players-list" *ngIf="!isLoadingPlayers && players.length > 0">
+    <div class="player-card" *ngFor="let player of players">
+      <div class="player-info">
+        <div class="player-name">{{ player.userName }}</div>
+        <app-user-rating-badge [userId]="player.userID" [size]="'small'"></app-user-rating-badge>
+        <div class="player-role">{{ player.role }}</div>
+        <div class="rating-status" *ngIf="player.alreadyRated">
+          <span class="rated-badge">✓ Already Rated</span>
+        </div>
+      </div>
+
+      <button 
+        class="rate-btn" 
+        (click)="toggleRatingForm(player.userID)"
+        *ngIf="player.canRate">
+        {{ player.alreadyRated ? 'Update Rating' : 'Rate Player' }}
+      </button>
+
+      <!-- Rating Form -->
+      <div class="rating-form-container" *ngIf="isFormVisible(player.userID)">
+        <form [formGroup]="getForm(player.userID)!" (ngSubmit)="submitRating(player)">
+          <div class="form-group">
+            <label>Your Rating *</label>
+            <div class="star-rating-input">
+              <span 
+                *ngFor="let star of getStarRating(5)" 
+                class="star-input" 
+                [class.filled]="star <= (getForm(player.userID)?.get('rating')?.value || 0)"
+                (click)="getForm(player.userID)?.patchValue({rating: star})">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor">
+                  <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                </svg>
+              </span>
+              <span class="rating-value-display">{{ getForm(player.userID)?.get('rating')?.value }} / 5</span>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Your Review (Optional)</label>
+            <textarea 
+              formControlName="reviewText"
+              rows="3" 
+              placeholder="Share your experience playing with this player..."
+              maxlength="500"
+              class="review-textarea"></textarea>
+            <div class="char-count">{{ getForm(player.userID)?.get('reviewText')?.value?.length || 0 }} / 500</div>
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="submit-rating-btn" [disabled]="getForm(player.userID)?.invalid">
+              {{ player.alreadyRated ? 'Update Rating' : 'Submit Rating' }}
+            </button>
+            <button type="button" class="cancel-rating-btn" (click)="toggleRatingForm(player.userID)">Cancel</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+

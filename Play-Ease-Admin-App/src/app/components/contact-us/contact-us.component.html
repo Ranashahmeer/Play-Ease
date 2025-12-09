@@ -1,26 +1,147 @@
-<div class="contact-container">
-  <h1 class="contact-title">Contact Us</h1>
-  <p class="contact-description">Have a question, suggestion, or need support? We’d love to hear from you!</p>
-
-  <form class="contact-form" (submit)="sendMessage($event)">
-    <div class="form-group">
-      <label for="name">Your Name</label>
-      <input type="text" id="name" placeholder="Enter your name" required />
+<div class="contact-page">
+  <div class="page-header">
+    <div class="header-content">
+      <div class="icon-circle">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+        </svg>
+      </div>
+      <div>
+        <h1>Contact Us</h1>
+        <p>We'd love to hear from you. Send us a message and we'll respond as soon as possible.</p>
+      </div>
     </div>
+  </div>
 
-    <div class="form-group">
-      <label for="email">Your Email</label>
-      <input type="email" id="email" placeholder="Enter your email" required />
+  <div class="page-content">
+    <div class="contact-container">
+      <!-- Left: Contact Info -->
+      <div class="contact-info">
+        <div class="info-card">
+          <div class="info-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+              <circle cx="12" cy="10" r="3"></circle>
+            </svg>
+          </div>
+          <h3>Visit Us</h3>
+          <p>Karachi, Pakistan</p>
+        </div>
+
+        <div class="info-card">
+          <div class="info-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path
+                d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z">
+              </path>
+            </svg>
+          </div>
+          <h3>Call Us</h3>
+          <p>+92 300 2717479</p>
+        </div>
+
+        <div class="info-card">
+          <div class="info-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+              <polyline points="22,6 12,13 2,6"></polyline>
+            </svg>
+          </div>
+          <h3>Email Us</h3>
+          <p>support&#64;playease.pk</p>
+        </div>
+      </div>
+
+      <!-- Right: Contact Form -->
+      <div class="contact-form-wrapper">
+        <form [formGroup]="contactForm" (ngSubmit)="onSubmit()" class="contact-form">
+          <!-- Name & Email Row -->
+          <div class="form-row">
+            <div class="form-group">
+              <label for="fullName">Full Name <span class="required">*</span></label>
+              <input type="text" id="fullName" formControlName="fullName" placeholder="John Doe"
+                [class.error]="f['fullName'].invalid && f['fullName'].touched" />
+              <span class="error-message" *ngIf="f['fullName'].invalid && f['fullName'].touched">
+                {{ f['fullName'].errors?.['required'] ? 'Name is required' : 'Min 3 characters' }}
+              </span>
+            </div>
+
+            <div class="form-group">
+              <label for="email">Email <span class="required">*</span></label>
+              <input type="email" id="email" formControlName="email" placeholder="john@example.com"
+                [class.error]="f['email'].invalid && f['email'].touched" />
+              <span class="error-message" *ngIf="f['email'].invalid && f['email'].touched">
+                Please enter a valid email
+              </span>
+            </div>
+          </div>
+
+          <!-- Phone & Category Row -->
+          <div class="form-row">
+            <div class="form-group">
+              <label for="phoneNumber">Phone Number (optional)</label>
+              <input type="text" id="phoneNumber" formControlName="phoneNumber" placeholder="+923001234567"
+                (input)="formatPhoneNumber($event)"
+                [class.error]="f['phoneNumber'].invalid && f['phoneNumber'].touched" />
+              <span class="hint">Format: +92XXXXXXXXXX</span>
+            </div>
+
+            <div class="form-group">
+              <label for="category">Category <span class="required">*</span></label>
+              <select id="category" formControlName="category"
+                [class.error]="f['category'].invalid && f['category'].touched">
+                <option value="">-- Select Category --</option>
+                <option *ngFor="let cat of categories" [value]="cat">{{ cat }}</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Subject -->
+          <div class="form-group full-width">
+            <label for="subject">Subject <span class="required">*</span></label>
+            <input type="text" id="subject" formControlName="subject" placeholder="Brief description of your query"
+              [class.error]="f['subject'].invalid && f['subject'].touched" />
+            <span class="error-message" *ngIf="f['subject'].invalid && f['subject'].touched">
+              Subject must be at least 5 characters
+            </span>
+          </div>
+
+          <!-- Message -->
+          <div class="form-group full-width">
+            <label for="message">Message <span class="required">*</span></label>
+            <textarea id="message" formControlName="message" rows="6"
+              placeholder="Please describe your query in detail..."
+              [class.error]="f['message'].invalid && f['message'].touched"></textarea>
+            <div class="char-count">{{ contactForm.value.message?.length || 0 }} / 1000</div>
+            <span class="error-message" *ngIf="f['message'].invalid && f['message'].touched">
+              {{ f['message'].errors?.['required'] ?
+              'Message is required' :
+              (f['message'].errors?.['minlength'] ? 'Min 20 characters' : 'Max 1000 characters')
+              }}
+            </span>
+          </div>
+
+          <!-- File Upload -->
+          <div class="form-group full-width">
+            <label>Attachment (optional)</label>
+            <dx-file-uploader [multiple]="false" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx" uploadMode="useForm"
+              (onValueChanged)="onFileSelected($event)">
+            </dx-file-uploader>
+            <span class="hint">Max 5MB. Allowed: PDF, JPG, PNG, DOC, DOCX</span>
+            <span *ngIf="selectedFile" class="file-info">Selected: {{ selectedFile.name }}</span>
+          </div>
+
+          <!-- Submit Button -->
+          <div class="form-actions">
+            <dx-button type="success" [disabled]="isSubmitting" [useSubmitBehavior]="true" width="200">
+              <div style="display: flex; align-items: center; justify-content: center; gap: 8px; color: white;">
+                <dx-load-indicator *ngIf="isSubmitting" [visible]="true" [height]="20" [width]="20"></dx-load-indicator>
+                <span style="color: white; font-weight: 700;">{{ isSubmitting ? 'Sending...' : 'Send Message' }}</span>
+              </div>
+            </dx-button>
+          </div>
+        </form>
+      </div>
     </div>
-
-    <div class="form-group">
-      <label for="message">Your Message</label>
-      <textarea id="message" rows="5" placeholder="Write your message..." required></textarea>
-    </div>
-
-    <button type="submit" class="submit-btn">Send Message</button>
-  </form>
-
-  <!-- Thank you message -->
-  <p class="thank-you-msg" *ngIf="thankYouMessage">{{ thankYouMessage }}</p>
+  </div>
 </div>

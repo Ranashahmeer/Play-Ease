@@ -1,54 +1,70 @@
 import { CommonModule } from '@angular/common';
-import { Component, Input, Output, EventEmitter, OnInit, AfterViewInit, ViewChild, ElementRef} from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit, AfterViewInit, ViewChild, ElementRef } from '@angular/core';
 import { GetDatabyDatasourceService } from '../../services/get-data/get-databy-datasource.service';
 import { CourtAdapter } from '../../adapters/court.adapter';
 import { Pitch } from '../../models/setupModels';
+import { ImageService } from '../../services/image.service';
+import { DxPopupModule, DxGalleryModule } from 'devextreme-angular';
+
 @Component({
   selector: 'app-court-list',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, DxPopupModule, DxGalleryModule],
   templateUrl: './court-list.component.html',
   styleUrl: './court-list.component.css'
 })
 export class CourtListComponent implements OnInit, AfterViewInit {
-   @ViewChild('scrollContainer') scrollContainer!: ElementRef;
+  @ViewChild('scrollContainer') scrollContainer!: ElementRef;
   allCourts: any[] = [];       // All courts fetched from API
   courts: any[] = [];          // Filtered courts
 
   @Input() noCourtsMessage = '';
   @Input() currentPage = 1;
-  @Input() pageSize = 5; 
+  @Input() pageSize = 20;
 
   /* @Output() pageChange = new EventEmitter<number>(); */
   @Output() courtClick = new EventEmitter<any>();
- showLeftArrow = false;
+  showLeftArrow = false;
   showRightArrow = true;
-  constructor(private dataService: GetDatabyDatasourceService) {}
+
+  // Modal properties
+  showModal = false;
+  selectedCourt: any = null;
+
+  // Expose Math object for use in template
+  Math = Math;
+
+  constructor(
+    private dataService: GetDatabyDatasourceService,
+    public imageService: ImageService
+  ) { }
 
   ngOnInit() {
     this.loadCourts();
   }
-  
-   ngAfterViewInit() {
+
+  ngAfterViewInit() {
     setTimeout(() => this.updateArrows(), 200);
   }
 
   loadCourts() {
     // Use dataSourceId = 1 (assuming 1 = courts)
-    this.dataService.getData(1,'').subscribe({
+    this.dataService.getData(1, '').subscribe({
       next: (data: any[]) => {
         const adapter = new CourtAdapter();
         const apiData = Array.isArray(data) ? data : [];
         this.allCourts = apiData.map(item => adapter.fromApi(item));
         this.allCourts = this.allCourts.map(court => ({
           ...court,
+          image: this.imageService.getImageUrl(court.image),
+          images: this.imageService.getImageUrls(court.images),
           minPrice: court.pitches?.length
             ? court.pitches[0].price   // first pitch price
             : 0
         }));
         this.courts = [...this.allCourts];
       },
-      
+
       error: (err) => {
         this.allCourts = [];
         this.courts = [];
@@ -76,8 +92,8 @@ export class CourtListComponent implements OnInit, AfterViewInit {
           ...(court.pitches?.map((p: Pitch) => p.pitchtype) || []),
           court.rating?.toString() || ''
         ];
-        
-        matchesText = searchFields.some(field => 
+
+        matchesText = searchFields.some(field =>
           field.toLowerCase().includes(text)
         );
       }
@@ -109,7 +125,7 @@ export class CourtListComponent implements OnInit, AfterViewInit {
             dateStr = selectedDate.toISOString().split('T')[0];
           }
         }
-        
+
         // If we have a valid date string, check availability
         if (matchesDate && dateStr) {
           // Check if court has pitches (basic availability check)
@@ -129,7 +145,7 @@ export class CourtListComponent implements OnInit, AfterViewInit {
       let matchesTime = true;
       if (filters.selectedTime) {
         const selectedTime = filters.selectedTime;
-        
+
         // Check if time is within court operating hours
         if (court.openingTime && court.closingTime && court.openingMinutes !== undefined && court.closingMinutes !== undefined) {
           const timeMatch = selectedTime.match(/(\d+):(\d+)\s*(AM|PM)/i);
@@ -137,19 +153,19 @@ export class CourtListComponent implements OnInit, AfterViewInit {
             let hours = parseInt(timeMatch[1]);
             const minutes = parseInt(timeMatch[2]);
             const period = timeMatch[3].toUpperCase();
-            
+
             if (period === 'PM' && hours !== 12) hours += 12;
             if (period === 'AM' && hours === 12) hours = 0;
-            
+
             const selectedMinutes = hours * 60 + minutes;
-            matchesTime = selectedMinutes >= court.openingMinutes && 
-                         selectedMinutes <= court.closingMinutes;
+            matchesTime = selectedMinutes >= court.openingMinutes &&
+              selectedMinutes <= court.closingMinutes;
           } else {
             // Invalid time format
             matchesTime = false;
           }
         }
-        
+
         // If date is also selected, check for booked slots
         if (matchesTime && filters.selectedDate) {
           let dateStr: string = '';
@@ -163,7 +179,7 @@ export class CourtListComponent implements OnInit, AfterViewInit {
               dateStr = selectedDate.toISOString().split('T')[0];
             }
           }
-          
+
           // Check if the selected time slot is booked
           if (court.bookedSlots && court.bookedSlots[dateStr]) {
             const bookedTimes = court.bookedSlots[dateStr];
@@ -182,7 +198,7 @@ export class CourtListComponent implements OnInit, AfterViewInit {
         // For now, we check if court has any pitches (basic check)
         // In a real scenario, you might check if the duration fits within available time slots
         matchesDuration = court.pitches && court.pitches.length > 0;
-        
+
         // Additional check: if court has operating hours, ensure duration fits
         if (matchesDuration && court.openingMinutes !== undefined && court.closingMinutes !== undefined) {
           const totalAvailableMinutes = court.closingMinutes - court.openingMinutes;
@@ -200,15 +216,15 @@ export class CourtListComponent implements OnInit, AfterViewInit {
 
       return matchesText && matchesLocation && matchesDate && matchesTime && matchesDuration && matchesPitch;
     });
-    
+
     // Update scroll arrows after filtering
     setTimeout(() => this.updateArrows(), 100);
   }
 
-   get visibleCourts() {
+  get visibleCourts() {
     const start = (this.currentPage - 1) * this.pageSize;
     return this.courts.slice(start, start + this.pageSize);
-  } 
+  }
   scrollLeft() {
     const el = this.scrollContainer.nativeElement;
     el.scrollBy({ left: -350, behavior: 'smooth' });
@@ -244,6 +260,24 @@ export class CourtListComponent implements OnInit, AfterViewInit {
   }
  */
   openCourt(court: any) {
+    this.selectedCourt = court;
+    this.showModal = true;
+    // Also emit for parent component if needed
     this.courtClick.emit(court);
+  }
+
+  closeModal() {
+    this.showModal = false;
+    this.selectedCourt = null;
+  }
+
+  getGoogleMapsUrl(location: string): string {
+    if (!location) return '#';
+    const encodedLocation = encodeURIComponent(`${location}, Pakistan`);
+    return `https://www.google.com/maps/search/?api=1&query=${encodedLocation}`;
+  }
+
+  getStarRating(maxStars: number): number[] {
+    return Array.from({ length: maxStars }, (_, i) => i + 1);
   }
 }

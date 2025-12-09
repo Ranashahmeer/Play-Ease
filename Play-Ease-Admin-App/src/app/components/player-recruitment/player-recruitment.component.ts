@@ -9,6 +9,7 @@ import { NavbarFooterComponent } from '../navbar-footer/navbar-footer.component'
 import { AuthService } from '../../services/auth/auth.service';
 import { MatchService, Applicant , CreateMatchDto } from '../../services/match.service';
 import { AlertService } from '../../services/alert.service';
+import { NotificationsService } from '../../services/notifications/notifications.service';
 
 // Use the service interfaces directly - no need to redefine them
 import { MatchRequest } from '../../services/match.service';
@@ -55,6 +56,7 @@ export class PlayerRecruitmentComponent implements OnInit, OnDestroy {
     private authService: AuthService,
     private getDataService: GetDatabyDatasourceService,
     private alertService: AlertService,
+    private notificationsService: NotificationsService,
     @Inject(PLATFORM_ID) private platformId: Object
   ) {}
 
@@ -455,6 +457,10 @@ private async initializeUser(): Promise<void> {
     this.matchService.applyToMatch(application).subscribe({
       next: (response) => {
         this.alertService.success(`Application submitted successfully for ${data.role} position!`);
+        // Refresh notifications for organizer
+        if (this.currentUserId) {
+          this.notificationsService.updateUnreadCount(this.currentUserId);
+        }
         // Refresh data immediately so organizer can see the new applicant
         this.loadAllRequests();
       },
@@ -474,6 +480,11 @@ private async initializeUser(): Promise<void> {
       next: (response) => {
         const statusText = data.status === 'accepted' ? 'accepted' : 'rejected';
         this.alertService.success(`Applicant ${statusText} successfully!`);
+        
+        // Refresh notifications for applicant
+        if (this.currentUserId) {
+          this.notificationsService.updateUnreadCount(this.currentUserId);
+        }
         
         // Update local state immediately for better UX
         const request = this.myRequests.find(r => r.id === data.requestId);

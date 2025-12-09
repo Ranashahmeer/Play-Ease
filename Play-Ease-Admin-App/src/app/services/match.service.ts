@@ -89,4 +89,14 @@ export class MatchService {
       status: data.status
     });
   }
+
+  // Withdraw application
+  withdrawApplication(matchId: number, userId: number): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/Applicants/withdraw/${matchId}/${userId}`);
+  }
+
+  // Cancel match
+  cancelMatch(matchId: number, organizerId: number): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/RequestPlayer/${matchId}?organizerId=${organizerId}`);
+  }
 }

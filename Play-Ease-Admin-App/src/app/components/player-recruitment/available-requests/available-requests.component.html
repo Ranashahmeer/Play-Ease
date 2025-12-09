@@ -3,10 +3,7 @@
   <p class="section-subtitle">Find match requests you can join as a player</p>
 
   <div class="requests-list">
-    <article 
-      class="request-card" 
-      *ngFor="let request of requests"
-      [attr.data-match-date]="request.date"
+    <article class="request-card" *ngFor="let request of requests" [attr.data-match-date]="request.date"
       [attr.data-match-time]="request.endTime">
       <header class="request-header">
         <h3 class="request-title">{{ request.title }}</h3>
@@ -20,7 +17,8 @@
       <div class="request-details">
         <div class="detail-item">
           <svg class="icon" viewBox="0 0 24 24">
-            <path d="M19 4h-1V2h-2v2H8V2H6v2H5a2 2 0 00-2 2v12a2 2 0 002 2h14a2 2 0 002-2V6a2 2 0 00-2-2zm0 14H5V10h14z" fill="currentColor"></path>
+            <path d="M19 4h-1V2h-2v2H8V2H6v2H5a2 2 0 00-2 2v12a2 2 0 002 2h14a2 2 0 002-2V6a2 2 0 00-2-2zm0 14H5V10h14z"
+              fill="currentColor"></path>
           </svg>
           {{ formatDate(request.date) }}
         </div>
@@ -35,17 +33,28 @@
           <svg class="icon" viewBox="0 0 24 24">
             <path d="M12 2a7 7 0 017 7c0 5-7 13-7 13S5 14 5 9a7 7 0 017-7z" fill="currentColor"></path>
           </svg>
-          {{ request.location }}
+          <a [href]="getGoogleMapsUrl(request.location)" target="_blank" rel="noopener noreferrer"
+            class="location-link">
+            {{ request.location }}
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+              <polyline points="15 3 21 3 21 9"></polyline>
+              <line x1="10" y1="14" x2="21" y2="3"></line>
+            </svg>
+          </a>
         </div>
         <div class="detail-item">
           <svg class="icon" viewBox="0 0 24 24">
-            <path d="M12 2a5 5 0 1 1-5 5 5 5 0 0 1 5-5Zm0 9a9 9 0 0 1 9 9v1H3v-1a9 9 0 0 1 9-9Z" fill="currentColor"></path>
+            <path d="M12 2a5 5 0 1 1-5 5 5 5 0 0 1 5-5Zm0 9a9 9 0 0 1 9 9v1H3v-1a9 9 0 0 1 9-9Z" fill="currentColor">
+            </path>
           </svg>
           {{ request.roles }}
         </div>
         <div class="detail-item">
           <svg class="icon" viewBox="0 0 24 24">
-            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1.41 16.09V20h-2.67v-1.93c-1.71-.36-3.16-1.46-3.27-3.4h1.96c.1 1.05.82 1.87 2.65 1.87 1.96 0 2.4-.98 2.4-1.59 0-.83-.44-1.61-2.67-2.14-2.48-.6-4.18-1.62-4.18-3.67 0-1.72 1.39-2.84 3.11-3.21V4h2.67v1.95c1.86.45 2.79 1.86 2.85 3.39H14.3c-.05-1.11-.64-1.87-2.22-1.87-1.5 0-2.4.68-2.4 1.64 0 .84.65 1.39 2.67 1.91s4.18 1.39 4.18 3.91c-.01 1.83-1.38 2.83-3.12 3.16z" fill="currentColor"></path>
+            <path
+              d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1.41 16.09V20h-2.67v-1.93c-1.71-.36-3.16-1.46-3.27-3.4h1.96c.1 1.05.82 1.87 2.65 1.87 1.96 0 2.4-.98 2.4-1.59 0-.83-.44-1.61-2.67-2.14-2.48-.6-4.18-1.62-4.18-3.67 0-1.72 1.39-2.84 3.11-3.21V4h2.67v1.95c1.86.45 2.79 1.86 2.85 3.39H14.3c-.05-1.11-.64-1.87-2.22-1.87-1.5 0-2.4.68-2.4 1.64 0 .84.65 1.39 2.67 1.91s4.18 1.39 4.18 3.91c-.01 1.83-1.38 2.83-3.12 3.16z"
+              fill="currentColor"></path>
           </svg>
           PKR {{ request.price }}
         </div>
@@ -54,28 +63,22 @@
         <div class="organizer-info">
           <span class="organizer-label">Organizer:</span>
           <span class="organizer-name">{{ request.organizer }}</span>
+          <app-user-rating-badge [userId]="request.organizerId" [size]="'small'"></app-user-rating-badge>
         </div>
         <div class="request-actions">
-        <button 
-          class="btn-apply" 
-          [class.applied]="isApplied(request.id)"
-          [class.pending]="getApplicantStatus(request.id) === 'pending'"
-          [class.accepted]="getApplicantStatus(request.id) === 'accepted'"
-          [class.rejected]="getApplicantStatus(request.id) === 'rejected'"
-          [disabled]="isApplied(request.id) || isFullyBooked(request)"
-          (click)="applyToRequest(request)"
-          [title]="isFullyBooked(request) ? 'Request is fully booked' : (getApplicantStatus(request.id) ? 'Status: ' + getApplicantStatus(request.id) : 'Click to apply')">
-          <span *ngIf="!isApplied(request.id)">Apply</span>
-          <span *ngIf="getApplicantStatus(request.id) === 'pending'">Pending ⏳</span>
-          <span *ngIf="getApplicantStatus(request.id) === 'accepted'">Accepted ✓</span>
-          <span *ngIf="getApplicantStatus(request.id) === 'rejected'">Rejected ✗</span>
-        </button>
-          <button 
-            *ngIf="isAcceptedApplicant(request.id)"
-            class="btn-chat"
-            [class.active]="isChatAvailable(request)"
-            [disabled]="!isChatAvailable(request)"
-            (click)="startChat(request)"
+          <button class="btn-apply" [class.applied]="isApplied(request.id)"
+            [class.pending]="getApplicantStatus(request.id) === 'pending'"
+            [class.accepted]="getApplicantStatus(request.id) === 'accepted'"
+            [class.rejected]="getApplicantStatus(request.id) === 'rejected'"
+            [disabled]="isApplied(request.id) || isFullyBooked(request)" (click)="applyToRequest(request)"
+            [title]="isFullyBooked(request) ? 'Request is fully booked' : (getApplicantStatus(request.id) ? 'Status: ' + getApplicantStatus(request.id) : 'Click to apply')">
+            <span *ngIf="!isApplied(request.id)">Apply</span>
+            <span *ngIf="getApplicantStatus(request.id) === 'pending'">Pending ⏳</span>
+            <span *ngIf="getApplicantStatus(request.id) === 'accepted'">Accepted ✓</span>
+            <span *ngIf="getApplicantStatus(request.id) === 'rejected'">Rejected ✗</span>
+          </button>
+          <button *ngIf="isAcceptedApplicant(request.id)" class="btn-chat" [class.active]="isChatAvailable(request)"
+            [disabled]="!isChatAvailable(request)" (click)="startChat(request)"
             [title]="!isChatAvailable(request) ? 'Chat only available until match ends' : 'Chat with organizer'">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
@@ -102,10 +105,7 @@
     <div style="padding: 20px 0;">
       <p style="margin-bottom: 20px; color: #6a6a6a;">Choose the position you want to apply for:</p>
       <div class="role-options">
-        <button 
-          class="btn-apply role-btn" 
-          *ngFor="let role of availableRoles"
-          (click)="selectRole(role)">
+        <button class="btn-apply role-btn" *ngFor="let role of availableRoles" (click)="selectRole(role)">
           {{ role }}
         </button>
       </div>
@@ -128,10 +128,7 @@
     <button class="btn-close" (click)="closeChat()" aria-label="Close chat">&times;</button>
   </div>
   <div class="chat-messages" #chatMessagesContainer>
-    <div 
-      class="chat-message"
-      [class.my-message]="isMyMessage(message)"
-      [class.their-message]="!isMyMessage(message)"
+    <div class="chat-message" [class.my-message]="isMyMessage(message)" [class.their-message]="!isMyMessage(message)"
       *ngFor="let message of chatMessages">
       <div class="message-sender">{{ message.senderName }}</div>
       <div class="message-text">{{ message.message }}</div>
@@ -142,14 +139,9 @@
     </div>
   </div>
   <div class="chat-input">
-    <input 
-      [(ngModel)]="chatInput"
-      (keypress)="handleChatKeyPress($event)"
-      placeholder="Type a message..."
-      [disabled]="!isChatAvailable(currentChatRequest)"/>
-    <button 
-      class="chat-send-btn" 
-      (click)="sendMessage()"
+    <input [(ngModel)]="chatInput" (keypress)="handleChatKeyPress($event)" placeholder="Type a message..."
+      [disabled]="!isChatAvailable(currentChatRequest)" />
+    <button class="chat-send-btn" (click)="sendMessage()"
       [disabled]="!chatInput.trim() || !isChatAvailable(currentChatRequest)">
       Send
     </button>

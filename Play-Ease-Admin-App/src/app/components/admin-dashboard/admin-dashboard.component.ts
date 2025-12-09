@@ -71,7 +71,7 @@ export class AdminDashboardComponent implements OnInit {
     private alertService: AlertService,
     private http: HttpClient,
     private router: Router
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.loadUsers();
@@ -85,12 +85,12 @@ export class AdminDashboardComponent implements OnInit {
       next: (apiData: any[] | null | undefined) => {
         const data = Array.isArray(apiData) ? apiData : [];
         this.users = data.map((item, index) => {
-          const roleName = item.RoleName ;
+          const roleName = item.RoleName;
           return {
             id: item.UserID?.toString(),
             name: item.FullName,
-            email: item.Email ,
-            phone: item.Phone ,
+            email: item.Email,
+            phone: item.Phone,
             role: roleName.toLowerCase().includes('owner') ? 'courtOwner' : 'player',
             joinedDate: item.CreatedAt.split('T')[0]
           } as User;
@@ -109,21 +109,17 @@ export class AdminDashboardComponent implements OnInit {
   // Load bookings from backend
   loadBookings(): void {
     this.isLoadingBookings = true;
-    // Using datasource 3 for bookings (as seen in other components)
     this.dataService.getData(3, 'b.IsActive = 1').subscribe({
       next: (apiData: any[] | null | undefined) => {
         const data = Array.isArray(apiData) ? apiData : [];
         this.bookings = data.map((item, index) => {
-          // Map backend data to Booking interface
           const bookingDate = item.bookingdate;
           const startTime = item.starttime;
-          const endTime = item.endtime ;
-          
-          // Format time
+          const endTime = item.endtime;
+
           const timeStr = this.formatTimeRange(startTime, endTime);
-          
-          // Determine payment status
-          let paymentStatus: 'Confirmed' | 'Pending' |'Rejected'| 'completed' = 'Pending';
+
+          let paymentStatus: 'Confirmed' | 'Pending' | 'Rejected' | 'completed' = 'Pending';
           if (item.paymentstatus === 'Confirmed') {
             paymentStatus = 'Confirmed';
           } else if (item.paymentstatus === 'Pending' || item.PaymentStatus === 'Pending') {
@@ -131,7 +127,7 @@ export class AdminDashboardComponent implements OnInit {
           } else {
             paymentStatus = 'Rejected';
           }
-          // Check if booking is completed (date has passed)
+
           if (bookingDate) {
             const bookingDateObj = new Date(bookingDate);
             const today = new Date();
@@ -140,7 +136,7 @@ export class AdminDashboardComponent implements OnInit {
               paymentStatus = 'completed';
             }
           }
-          
+
           return {
             id: item.BookingID?.toString() || item.bookingID?.toString() || (index + 1).toString(),
             courtName: item.NAME,
@@ -149,7 +145,7 @@ export class AdminDashboardComponent implements OnInit {
             time: timeStr,
             paymentStatus: paymentStatus,
             price: item.price,
-            bookedDate:  item.CreatedAt  || new Date().toISOString().split('T')[0]
+            bookedDate: item.CreatedAt || new Date().toISOString().split('T')[0]
           } as Booking;
         });
         this.isLoadingBookings = false;
@@ -165,11 +161,9 @@ export class AdminDashboardComponent implements OnInit {
 
   private formatTimeRange(startTime: string, endTime: string): string {
     if (!startTime || !endTime) return '';
-    
-    // Handle TimeSpan format (HH:MM:SS) or time string
+
     const formatTime = (time: string): string => {
       if (!time) return '';
-      // If it's in HH:MM:SS format, extract HH:MM
       if (time.includes(':')) {
         const parts = time.split(':');
         const hours = parseInt(parts[0]);
@@ -180,7 +174,7 @@ export class AdminDashboardComponent implements OnInit {
       }
       return time;
     };
-    
+
     return `${formatTime(startTime)} - ${formatTime(endTime)}`;
   }
 
@@ -189,8 +183,7 @@ export class AdminDashboardComponent implements OnInit {
     this.activeTab = tab;
     this.searchQuery = '';
     this.selectedFilter = 'all';
-    
-    // Load data when switching tabs
+
     if (tab === 'users' && this.users.length === 0) {
       this.loadUsers();
     } else if (tab === 'bookings' && this.bookings.length === 0) {
@@ -212,15 +205,13 @@ export class AdminDashboardComponent implements OnInit {
   private filterUsers(): void {
     let filtered = [...this.users];
 
-    // Filter by role
     if (this.selectedFilter !== 'all') {
       filtered = filtered.filter(u => u.role === this.selectedFilter);
     }
 
-    // Search
     if (this.searchQuery) {
       const query = this.searchQuery.toLowerCase();
-      filtered = filtered.filter(u => 
+      filtered = filtered.filter(u =>
         u.name.toLowerCase().includes(query) ||
         u.email.toLowerCase().includes(query)
       );
@@ -232,21 +223,18 @@ export class AdminDashboardComponent implements OnInit {
   private filterBookings(): void {
     let filtered = [...this.bookings];
 
-    // Filter by payment status
     if (this.selectedFilter !== 'all') {
       filtered = filtered.filter(b => b.paymentStatus === this.selectedFilter);
     }
 
-    // Search
     if (this.searchQuery) {
       const query = this.searchQuery.toLowerCase();
-      filtered = filtered.filter(b => 
+      filtered = filtered.filter(b =>
         b.courtName.toLowerCase().includes(query) ||
         b.playerName.toLowerCase().includes(query)
       );
     }
 
-    // Auto-update payment status to completed if booking date has passed
     const now = new Date();
     filtered.forEach(b => {
       const bookingDate = new Date(b.date);
@@ -277,10 +265,8 @@ export class AdminDashboardComponent implements OnInit {
     const userName = this.selectedUser.name;
     const userIdToRemove = this.selectedUser.id;
 
-    // Call backend API to deactivate user (soft delete)
     this.http.put(`${this.apiUrl}/Users/deactivate/${userId}`, {}).subscribe({
       next: () => {
-        // Remove from local array and refresh
         this.users = this.users.filter(u => u.id !== userIdToRemove);
         this.applyFilters();
         this.alertService.success(`User ${userName} has been deactivated.`);
@@ -329,5 +315,9 @@ export class AdminDashboardComponent implements OnInit {
 
   navigateToDashboard(): void {
     this.router.navigate(['/dashboard']);
+  }
+
+  navigateToRegisterOwner(): void {
+    this.router.navigate(['/register-owner']);
   }
 }

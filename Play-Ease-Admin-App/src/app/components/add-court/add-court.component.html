@@ -21,14 +21,10 @@
 
               <div style="display:flex; flex-direction:column; gap:6px;">
                 <div style="display:flex; gap:8px; align-items:center;">
-                  <input
-                    type="number"
-                    [class.invalid-price]="!isFiniteValue(pricePerPitch[p]) && submitted"
+                  <input type="number" [class.invalid-price]="!isFiniteValue(pricePerPitch[p]) && submitted"
                     [value]="isFiniteValue(pricePerPitch[p]) ? pricePerPitch[p] : ''"
-                    (input)="setPitchPrice(p, $any($event.target).value)"
-                    placeholder="e.g. 2000"
-                    style="width:120px; padding:6px; border-radius:6px; border:1px solid #ddd;"
-                  />
+                    (input)="setPitchPrice(p, $any($event.target).value)" placeholder="e.g. 2000"
+                    style="width:120px; padding:6px; border-radius:6px; border:1px solid #ddd;" />
                   <div class="price-preview" *ngIf="formattedPrice(p)">{{ formattedPrice(p) }}</div>
                 </div>
 
@@ -46,7 +42,8 @@
           <input #pitchInput type="text" placeholder="e.g. 5x5" />
           <dx-button text="Add pitch" stylingMode="contained" (onClick)="addPitch(pitchInput)"></dx-button>
         </div>
-        <div class="field-error" *ngIf="submitted && pitches.length === 0">Add at least one pitch and set its price.</div>
+        <div class="field-error" *ngIf="submitted && pitches.length === 0">Add at least one pitch and set its price.
+        </div>
       </div>
 
       <label style="margin-top:12px;">Offers / Amenities</label>
@@ -62,7 +59,8 @@
 
       <label style="margin-top:12px;">Upload images (max 6)</label>
       <ng-container *ngIf="isBrowser">
-        <dx-file-uploader [multiple]="true" [accept]="'image/png,image/jpeg'" (onValueChanged)="onImagesUpload($event)"></dx-file-uploader>
+        <dx-file-uploader [multiple]="true" [accept]="'image/png,image/jpeg'"
+          (onValueChanged)="onImagesUpload($event)"></dx-file-uploader>
       </ng-container>
       <div class="image-preview-row" *ngIf="images.length > 0">
         <div *ngFor="let img of images" class="img-thumb" (click)="$event.stopPropagation()">
@@ -82,16 +80,31 @@
 
       <label style="margin-top:12px;">About</label>
       <textarea formControlName="about" rows="3" placeholder="Short description..."></textarea>
-      
-      <!-- Owner Information Section -->
-      <div class="owner-info-section">
-        <label>Owner Name *</label>
-        <input type="text" formControlName="ownerName" placeholder="Court owner's full name" />
-        <div class="field-error" *ngIf="submitted && form.get('ownerName')?.invalid">Please enter owner name.</div>
 
-        <label style="margin-top: 12px;">Owner CNIC *</label>
-        <input type="text" formControlName="ownerCnic" placeholder="xxxxx-xxxxxxx-x" maxlength="15" />
-        <div class="field-error" *ngIf="submitted && form.get('ownerCnic')?.invalid">Please enter valid CNIC (13 digits).</div>
+      <!-- Owner Selection Section (Admin Only) -->
+      <div class="owner-info-section" *ngIf="isAdmin">
+        <label>Select Court Owner *</label>
+        <select formControlName="ownerId" class="owner-select">
+          <option [value]="null">-- Select Owner --</option>
+          <option *ngFor="let owner of owners" [value]="owner.ownerID">
+            {{ owner.fullName }} (CNIC: {{ owner.cnic }})
+          </option>
+        </select>
+        <div class="field-error" *ngIf="submitted && form.get('ownerId')?.invalid">Please select a court owner.</div>
+      </div>
+
+      <!-- Document Upload Section -->
+      <div class="document-upload-section" style="margin-top: 12px;">
+        <label>Upload Documents (PDF/JPG/PNG, max 5MB each)</label>
+        <input type="file" multiple accept=".pdf,.jpg,.jpeg,.png" (change)="onDocumentsSelected($event)" #documentInput
+          style="margin-top: 8px;" />
+
+        <div class="document-list" *ngIf="documentPreviews.length > 0" style="margin-top: 12px;">
+          <div *ngFor="let doc of documentPreviews; let i = index" class="document-item">
+            <span>{{ doc.name }} ({{ (doc.size / 1024).toFixed(2) }} KB)</span>
+            <button type="button" (click)="removeDocument(i)" class="remove-doc-btn">Remove</button>
+          </div>
+        </div>
       </div>
 
       <div *ngIf="submitted && anyInvalidPitchPrice()" class="page-warning">
@@ -101,164 +114,7 @@
       <div style="display:flex; gap:8px; margin-top:12px;">
         <dx-button text="Save Service" type="success" stylingMode="contained" (onClick)="saveCourt()"></dx-button>
         <dx-button text="Start New" (onClick)="startCreateNew()"></dx-button>
-        <dx-button text="Reset sample data" (onClick)="resetStoreToSample()"></dx-button>
       </div>
     </form>
   </div>
-
-  <div class="owner-list">
-    <h3>Saved Services</h3>
-    <div *ngIf="courts.length === 0">No services yet. Create one from the left.</div>
-
-    <div class="court-card" *ngFor="let c of courts" (click)="openCourtDetails(c)">
-      <img [src]="getPreviewImage(c)" alt="court" />
-      <div class="info">
-        <h4>{{ c.name }}</h4>
-        <p>{{ c.location }}</p>
-        <p *ngIf="c.rating !== undefined">Rating: {{ c.rating }}</p>
-        <p>Pitches: {{ c.pitches.length || 0 }}</p>
-        <ng-container *ngIf="c.pricePerPitch">
-          <div style="margin-top:6px;">
-            <small>Prices:</small>
-            <div *ngFor="let p of c.pitches">
-              <small>{{ p }} — Rs {{ (c.pricePerPitch && c.pricePerPitch[p] !== undefined) ? c.pricePerPitch[p] : '—' }}</small>
-            </div>
-          </div>
-        </ng-container>
-      </div>
-      <div class="actions">
-        <dx-button text="Edit" (onClick)="onEditClick(c, $event)"></dx-button>
-        <dx-button text="Delete" (onClick)="onDeleteClick(c, $event)"></dx-button>
-      </div>
-    </div>
-  </div>
 </div>
-
-<dx-popup
-  [(visible)]="popupVisible"
-  [showTitle]="false"
-  [width]="700"
-  [height]="'auto'"
-  [maxHeight]="'85vh'"
-  [dragEnabled]="false"
-  [hideOnOutsideClick]="true"
-  (onHiding)="closePopup()"
->
-  <div *dxTemplate="let data of 'content'" class="popup-content">
-    <div class="popup-custom-header">
-      <div class="popup-header-left">
-        <h3 class="popup-court-name">{{ selectedCourt?.name ?? '' }}</h3>
-        <div class="popup-subinfo">
-          <svg viewBox="0 0 24 24" fill="currentColor">
-            <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
-          </svg>
-          <span>{{ selectedCourt?.location }}</span>
-          <span *ngIf="selectedCourt?.rating">• ⭐ {{ selectedCourt?.rating }}</span>
-        </div>
-      </div>
-
-      <button
-        class="popup-close-btn"
-        (click)="closePopup()"
-        aria-label="Close popup"
-        title="Close">
-        ×
-      </button>
-    </div>
-
-    <!-- Owner Information -->
-    <div class="owner-info-popup" *ngIf="selectedCourt?.ownerName">
-      <div class="info-row">
-        <span class="info-label">Owner Name:</span>
-        <span class="info-value">{{ selectedCourt?.ownerName }}</span>
-      </div>
-      <div class="info-row" *ngIf="selectedCourt?.ownerCnic">
-        <span class="info-label">Owner CNIC:</span>
-        <span class="info-value">{{ selectedCourt?.ownerCnic }}</span>
-      </div>
-    </div>
-
-    <!-- Gallery -->
-    <div class="popup-gallery-section" *ngIf="galleryImages.length > 0">
-      <dx-gallery
-        [dataSource]="galleryImages"
-        [loop]="true"
-        [showIndicator]="true"
-        [height]="280"
-        [stretchImages]="true"
-        class="court-gallery">
-      </dx-gallery>
-    </div>
-
-    <!-- Price and Hours -->
-    <div class="popup-price-row">
-      <p class="price-tag-popup">
-        <svg viewBox="0 0 24 24" fill="currentColor">
-          <path d="M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1h-2.2c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.4z"/>
-        </svg>
-        <span><strong>From:</strong> <span class="price-amount">Rs {{ selectedCourt?.price ?? 0 }}</span></span>
-      </p>
-      <p class="hours-line-popup">
-        <svg viewBox="0 0 24 24" fill="currentColor">
-          <path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/>
-        </svg>
-        <span><strong>Hours:</strong> {{ selectedCourt?.openingTime ?? '—' }} — {{ selectedCourt?.closingTime ?? '—' }}</span>
-      </p>
-    </div>
-
-    <!-- Pitches & Prices -->
-    <div class="popup-section">
-      <h4 class="popup-section-title">
-        <svg viewBox="0 0 24 24" fill="currentColor">
-          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
-        </svg>
-        Pitches & Prices
-      </h4>
-      <div *ngIf="selectedCourt?.pricePerPitch; else noPrices">
-        <div class="pitches-grid">
-          <div *ngFor="let p of selectedCourt?.pitches" class="pitch-item">
-            <span class="pitch-name">{{ p }}</span>
-            <span class="pitch-price">Rs {{ selectedCourt?.pricePerPitch?.[p] ?? '—' }}</span>
-          </div>
-        </div>
-      </div>
-      <ng-template #noPrices>
-        <div class="no-data-text">No per-pitch prices provided.</div>
-      </ng-template>
-    </div>
-
-    <!-- Offers/Amenities -->
-    <div class="popup-section">
-      <h4 class="popup-section-title">
-        <svg viewBox="0 0 24 24" fill="currentColor">
-          <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-        </svg>
-        What we offer
-      </h4>
-      <div class="offers-row">
-        <ng-container *ngIf="selectedCourt?.offers?.length; else noOffers">
-          <span class="offer-chip" *ngFor="let off of selectedCourt?.offers">
-            <span class="offer-icon" aria-hidden="true">{{ getOfferIcon(off) }}</span>
-            <span class="offer-text">{{ off }}</span>
-          </span>
-        </ng-container>
-        <ng-template #noOffers>
-          <div class="no-data-text">No additional amenities listed.</div>
-        </ng-template>
-      </div>
-    </div>
-
-    <!-- About -->
-    <div class="popup-section">
-      <h4 class="popup-section-title">
-        <svg viewBox="0 0 24 24" fill="currentColor">
-          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/>
-        </svg>
-        About Us
-      </h4>
-      <p class="about-text">
-        {{ selectedCourt?.about ?? 'No description provided for this court.' }}
-      </p>
-    </div>
-  </div>
-</dx-popup>

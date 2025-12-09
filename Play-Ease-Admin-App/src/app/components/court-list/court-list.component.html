@@ -2,19 +2,12 @@
   {{ noCourtsMessage }}
 </div>
 
-<div
-  *ngIf="!noCourtsMessage && visibleCourts.length === 0"
-  class="no-courts-message"
->
+<div *ngIf="!noCourtsMessage && visibleCourts.length === 0" class="no-courts-message">
   No courts found. Try changing filters or clearing them.
 </div>
 <button class="scroll-btn left" (click)="scrollLeft()">‹</button>
 <div class="courts-wrapper" #scrollContainer (scroll)="onScroll()">
-  <div
-    class="court-card"
-    *ngFor="let court of visibleCourts"
-    (click)="openCourt(court)"
-  >
+  <div class="court-card" *ngFor="let court of visibleCourts" (click)="openCourt(court)">
     <img [src]="court.image" alt="{{ court.name }} - Court Image" loading="lazy" decoding="async" />
     <div class="court-info">
       <h4>{{ court.name }}</h4>
@@ -23,14 +16,30 @@
           <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
           <circle cx="12" cy="10" r="3"></circle>
         </svg>
-        {{ court.location }}
+        <a [href]="getGoogleMapsUrl(court.location)" target="_blank" rel="noopener noreferrer" class="location-link"
+          (click)="$event.stopPropagation()">
+          {{ court.location }}
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+            <polyline points="15 3 21 3 21 9"></polyline>
+            <line x1="10" y1="14" x2="21" y2="3"></line>
+          </svg>
+        </a>
       </p>
-      <p class="rating-line">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2">
-          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
-        </svg>
-        Rating: {{ court.rating }}
-      </p>
+      <div class="rating-line">
+        <div class="star-rating-display">
+          <span *ngFor="let star of getStarRating(5)" class="star-display"
+            [class.filled]="star <= Math.round(court.rating || 0)"
+            [class.half]="star === Math.ceil(court.rating || 0) && (court.rating || 0) % 1 >= 0.5">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+              <polygon
+                points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2">
+              </polygon>
+            </svg>
+          </span>
+          <span class="rating-value">{{ (court.rating || 0).toFixed(1) }}</span>
+        </div>
+      </div>
       <p class="price-tag">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <line x1="12" y1="1" x2="12" y2="23"></line>
@@ -50,7 +59,7 @@
 </div>
 <button class="scroll-btn right" (click)="scrollRight()">›</button>
 <div style="display: flex; gap: 10px; margin-top: 20px">
- <!--  <button class="next-button" (click)="prevPage()" *ngIf="currentPage > 1">
+  <!--  <button class="next-button" (click)="prevPage()" *ngIf="currentPage > 1">
     Previous
   </button>
   <button class="next-button" (click)="nextPage()" *ngIf="hasNextPage()">
@@ -58,8 +67,8 @@
   </button> -->
 </div>
 <!-- <div class="courts-container"> -->
-  <!-- LEFT ARROW -->
-  <!-- <button class="scroll-btn left" (click)="scrollLeft()">
+<!-- LEFT ARROW -->
+<!-- <button class="scroll-btn left" (click)="scrollLeft()">
     ‹
   </button>
 
@@ -84,11 +93,83 @@
 
 </div> -->
 
-  <!-- WAS ADDED IN BETWEEN IF SO JUST TOOK IT OUT OUT FROM THERE -->
-  <!-- New Attributes
+<!-- WAS ADDED IN BETWEEN IF SO JUST TOOK IT OUT OUT FROM THERE -->
+<!-- New Attributes
       <p><strong>Available Dates:</strong> {{ court.availableDates?.join(', ') || 'N/A' }}</p>
       <p><strong>Time Slots:</strong> {{ court.availableTimes?.join(', ') || 'N/A' }}</p>
       <p><strong>Match Durations:</strong> {{ court.matchDurations?.join(', ') || 'N/A' }} mins</p>
       <p><strong>Pitch Sizes:</strong> {{ court.pitchSizes?.join(', ') || 'N/A' }}</p>
       <p><strong>Distance:</strong> {{ court.distance || 'N/A' }} km</p> -->
 <!-- </div> -->
+<!-- Court Detail Modal -->
+<dx-popup [(visible)]="showModal" [showTitle]="false" [width]="900" [height]="'auto'" [maxHeight]="'90vh'"
+  [dragEnabled]="false" [hideOnOutsideClick]="true" (onHiding)="closeModal()">
+  <div *dxTemplate="let data of 'content'" class="court-modal">
+    <div class="modal-header">
+      <h2>{{ selectedCourt?.name }}</h2>
+      <button class="close-btn" (click)="closeModal()" title="Close">âœ•</button>
+    </div>
+
+    <div class="modal-body">
+      <!-- Image Gallery -->
+      <div class="image-gallery-section" *ngIf="selectedCourt?.images && selectedCourt?.images.length > 0">
+        <dx-gallery [dataSource]="selectedCourt.images" [height]="400" [loop]="true" [showNavButtons]="true"
+          [showIndicator]="true" [stretchImages]="false">
+        </dx-gallery>
+      </div>
+
+      <!-- Main image fallback if no gallery images -->
+      <div class="single-image-section" *ngIf="!selectedCourt?.images || selectedCourt?.images.length === 0">
+        <img [src]="selectedCourt?.image" [alt]="selectedCourt?.name" class="main-image" />
+      </div>
+
+      <!-- Court Details -->
+      <div class="court-details-grid">
+        <div class="detail-item">
+          <div class="detail-label">Location</div>
+          <div class="detail-value">{{ selectedCourt?.location }}</div>
+        </div>
+
+        <div class="detail-item">
+          <div class="detail-label">Rating</div>
+          <div class="detail-value">â­ {{ selectedCourt?.rating || 0 }}</div>
+        </div>
+
+        <div class="detail-item">
+          <div class="detail-label">Opening Hours</div>
+          <div class="detail-value">{{ selectedCourt?.openingTime }} - {{ selectedCourt?.closingTime }}</div>
+        </div>
+
+        <div class="detail-item">
+          <div class="detail-label">Starting Price</div>
+          <div class="detail-value">Rs {{ selectedCourt?.minPrice }}</div>
+        </div>
+      </div>
+
+      <!-- About Section -->
+      <div class="about-section" *ngIf="selectedCourt?.about">
+        <h3>About</h3>
+        <p>{{ selectedCourt.about }}</p>
+      </div>
+
+      <!-- Pitches -->
+      <div class="pitches-section" *ngIf="selectedCourt?.pitches && selectedCourt?.pitches.length > 0">
+        <h3>Available Pitches</h3>
+        <div class="pitch-grid">
+          <div *ngFor="let pitch of selectedCourt.pitches" class="pitch-card">
+            <div class="pitch-type">{{ pitch.pitchtype }}</div>
+            <div class="pitch-price">Rs {{ pitch.price }}</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Offers -->
+      <div class="offers-section" *ngIf="selectedCourt?.offers && selectedCourt?.offers.length > 0">
+        <h3>Amenities</h3>
+        <div class="offers-grid">
+          <span *ngFor="let offer of selectedCourt.offers" class="offer-tag">âœ“ {{ offer }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</dx-popup>

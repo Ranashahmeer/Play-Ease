@@ -9,7 +9,7 @@ export class CourtAdapter implements Adapter<Court> {
 
     return {
       courtId: item.courtid,
-      name: item.NAME ,
+      name: item.NAME,
       location: item.location,
       rating: Number(item.rating) || 0,
       openingTime: item.openingtime,
@@ -22,10 +22,12 @@ export class CourtAdapter implements Adapter<Court> {
       offers: this.parseOffers(item.offers),
       pitches: this.parsePitches(item.pitches),
       OwnerId: item.ownerid || item.OwnerID || item.ownerId || 0,
-      bookedSlots: this.parseBookedSlots(item.bookedslots)
+      bookedSlots: this.parseBookedSlots(item.bookedslots),
+      ownerName: item.fullname || item.FullName || '',
+      ownerPhone: item.Phone || item.phone || ''
     };
   }
- 
+
 
   private static timeStringToMinutes(time: string): number {
     if (!time) return 0;
@@ -35,8 +37,31 @@ export class CourtAdapter implements Adapter<Court> {
 
   private parseImages(images: any): string[] {
     if (!images) return [];
-    if (Array.isArray(images)) return images;
-    return images.split(',').map((img: string) => img.trim());
+
+    // Handle JSON string from API  
+    if (typeof images === 'string') {
+      try {
+        const parsed = JSON.parse(images);
+        if (Array.isArray(parsed)) {
+          return parsed.map((img: any) => img.imageurl || img.ImageUrl || img);
+        }
+        // Fallback for comma-separated string
+        return images.split(',').map((img: string) => img.trim());
+      } catch {
+        // If JSON parse fails, try comma-separated
+        return images.split(',').map((img: string) => img.trim());
+      }
+    }
+
+    // Handle array
+    if (Array.isArray(images)) {
+      return images.map((img: any) => {
+        if (typeof img === 'string') return img;
+        return img.imageurl || img.ImageUrl || '';
+      }).filter(img => img); // Remove empty strings
+    }
+
+    return [];
   }
 
   private parseOffers(offers: any): string[] {
@@ -47,20 +72,20 @@ export class CourtAdapter implements Adapter<Court> {
 
   /*  */
   // adapters/court.adapter.ts
-private parsePitches(pitches: any): Pitch[] {
-  if (!pitches) return [];
-  try {
-    const parsed = typeof pitches === 'string' ? JSON.parse(pitches) : pitches;
-    // Ensure each pitch has required fields
-    return parsed.map((p: any) => ({
-      pitchId: p.pitchId || p.pitchid || 0,
-      pitchtype: p.pitchtype || p.pitchType || '',
-      price: Number(p.price) || 0
-    }));
-  } catch {
-    return [];
+  private parsePitches(pitches: any): Pitch[] {
+    if (!pitches) return [];
+    try {
+      const parsed = typeof pitches === 'string' ? JSON.parse(pitches) : pitches;
+      // Ensure each pitch has required fields
+      return parsed.map((p: any) => ({
+        pitchId: p.pitchId || p.pitchid || 0,
+        pitchtype: p.pitchtype || p.pitchType || '',
+        price: Number(p.price) || 0
+      }));
+    } catch {
+      return [];
+    }
   }
-}
   private parseBookedSlots(slots: any): Record<string, string[]> {
     if (!slots) return {};
     try {

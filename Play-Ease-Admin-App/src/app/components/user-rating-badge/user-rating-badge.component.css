@@ -1,0 +1,100 @@
+/* User Rating Badge Component */
+
+.user-rating-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.loading {
+  font-size: 0.85rem;
+  color: var(--gray-500);
+  font-style: italic;
+}
+
+.rating-display {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.rating-label {
+  font-size: 0.9rem;
+  color: var(--gray-600);
+  font-weight: 500;
+}
+
+.rating-stars {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.rating-stars .star {
+  color: var(--gray-300);
+  transition: color var(--transition-base);
+}
+
+.rating-stars .star.filled {
+  color: #fbbf24;
+}
+
+.rating-value {
+  font-weight: 600;
+  color: var(--gray-900);
+  font-size: 0.9rem;
+}
+
+.rating-count {
+  font-size: 0.8rem;
+  color: var(--gray-500);
+}
+
+.no-rating {
+  display: inline-flex;
+  align-items: center;
+}
+
+.no-rating-text {
+  font-size: 0.85rem;
+  color: var(--gray-400);
+  font-style: italic;
+}
+
+/* Size variations */
+.size-small .rating-value {
+  font-size: 0.8rem;
+}
+
+.size-small .rating-stars svg {
+  width: 12px;
+  height: 12px;
+}
+
+.size-small .rating-count {
+  font-size: 0.75rem;
+}
+
+.size-medium .rating-value {
+  font-size: 0.9rem;
+}
+
+.size-medium .rating-stars svg {
+  width: 14px;
+  height: 14px;
+}
+
+.size-large .rating-value {
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.size-large .rating-stars svg {
+  width: 16px;
+  height: 16px;
+}
+
+.size-large .rating-count {
+  font-size: 0.85rem;
+}
+

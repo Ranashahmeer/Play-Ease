@@ -14,6 +14,8 @@ export interface CourtDto {
   OwnerID: number;
   Pitches: PitchDto[];
   Images?: string[];
+  Documents?: string[];
+  Offers?: string[];
 }
 
 export interface PitchDto {
@@ -27,7 +29,7 @@ export interface PitchDto {
 export class CourtService {
   private apiUrl = 'http://localhost:5000/api';
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
   createCourt(court: CourtDto): Observable<any> {
     return this.http.post(`${this.apiUrl}/Courts/create`, court);

@@ -3,6 +3,13 @@
   margin-bottom: 40px;
 }
 
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 20px;
+}
+
 .section-title {
   font-size: 36px;
   font-weight: 900;
@@ -13,7 +20,199 @@
 .section-subtitle {
   font-size: 16px;
   color: #6a6a6a;
-  margin-bottom: 40px;
+  margin-bottom: 0;
+}
+
+.header-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.btn-filter {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  background: #fff;
+  border: 2px solid #004526;
+  border-radius: 8px;
+  color: #004526;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.btn-filter:hover {
+  background: #004526;
+  color: #fff;
+}
+
+.btn-filter.active {
+  background: #004526;
+  color: #fff;
+}
+
+/* Search Container */
+.search-container {
+  margin-bottom: 20px;
+}
+
+.search-box {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: #fff;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  transition: all 0.3s;
+}
+
+.search-box:focus-within {
+  border-color: #004526;
+  box-shadow: 0 0 0 3px rgba(0, 69, 38, 0.1);
+}
+
+.search-box svg {
+  color: #6a6a6a;
+  flex-shrink: 0;
+}
+
+.search-input {
+  flex: 1;
+  border: none;
+  outline: none;
+  font-size: 15px;
+  color: #1a1a1a;
+}
+
+.search-input::placeholder {
+  color: #999;
+}
+
+.btn-clear-search {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  color: #6a6a6a;
+  transition: color 0.2s;
+}
+
+.btn-clear-search:hover {
+  color: #004526;
+}
+
+/* Filter Panel */
+.filter-panel {
+  display: none;
+  padding: 20px;
+  background: #f8f8f8;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  border: 1px solid #e0e0e0;
+}
+
+.filter-panel.active {
+  display: block;
+}
+
+.filter-group {
+  margin-bottom: 20px;
+}
+
+.filter-group:last-child {
+  margin-bottom: 0;
+}
+
+.filter-group label {
+  display: block;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin-bottom: 8px;
+  font-size: 14px;
+}
+
+.filter-group input[type="text"],
+.filter-group input[type="date"] {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  font-size: 14px;
+  transition: border-color 0.2s;
+}
+
+.filter-group input[type="text"]:focus,
+.filter-group input[type="date"]:focus {
+  outline: none;
+  border-color: #004526;
+}
+
+.price-range {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.price-range input[type="range"] {
+  flex: 1;
+}
+
+.sort-buttons {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.sort-buttons button {
+  padding: 8px 16px;
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s;
+}
+
+.sort-buttons button:hover {
+  border-color: #004526;
+  color: #004526;
+}
+
+.sort-buttons button.active {
+  background: #004526;
+  color: #fff;
+  border-color: #004526;
+}
+
+.btn-clear-filters {
+  width: 100%;
+  padding: 10px;
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  color: #6a6a6a;
+  transition: all 0.2s;
+}
+
+.btn-clear-filters:hover {
+  background: #f0f0f0;
+  border-color: #004526;
+  color: #004526;
+}
+
+.btn-link {
+  background: none;
+  border: none;
+  color: #004526;
+  text-decoration: underline;
+  cursor: pointer;
+  font-weight: 600;
 }
 
 .requests-list {
@@ -74,6 +273,32 @@
   font-size: 14px;
 }
 
+.location-link {
+  color: #004526;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+  font-weight: 500;
+  margin-left: 4px;
+}
+
+.location-link:hover {
+  color: #006b3d;
+  text-decoration: underline;
+}
+
+.location-link svg {
+  opacity: 0.7;
+  transition: opacity 0.2s ease;
+  flex-shrink: 0;
+}
+
+.location-link:hover svg {
+  opacity: 1;
+}
+
 .request-footer {
   display: flex;
   justify-content: space-between;
@@ -90,7 +315,10 @@
 
 .organizer-info {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
 .organizer-label {
@@ -186,13 +414,25 @@
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes slideUp {
-  from { transform: translateY(50px); opacity: 0; }
-  to { transform: translateY(0); opacity: 1; }
+  from {
+    transform: translateY(50px);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
 }
 
 .modal-header {
@@ -254,8 +494,15 @@
 }
 
 @keyframes slideInRight {
-  from { transform: translateX(400px); opacity: 0; }
-  to { transform: translateX(0); opacity: 1; }
+  from {
+    transform: translateX(400px);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
 }
 
 .notification-text {
@@ -300,6 +547,54 @@
   opacity: 0.5;
   cursor: not-allowed;
   background: #9ca3af;
+}
+
+/* Withdraw Button */
+.btn-withdraw {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 20px;
+  background: #fff;
+  border: 2px solid #ef5350;
+  color: #ef5350;
+  font-weight: 600;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: all 0.3s;
+  font-size: 13px;
+}
+
+.btn-withdraw svg {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+.btn-withdraw:hover {
+  background: #ef5350;
+  color: #fff;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(239, 83, 80, 0.4);
+}
+
+/* Withdrawal Disabled Message */
+.withdrawal-disabled-msg {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background: #fff3cd;
+  border: 1px solid #ffc107;
+  border-radius: 8px;
+  color: #856404;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.withdrawal-disabled-msg svg {
+  flex-shrink: 0;
+  color: #ff9800;
 }
 
 /* Chat Popup */
@@ -477,12 +772,12 @@
     left: 10px;
     margin: 0 auto;
   }
-  
+
   .request-actions {
     flex-direction: column;
     width: 100%;
   }
-  
+
   .btn-apply,
   .btn-chat {
     width: 100%;

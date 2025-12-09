@@ -5,7 +5,7 @@ import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth/auth.service';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
-import { Subscription, fromEvent } from 'rxjs';
+import { Subscription, fromEvent, debounceTime, distinctUntilChanged } from 'rxjs';
 import { throttleTime } from 'rxjs/operators';
 
 @Component({
@@ -21,17 +21,36 @@ export class LoginComponent implements OnInit, AfterViewInit, OnDestroy {
   // UI state
   isOpen = true;
   isLogin = true;
+  showForgotPassword = false;
+  forgotPasswordStep: 'email' | 'code' | 'reset' = 'email';
   signupAttempted = false;
   isLoading = false;
   showPassword = false;
   showConfirmPassword = false;
+  showNewPassword = false;
 
   // Forms
   loginForm!: FormGroup;
   signupForm!: FormGroup;
+  forgotPasswordForm!: FormGroup;
 
-  // scroll fade state
+  // Error/Success messages
+  loginError = '';
+  signupError = '';
+  forgotPasswordError = '';
+  successMessage = '';
+
+  // Email availability
+  emailAvailable: boolean | null = null;
+  checkingEmail = false;
+
+  // Password strength
+  passwordStrength: 'weak' | 'medium' | 'strong' = 'weak';
+  passwordStrengthText = '';
+
+  // Scroll fade state
   private scrollSub?: Subscription;
+  private emailCheckSub?: Subscription;
 
   constructor(
     private fb: FormBuilder,
@@ -42,13 +61,13 @@ export class LoginComponent implements OnInit, AfterViewInit, OnDestroy {
     private authService: AuthService,
     @Inject(MatDialogRef) private dialogRef?: MatDialogRef<LoginComponent>,
     @Inject(MAT_DIALOG_DATA) private dialogData?: any
-  ) {}
+  ) { }
 
   ngOnInit(): void {
-    // Login form with enhanced validations
+    // Login form
     this.loginForm = this.fb.group({
-      email: ['', [Validators.required, Validators.email, this.emailDomainValidator()]],
-      password: ['', [Validators.required, Validators.minLength(6), this.passwordStrengthValidator()]],
+      email: ['', [Validators.required, Validators.email]],
+      password: ['', [Validators.required, Validators.minLength(6)]],
       role: ['player', [Validators.required]]
     });
 
@@ -66,6 +85,31 @@ export class LoginComponent implements OnInit, AfterViewInit, OnDestroy {
 
     this.applySignupValidators(this.signupForm.get('accountType')!.value);
     this.signupForm.get('accountType')!.valueChanges.subscribe(val => this.applySignupValidators(val));
+
+    // Forgot password form
+    this.forgotPasswordForm = this.fb.group({
+      email: ['', [Validators.required, Validators.email]],
+      code: ['', []],
+      newPassword: ['', []],
+      confirmNewPassword: ['', []]
+    });
+
+    // Email availability check on signup
+    this.emailCheckSub = this.signupForm.get('email')!.valueChanges.pipe(
+      debounceTime(500),
+      distinctUntilChanged()
+    ).subscribe(email => {
+      if (email && this.signupForm.get('email')!.valid) {
+        this.checkEmailAvailability(email);
+      } else {
+        this.emailAvailable = null;
+      }
+    });
+
+    // Password strength check
+    this.signupForm.get('password')!.valueChanges.subscribe(password => {
+      this.calculatePasswordStrength(password);
+    });
   }
 
   ngAfterViewInit(): void {
@@ -78,42 +122,65 @@ export class LoginComponent implements OnInit, AfterViewInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.scrollSub?.unsubscribe();
+    this.emailCheckSub?.unsubscribe();
   }
 
-  // Convenience getters for template
+  // Convenience getters
   get loginControls(): any { return this.loginForm.controls; }
   get signupControls(): any { return this.signupForm.controls; }
+  get forgotControls(): any { return this.forgotPasswordForm.controls; }
 
-  // Form valid flags
   get isLoginValid(): boolean { return this.loginForm.valid; }
   get isSignupValid(): boolean {
     const gmErr = (this.signupForm.errors as any) || {};
-    return this.signupForm.valid && !gmErr.passwordMismatch;
+    return this.signupForm.valid && !gmErr.passwordMismatch && this.emailAvailable === true;
+  }
+
+  // Email availability check
+  checkEmailAvailability(email: string): void {
+    this.checkingEmail = true;
+    this.http.get<{ available: boolean }>(`http://localhost:5000/api/login/check-email?email=${encodeURIComponent(email)}`)
+      .subscribe({
+        next: (res) => {
+          this.emailAvailable = res.available;
+          this.checkingEmail = false;
+        },
+        error: () => {
+          this.emailAvailable = null;
+          this.checkingEmail = false;
+        }
+      });
+  }
+
+  // Password strength calculator
+  calculatePasswordStrength(password: string): void {
+    if (!password) {
+      this.passwordStrength = 'weak';
+      this.passwordStrengthText = '';
+      return;
+    }
+
+    let strength = 0;
+    if (password.length >= 8) strength++;
+    if (password.length >= 12) strength++;
+    if (/[a-z]/.test(password)) strength++;
+    if (/[A-Z]/.test(password)) strength++;
+    if (/[0-9]/.test(password)) strength++;
+    if (/[^a-zA-Z0-9]/.test(password)) strength++;
+
+    if (strength <= 2) {
+      this.passwordStrength = 'weak';
+      this.passwordStrengthText = 'Weak';
+    } else if (strength <= 4) {
+      this.passwordStrength = 'medium';
+      this.passwordStrengthText = 'Medium';
+    } else {
+      this.passwordStrength = 'strong';
+      this.passwordStrengthText = 'Strong';
+    }
   }
 
   // Enhanced validators
-  emailDomainValidator(): ValidatorFn {
-    return (control: AbstractControl): { [key: string]: any } | null => {
-      if (!control.value) return null;
-      const email = control.value.toLowerCase();
-      const validDomains = ['gmail.com', 'yahoo.com', 'outlook.com', 'hotmail.com', 'icloud.com'];
-      const domain = email.split('@')[1];
-      // Allow any domain, but you can add restrictions here if needed
-      return null;
-    };
-  }
-
-  passwordStrengthValidator(): ValidatorFn {
-    return (control: AbstractControl): { [key: string]: any } | null => {
-      if (!control.value) return null;
-      const password = control.value;
-      const hasLetter = /[A-Za-z]/.test(password);
-      const hasNumber = /[0-9]/.test(password);
-      return hasLetter && hasNumber ? null : { weakPassword: true };
-    };
-  }
-
-  // Apply validators depending on account type
   applySignupValidators(accountType: string) {
     const name = this.signupForm.get('name')!;
     const age = this.signupForm.get('age')!;
@@ -126,43 +193,41 @@ export class LoginComponent implements OnInit, AfterViewInit, OnDestroy {
     [name, age, phone, cnic, email, password, confirmPassword].forEach(c => c.clearValidators());
 
     name.setValidators([
-      Validators.required, 
-      Validators.minLength(2), 
+      Validators.required,
+      Validators.minLength(2),
       Validators.maxLength(50),
       Validators.pattern(/^[A-Za-z\s]+$/)
     ]);
-    
+
     const minAge = accountType === 'owner' ? 18 : 10;
     age.setValidators([
-      Validators.required, 
-      Validators.min(minAge), 
+      Validators.required,
+      Validators.min(minAge),
       Validators.max(120)
     ]);
-    
+
     phone.setValidators([
-      Validators.required, 
+      Validators.required,
       Validators.pattern(/^(?:\+92|92|0)?3\d{9}$/)
     ]);
-    
+
     email.setValidators([
-      Validators.required, 
-      Validators.email,
-      this.emailDomainValidator()
+      Validators.required,
+      Validators.email
     ]);
-    
+
     password.setValidators([
-      Validators.required, 
-      Validators.minLength(6),
+      Validators.required,
+      Validators.minLength(8),
       Validators.maxLength(50),
-      Validators.pattern(/^(?=.*[A-Za-z])(?=.*\d).{6,}$/),
-      this.passwordStrengthValidator()
+      Validators.pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/)
     ]);
-    
+
     confirmPassword.setValidators([Validators.required]);
 
     if (accountType === 'owner') {
       cnic.setValidators([
-        Validators.required, 
+        Validators.required,
         Validators.pattern(/^\d{5}-\d{7}-\d$/)
       ]);
     } else {
@@ -191,48 +256,22 @@ export class LoginComponent implements OnInit, AfterViewInit, OnDestroy {
     this.showConfirmPassword = !this.showConfirmPassword;
   }
 
-  // Google Authentication (Structure - needs backend integration)
-  handleGoogleLogin(): void {
-    this.isLoading = true;
-    
-    // TODO: Implement Google OAuth
-    // This is a placeholder structure. You'll need to:
-    // 1. Install @angular/google-auth or use Google Identity Services
-    // 2. Configure OAuth credentials
-    // 3. Handle the OAuth callback
-    // 4. Send token to backend for verification
-    
-    // Example structure (you'll need to implement actual OAuth flow):
-    // this.authService.googleLogin().subscribe({
-    //   next: (res) => {
-    //     // Handle successful Google login
-    //     this.handleLoginSuccess(res);
-    //   },
-    //   error: (err) => {
-    //     this.isLoading = false;
-    //     alert('Google login failed. Please try again.');
-    //   }
-    // });
-    
-    // For now, show a message
-    setTimeout(() => {
-      this.isLoading = false;
-    }, 1000);
+  toggleNewPasswordVisibility(): void {
+    this.showNewPassword = !this.showNewPassword;
   }
 
-  // LOGIN handler (preserved API connection)
+  // LOGIN handler
   handleLogin(): void {
     this.loginForm.markAllAsTouched();
     if (!this.loginForm.valid) return;
 
     this.isLoading = true;
+    this.loginError = '';
     const { email, password, role } = this.loginForm.value;
 
     this.authService.login({ email, password, role }).subscribe({
       next: (res: any) => {
         this.isLoading = false;
-
-        // Map backend field names to frontend model
         const user = {
           userID: res.userId,
           fullName: res.fullName,
@@ -240,53 +279,43 @@ export class LoginComponent implements OnInit, AfterViewInit, OnDestroy {
           roleID: res.roleId
         };
 
-        if (!user.roleID) {
-          return;
-        }
+        if (!user.roleID) return;
 
-        // save session
         localStorage.setItem("isLoggedIn", "true");
         localStorage.setItem("loggedInUser", JSON.stringify(user));
 
-        // redirect by role
         if (user.roleID === 1) {
           this.router.navigate(['/my-account']).then(() => this.dialogRef?.close());
-        } 
-        else if (user.roleID === 2 || user.roleID === 3) {
+        } else if (user.roleID === 2 || user.roleID === 3) {
           this.router.navigate(['/bookings']).then(() => this.dialogRef?.close());
-        } 
-        else {
+        } else {
           this.router.navigate(['/home']).then(() => this.dialogRef?.close());
         }
       },
       error: (err: any) => {
         this.isLoading = false;
-        // Login error
+        this.loginError = err.error?.message || 'Invalid email or password';
+        setTimeout(() => this.loginError = '', 5000);
       }
     });
   }
 
-  // SIGNUP handler (preserved API connection)
+  // SIGNUP handler
   handleSignup(): void {
     this.signupAttempted = true;
     this.signupForm.markAllAsTouched();
-  
-    if (!this.isSignupValid) {
-      return;
-    }
-  
-    const accountType = this.signupForm.get('accountType')!.value as 'player'|'owner';
+    this.signupError = '';
+
+    if (!this.isSignupValid) return;
+
+    const accountType = this.signupForm.get('accountType')!.value as 'player' | 'owner';
     const age = Number(this.signupForm.get('age')!.value);
-  
-    if (accountType === 'player' && age < 10) { 
-      return; 
-    }
-    if (accountType === 'owner' && age < 18) { 
-      return; 
-    }
-  
+
+    if (accountType === 'player' && age < 10) return;
+    if (accountType === 'owner' && age < 18) return;
+
     this.isLoading = true;
-  
+
     const userPayload = {
       fullName: String(this.signupForm.get('name')!.value || '').trim(),
       phone: String(this.signupForm.get('phone')!.value || '').trim(),
@@ -294,58 +323,182 @@ export class LoginComponent implements OnInit, AfterViewInit, OnDestroy {
       password: this.signupForm.get('password')!.value,
       age: this.signupForm.get('age')!.value,
       cnic: this.signupForm.get('cnic')?.value || '',
-      roleID: accountType === 'player' ? 2 : 3 // 2: player, 3: owner
+      roleID: accountType === 'player' ? 2 : 3
     };
-  
+
     this.authService.register(userPayload).subscribe({
       next: (res: any) => {
         this.isLoading = false;
-        this.toggleLogin();
-        this.signupForm.reset({ accountType: 'player' });
-        this.applySignupValidators('player');
-        this.signupAttempted = false;
+        this.successMessage = 'Account created successfully! Please sign in.';
+        setTimeout(() => {
+          this.toggleLogin();
+          this.signupForm.reset({ accountType: 'player' });
+          this.applySignupValidators('player');
+          this.signupAttempted = false;
+          this.successMessage = '';
+          this.emailAvailable = null;
+        }, 2000);
       },
       error: (err: any) => {
         this.isLoading = false;
-        // Signup error
+        this.signupError = err.error?.message || 'Registration failed. Please try again.';
+        setTimeout(() => this.signupError = '', 5000);
       }
     });
   }
-  
-  // UI helpers
-  closePopup(): void { 
-    try { 
-      this.dialogRef?.close(); 
-    } catch {} 
+
+  // FORGOT PASSWORD handlers
+  openForgotPassword(event?: Event): void {
+    if (event) event.preventDefault();
+    this.showForgotPassword = true;
+    this.forgotPasswordStep = 'email';
+    this.forgotPasswordError = '';
+    this.forgotPasswordForm.reset();
   }
-  
-  toggleSignup($event?: Event): void { 
-    if ($event) $event.preventDefault(); 
-    this.isLogin = false; 
+
+  closeForgotPassword(): void {
+    this.showForgotPassword = false;
+    this.forgotPasswordForm.reset();
+    this.forgotPasswordError = '';
+  }
+
+  handleForgotPasswordSubmit(): void {
+    if (this.forgotPasswordStep === 'email') {
+      this.sendVerificationCode();
+    } else if (this.forgotPasswordStep === 'code') {
+      this.verifyCode();
+    } else {
+      this.resetPassword();
+    }
+  }
+
+  sendVerificationCode(): void {
+    const email = this.forgotPasswordForm.get('email')!.value;
+    if (!email) return;
+
+    this.isLoading = true;
+    this.forgotPasswordError = '';
+
+    this.http.post('http://localhost:5000/api/login/forgot-password', { email }).subscribe({
+      next: (res: any) => {
+        this.isLoading = false;
+        this.forgotPasswordStep = 'code';
+        this.successMessage = 'Verification code sent to your email!';
+        setTimeout(() => this.successMessage = '', 3000);
+      },
+      error: (err) => {
+        this.isLoading = false;
+        this.forgotPasswordError = 'Failed to send verification code';
+        setTimeout(() => this.forgotPasswordError = '', 5000);
+      }
+    });
+  }
+
+  verifyCode(): void {
+    const email = this.forgotPasswordForm.get('email')!.value;
+    const code = this.forgotPasswordForm.get('code')!.value;
+    if (!email || !code) return;
+
+    this.isLoading = true;
+    this.forgotPasswordError = '';
+
+    this.http.post('http://localhost:5000/api/login/verify-code', { email, code }).subscribe({
+      next: (res: any) => {
+        this.isLoading = false;
+        this.forgotPasswordStep = 'reset';
+        this.successMessage = 'Code verified! Enter your new password.';
+        setTimeout(() => this.successMessage = '', 3000);
+      },
+      error: (err) => {
+        this.isLoading = false;
+        this.forgotPasswordError = err.error?.message || 'Invalid verification code';
+        setTimeout(() => this.forgotPasswordError = '', 5000);
+      }
+    });
+  }
+
+  resetPassword(): void {
+    const email = this.forgotPasswordForm.get('email')!.value;
+    const code = this.forgotPasswordForm.get('code')!.value;
+    const newPassword = this.forgotPasswordForm.get('newPassword')!.value;
+    const confirmNewPassword = this.forgotPasswordForm.get('confirmNewPassword')!.value;
+
+    if (newPassword !== confirmNewPassword) {
+      this.forgotPasswordError = 'Passwords do not match';
+      setTimeout(() => this.forgotPasswordError = '', 5000);
+      return;
+    }
+
+    this.isLoading = true;
+    this.forgotPasswordError = '';
+
+    this.http.post('http://localhost:5000/api/login/reset-password', { email, code, newPassword }).subscribe({
+      next: (res: any) => {
+        this.isLoading = false;
+        this.successMessage = 'Password reset successfully! Please sign in.';
+        setTimeout(() => {
+          this.closeForgotPassword();
+          this.successMessage = '';
+        }, 2000);
+      },
+      error: (err) => {
+        this.isLoading = false;
+        this.forgotPasswordError = err.error?.message || 'Failed to reset password';
+        setTimeout(() => this.forgotPasswordError = '', 5000);
+      }
+    });
+  }
+
+  // UI helpers
+  closePopup(): void {
+    try {
+      this.dialogRef?.close();
+    } catch { }
+  }
+
+  toggleSignup($event?: Event): void {
+    if ($event) $event.preventDefault();
+    this.isLogin = false;
     this.signupAttempted = false;
     this.showPassword = false;
     this.showConfirmPassword = false;
-    this.cdr.detectChanges(); 
-  }
-  
-  toggleLogin($event?: Event): void { 
-    if ($event) $event.preventDefault(); 
-    this.isLogin = true; 
-    this.showPassword = false;
-    this.cdr.detectChanges(); 
+    this.loginError = '';
+    this.signupError = '';
+    this.successMessage = '';
+    this.cdr.detectChanges();
   }
 
-  // Input formatters (preserved)
+  toggleLogin($event?: Event): void {
+    if ($event) $event.preventDefault();
+    this.isLogin = true;
+    this.showPassword = false;
+    this.loginError = '';
+    this.signupError = '';
+    this.successMessage = '';
+    this.cdr.detectChanges();
+  }
+
+  dismissError(): void {
+    this.loginError = '';
+    this.signupError = '';
+    this.forgotPasswordError = '';
+  }
+
+  dismissSuccess(): void {
+    this.successMessage = '';
+  }
+
+  // Input formatters
   onAgeInput(event: Event): void {
     const input = event.target as HTMLInputElement;
     let v = input.value.replace(/[^\d]/g, '');
-    if (v === '') { 
-      input.value = ''; 
-      this.signupForm.get('age')!.setValue(null, { emitEvent: false }); 
-      return; 
+    if (v === '') {
+      input.value = '';
+      this.signupForm.get('age')!.setValue(null, { emitEvent: false });
+      return;
     }
-    let n = Math.floor(Number(v)); 
-    if (isNaN(n) || n < 0) n = 0; 
+    let n = Math.floor(Number(v));
+    if (isNaN(n) || n < 0) n = 0;
     if (n > 120) n = 120;
     input.value = String(n);
     this.signupForm.get('age')!.setValue(n, { emitEvent: false });
@@ -355,7 +508,7 @@ export class LoginComponent implements OnInit, AfterViewInit, OnDestroy {
     const input = event.target as HTMLInputElement;
     let v = input.value.replace(/[^\d+]/g, '');
     v = v.split('').filter((ch, i) => ch !== '+' || i === 0).join('');
-    if (v.startsWith('+')) v = v.slice(0, 1 + 12); 
+    if (v.startsWith('+')) v = v.slice(0, 1 + 12);
     else v = v.slice(0, 12);
     input.value = v;
     this.signupForm.get('phone')!.setValue(v, { emitEvent: false });
@@ -365,8 +518,8 @@ export class LoginComponent implements OnInit, AfterViewInit, OnDestroy {
     const input = event.target as HTMLInputElement;
     const digits = (input.value || '').replace(/\D/g, '').slice(0, 13);
     const p1 = digits.slice(0, 5), p2 = digits.slice(5, 12), p3 = digits.slice(12);
-    let out = p1; 
-    if (p2) out += '-' + p2; 
+    let out = p1;
+    if (p2) out += '-' + p2;
     if (p3) out += '-' + p3;
     input.value = out;
     this.signupForm.get('cnic')!.setValue(out, { emitEvent: false });
@@ -385,10 +538,10 @@ export class LoginComponent implements OnInit, AfterViewInit, OnDestroy {
     const contentSide = el.closest('.content-panel') as HTMLElement | null;
     if (!contentSide) return;
 
-    if (!atTop) this.renderer.addClass(contentSide, 'has-top-fade'); 
+    if (!atTop) this.renderer.addClass(contentSide, 'has-top-fade');
     else this.renderer.removeClass(contentSide, 'has-top-fade');
-    
-    if (!atBottom) this.renderer.addClass(contentSide, 'has-bottom-fade'); 
+
+    if (!atBottom) this.renderer.addClass(contentSide, 'has-bottom-fade');
     else this.renderer.removeClass(contentSide, 'has-bottom-fade');
 
     this.cdr.detectChanges();

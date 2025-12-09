@@ -1,0 +1,72 @@
+<!-- Court Detail Modal -->
+<dx-popup [(visible)]="showModal" [showTitle]="false" [width]="900" [height]="'auto'" [maxHeight]="'90vh'"
+    [dragEnabled]="false" [hideOnOutsideClick]="true" (onHiding)="closeModal()">
+    <div *dxTemplate="let data of 'content'" class="court-modal">
+        <div class="modal-header">
+            <h2>{{ selectedCourt?.name }}</h2>
+            <button class="close-btn" (click)="closeModal()" title="Close">✕</button>
+        </div>
+
+        <div class="modal-body">
+            <!-- Image Gallery -->
+            <div class="image-gallery-section" *ngIf="selectedCourt?.images && selected Court?.images.length > 0">
+                <dx-gallery [dataSource]="selectedCourt.images" [height]="400" [loop]="true" [showNavButtons]="true"
+                    [showIndicator]="true" [stretchImages]="false">
+                </dx-gallery>
+            </div>
+
+            <!-- Main image fallback if no gallery images -->
+            <div class="single-image-section" *ngIf="!selectedCourt?.images || selectedCourt?.images.length === 0">
+                <img [src]="selectedCourt?.image" [alt]="selectedCourt?.name" class="main-image" />
+            </div>
+
+            <!-- Court Details -->
+            <div class="court-details-grid">
+                <div class="detail-item">
+                    <div class="detail-label">Location</div>
+                    <div class="detail-value">{{ selectedCourt?.location }}</div>
+                </div>
+
+                <div class="detail-item">
+                    <div class="detail-label">Rating</div>
+                    <div class="detail-value">⭐ {{ selectedCourt?.rating || 0 }}</div>
+                </div>
+
+                <div class="detail-item">
+                    <div class="detail-label">Opening Hours</div>
+                    <div class="detail-value">{{ selectedCourt?.openingTime }} - {{ selectedCourt?.closingTime }}</div>
+                </div>
+
+                <div class="detail-item">
+                    <div class="detail-label">Starting Price</div>
+                    <div class="detail-value">Rs {{ selectedCourt?.minPrice }}</div>
+                </div>
+            </div>
+
+            <!-- About Section -->
+            <div class="about-section" *ngIf="selectedCourt?.about">
+                <h3>About</h3>
+                <p>{{ selectedCourt.about }}</p>
+            </div>
+
+            <!-- Pitches -->
+            <div class="pitches-section" *ngIf="selectedCourt?.pitches && selectedCourt?.pitches.length > 0">
+                <h3>Available Pitches</h3>
+                <div class="pitch-grid">
+                    <div *ngFor="let pitch of selectedCourt.pitches" class="pitch-card">
+                        <div class="pitch-type">{{ pitch.pitchtype }}</div>
+                        <div class="pitch-price">Rs {{ pitch.price }}</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Offers -->
+            <div class="offers-section" *ngIf="selectedCourt?.offers && selectedCourt?.offers.length > 0">
+                <h3>Amenities</h3>
+                <div class="offers-grid">
+                    <span *ngFor="let offer of selectedCourt.offers" class="offer-tag">✓ {{ offer }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</dx-popup>

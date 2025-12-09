@@ -1,0 +1,189 @@
+/* Court Detail Modal Styles */
+.court-modal {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.modal-header h2 {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 700;
+    color: #1a1a1a;
+}
+
+.close-btn {
+    background: none;
+    border: none;
+    font-size: 28px;
+    color: #64748b;
+    cursor: pointer;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    transition: all 0.2s;
+}
+
+.close-btn:hover {
+    background: #f1f5f9;
+    color: #1a1a1a;
+}
+
+.modal-body {
+    padding: 20px;
+    max-height: calc(90vh - 80px);
+    overflow-y: auto;
+}
+
+/* Image Gallery Section */
+.image-gallery-section {
+    margin-bottom: 24px;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.single-image-section {
+    margin-bottom: 24px;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.single-image-section .main-image {
+    width: 100%;
+    height: 500px;
+    object-fit: cover;
+    display: block;
+}
+
+/* Court Details Grid */
+.court-details-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.detail-item {
+    background: #f8fafc;
+    padding: 16px;
+    border-radius: 8px;
+    border-left: 3px solid #004526;
+}
+
+.detail-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+}
+
+.detail-value {
+    font-size: 16px;
+    font-weight: 600;
+    color: #1a1a1a;
+}
+
+/* Sections */
+.about-section,
+.pitches-section,
+.offers-section {
+    margin-bottom: 24px;
+}
+
+.about-section h3,
+.pitches-section h3,
+.offers-section h3 {
+    font-size: 18px;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin-bottom: 12px;
+}
+
+.about-section p {
+    font-size: 15px;
+    line-height: 1.6;
+    color: #334155;
+}
+
+/* Pitch Grid */
+.pitch-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 12px;
+}
+
+.pitch-card {
+    background: white;
+    border: 2px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 16px;
+    text-align: center;
+    transition: all 0.2s;
+}
+
+.pitch-card:hover {
+    border-color: #004526;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px -1px rgba(0, 69, 38, 0.1);
+}
+
+.pitch-type {
+    font-size: 14px;
+    font-weight: 700;
+    color: #004526;
+    margin-bottom: 4px;
+}
+
+.pitch-price {
+    font-size: 18px;
+    font-weight: 700;
+    color: #1a1a1a;
+}
+
+/* Offers Grid */
+.offers-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.offer-tag {
+    display: inline-flex;
+    align-items: center;
+    padding: 8px 14px;
+    background: #dcfce7;
+    color: #004526;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+/* DevExtreme Gallery Customization */
+::ng-deep .dx-gallery {
+    background: #f8fafc;
+}
+
+::ng-deep .dx-gallery-indicator {
+    bottom: 20px !important;
+}
+
+::ng-deep .dx-gallery-indicator-item {
+    background: rgba(255, 255, 255, 0.5) !important;
+    border: 2px solid white !important;
+}
+
+::ng-deep .dx-gallery-indicator-item-selected {
+    background: white !important;
+}

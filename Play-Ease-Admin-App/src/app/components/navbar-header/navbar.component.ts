@@ -6,12 +6,13 @@ import { LoginComponent } from '../login/login.component';
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
+import { NotificationBellComponent } from '../notification-bell/notification-bell.component';
 import { Subscription, filter } from 'rxjs';
 
 @Component({
   selector: 'app-navbar',
   standalone: true,
-  imports: [CommonModule, MatButtonModule, MatIconModule],
+  imports: [CommonModule, MatButtonModule, MatIconModule, NotificationBellComponent],
   templateUrl: './navbar.component.html',
   styleUrls: ['./navbar.component.css']
 })
@@ -20,11 +21,12 @@ export class NavbarComponent implements OnInit, OnDestroy {
   loggedInUser: any = null;
   isMobileMenuOpen = false;
   showProfileDropdown = false;
+  userId: number = 0;
   private routerSubscription?: Subscription;
   private storageHandler = () => this.checkLoginStatus();
   private logoutHandler = () => this.checkLoginStatus();
 
-  constructor(private router: Router, private dialog: MatDialog,@Inject(PLATFORM_ID) private platformId: Object) {}
+  constructor(private router: Router, private dialog: MatDialog, @Inject(PLATFORM_ID) private platformId: Object) { }
 
   ngOnInit(): void {
     if (isPlatformBrowser(this.platformId)) {
@@ -32,10 +34,10 @@ export class NavbarComponent implements OnInit, OnDestroy {
 
       // 🔹 Listen to localStorage changes (if user logs in from popup in different tab)
       window.addEventListener('storage', this.storageHandler);
-      
+
       // 🔹 Listen to custom logout event (for same-window logout)
       window.addEventListener('auth:logout', this.logoutHandler);
-      
+
       // 🔹 Also check on route changes
       this.routerSubscription = this.router.events
         .pipe(filter(event => event instanceof NavigationEnd))
@@ -59,6 +61,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
       this.loggedInUser = this.isLoggedIn
         ? JSON.parse(localStorage.getItem('loggedInUser') || '{}')
         : null;
+      this.userId = this.loggedInUser?.userID || 0;
     }
   }
 

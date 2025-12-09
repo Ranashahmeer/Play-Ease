@@ -1,0 +1,26 @@
+<div class="user-rating-badge" [class.size-small]="size === 'small'" [class.size-medium]="size === 'medium'" [class.size-large]="size === 'large'">
+  <div *ngIf="isLoading" class="loading">Loading...</div>
+  
+  <div *ngIf="!isLoading && hasRating()" class="rating-display">
+    <span class="rating-label" *ngIf="showLabel">Rating:</span>
+    <div class="rating-stars">
+      <span 
+        *ngFor="let star of getStarRating(5)" 
+        class="star" 
+        [class.filled]="star <= Math.round(ratingSummary!.averageRating)">
+        <svg [attr.width]="size === 'small' ? '12' : size === 'medium' ? '14' : '16'" 
+             [attr.height]="size === 'small' ? '12' : size === 'medium' ? '14' : '16'" 
+             viewBox="0 0 24 24" fill="currentColor">
+          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+        </svg>
+      </span>
+    </div>
+    <span class="rating-value">{{ ratingSummary!.averageRating.toFixed(1) }}</span>
+    <span class="rating-count" *ngIf="size !== 'small'">({{ ratingSummary!.totalRatings }})</span>
+  </div>
+
+  <div *ngIf="!isLoading && !hasRating()" class="no-rating">
+    <span class="no-rating-text">No ratings yet</span>
+  </div>
+</div>
+

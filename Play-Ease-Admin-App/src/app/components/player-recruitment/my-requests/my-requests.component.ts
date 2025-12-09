@@ -5,7 +5,13 @@ import { GetDatabyDatasourceService } from '../../../services/get-data/get-datab
 import { isPlatformBrowser } from '@angular/common';
 import { ChatService, ChatMessage } from '../../../services/chat.service';
 import { AuthService } from '../../../services/auth/auth.service';
-import { Subscription } from 'rxjs';
+import { PlayerRatingComponent } from '../../player-rating/player-rating.component';
+import { UserRatingBadgeComponent } from '../../user-rating-badge/user-rating-badge.component';
+import { MatchService } from '../../../services/match.service';
+import { AlertService } from '../../../services/alert.service';
+import { NotificationsService } from '../../../services/notifications/notifications.service';
+import { Subscription, interval } from 'rxjs';
+import { startWith } from 'rxjs/operators';
 
 // Import from parent component which already has the correct types
 export interface MatchRequest {
@@ -39,7 +45,7 @@ export interface MyRequest extends MatchRequest {
 @Component({
   selector: 'app-my-requests',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, PlayerRatingComponent, UserRatingBadgeComponent],
   templateUrl: './my-requests.component.html',
   styleUrls: ['./my-requests.component.css']
 })
@@ -48,6 +54,7 @@ export class MyRequestsComponent implements OnInit, OnDestroy {
   @Output() applicantStatusChanged = new EventEmitter<{ requestId: number; applicantId: number; status: 'accepted' | 'rejected' }>();
 
   showChat = false;
+  chatMinimized = false;
   currentChatMatchId: number = 0;
   currentChatApplicant: Applicant | null = null;
   currentChatRequest: MyRequest | null = null;
@@ -57,15 +64,27 @@ export class MyRequestsComponent implements OnInit, OnDestroy {
   currentUserName: string = '';
   private chatSubscription?: Subscription;
   private messagePollingSubscription?: Subscription;
+  private unreadCountPollingSubscription?: Subscription;
 
-constructor(
-  private getDataService: GetDatabyDatasourceService,
+  // Unread message tracking
+  unreadCounts: Map<string, number> = new Map();
+
+  // Chat dragging
+  chatPosition = { x: window.innerWidth - 370, y: 80 }; // Start position (top-right)
+  private isDragging = false;
+  private dragOffset = { x: 0, y: 0 };
+
+  constructor(
+    private getDataService: GetDatabyDatasourceService,
     private chatService: ChatService,
     private authService: AuthService,
-  @Inject(PLATFORM_ID) private platformId: Object
-) {}
+    private matchService: MatchService,
+    private alertService: AlertService,
+    private notificationsService: NotificationsService,
+    @Inject(PLATFORM_ID) private platformId: Object
+  ) { }
 
-ngOnInit(): void {
+  ngOnInit(): void {
     if (isPlatformBrowser(this.platformId)) {
       const saved = localStorage.getItem('loggedInUser');
       if (saved) {
@@ -73,6 +92,9 @@ ngOnInit(): void {
           const user = JSON.parse(saved);
           this.userId = user.userID ?? 0;
           this.currentUserName = user.fullName ?? '';
+
+          // Start polling for unread counts
+          this.startUnreadCountPolling();
         } catch (err) {
           // Failed to parse loggedInUser
         }
@@ -87,7 +109,10 @@ ngOnInit(): void {
     if (this.messagePollingSubscription) {
       this.messagePollingSubscription.unsubscribe();
     }
-}
+    if (this.unreadCountPollingSubscription) {
+      this.unreadCountPollingSubscription.unsubscribe();
+    }
+  }
 
 
   acceptApplicant(request: MyRequest, applicant: Applicant): void {
@@ -111,7 +136,7 @@ ngOnInit(): void {
     if (applicant.status !== 'accepted') {
       return false;
     }
-    
+
     // Check if current time is before match end time
     return this.chatService.isChatAvailable(
       request.date,
@@ -133,6 +158,21 @@ ngOnInit(): void {
 
     // Load existing messages
     this.loadMessages();
+
+    // Mark messages as read
+    if (this.userId && applicant.userId) {
+      const conversationKey = `${request.id}-${applicant.userId}`;
+
+      this.chatService.markAsRead(request.id, this.userId, applicant.userId).subscribe({
+        next: () => {
+          // Reset unread count for this conversation
+          this.unreadCounts.set(conversationKey, 0);
+        },
+        error: (err) => {
+          console.error('Error marking messages as read:', err);
+        }
+      });
+    }
 
     // Start polling for new messages
     this.startMessagePolling();
@@ -272,11 +312,11 @@ ngOnInit(): void {
     const now = new Date();
     const diffMs = now.getTime() - date.getTime();
     const diffMins = Math.floor(diffMs / 60000);
-    
+
     if (diffMins < 1) return 'Just now';
     if (diffMins < 60) return `${diffMins}m ago`;
     if (diffMins < 1440) return `${Math.floor(diffMins / 60)}h ago`;
-    
+
     return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   }
 
@@ -315,6 +355,79 @@ ngOnInit(): void {
   // Check if request is fully booked
   isFullyBooked(request: MyRequest): boolean {
     return this.getRemainingSlots(request) === 0;
+  }
+
+  // Helper method to extract time from time string
+  private extractTime(timeStr: string): string {
+    if (!timeStr) return '00:00:00';
+    // If already in HH:MM:SS format
+    if (timeStr.includes(':')) {
+      const parts = timeStr.split(':');
+      if (parts.length === 2) return `${parts[0]}:${parts[1]}:00`;
+      return timeStr;
+    }
+    return '00:00:00';
+  }
+
+  // Get match start date-time
+  getMatchStartDateTime(request: MyRequest): Date | null {
+    if (!request.date || !request.startTime) return null;
+    try {
+      const dateStr = request.date.includes('T') ? request.date.split('T')[0] : request.date;
+      const timeStr = this.extractTime(request.startTime);
+      return new Date(`${dateStr}T${timeStr}`);
+    } catch {
+      return null;
+    }
+  }
+
+  // Get match end date-time
+  getMatchEndDateTime(request: MyRequest): Date | null {
+    if (!request.date || !request.endTime) return null;
+    try {
+      const dateStr = request.date.includes('T') ? request.date.split('T')[0] : request.date;
+      const timeStr = this.extractTime(request.endTime);
+      return new Date(`${dateStr}T${timeStr}`);
+    } catch {
+      return null;
+    }
+  }
+
+  // Check if match has started
+  hasMatchStarted(request: MyRequest): boolean {
+    const startTime = this.getMatchStartDateTime(request);
+    if (!startTime) return false;
+    return new Date() >= startTime;
+  }
+
+  // Get time until match starts (in minutes)
+  getTimeUntilStart(request: MyRequest): number {
+    const startTime = this.getMatchStartDateTime(request);
+    if (!startTime) return -1;
+    const now = new Date();
+    const diffMs = startTime.getTime() - now.getTime();
+    return Math.floor(diffMs / 60000); // Convert to minutes
+  }
+
+  // Check if match is starting soon (within 2 hours)
+  isMatchStartingSoon(request: MyRequest): boolean {
+    const minutesUntilStart = this.getTimeUntilStart(request);
+    return minutesUntilStart > 0 && minutesUntilStart <= 120;
+  }
+
+  // Format time until start
+  formatTimeUntilStart(request: MyRequest): string {
+    const minutes = this.getTimeUntilStart(request);
+    if (minutes < 0) return 'Started';
+    if (minutes === 0) return 'Starting now';
+    if (minutes < 60) return `Starts in ${minutes}m`;
+    const hours = Math.floor(minutes / 60);
+    const remainingMins = minutes % 60;
+    if (hours < 24) {
+      return remainingMins > 0 ? `Starts in ${hours}h ${remainingMins}m` : `Starts in ${hours}h`;
+    }
+    const days = Math.floor(hours / 24);
+    return `Starts in ${days}d`;
   }
 
   // Check if this request is owned by the current user
@@ -435,6 +548,24 @@ ngOnInit(): void {
     return this.getAcceptedApplicants(request).length > 0;
   }
 
+  // Check if match is completed (end time has passed)
+  isMatchCompleted(request: MyRequest): boolean {
+    if (!request.date || !request.endTime) return false;
+
+    const matchDateTime = new Date(`${request.date}T${request.endTime}`);
+    const now = new Date();
+
+    return now > matchDateTime;
+  }
+
+  // Check if user can rate players (match completed and user was accepted)
+  canRatePlayers(request: MyRequest): boolean {
+    if (!this.isMatchCompleted(request)) return false;
+
+    // User must be either organizer or accepted applicant
+    return this.isOwnRequest(request) || this.isAcceptedApplicant(request);
+  }
+
   // Send message to organizer (for accepted applicants)
   sendMessageToOrganizer(): void {
     const text = this.chatInput.trim();
@@ -468,4 +599,167 @@ ngOnInit(): void {
       }
     });
   }
+
+  // Delete/Cancel match (organizer only)
+  deleteMatch(request: MyRequest): void {
+    // Check if match has already started
+    if (this.hasMatchStarted(request)) {
+      this.alertService.error('Cannot delete a match that has already started.');
+      return;
+    }
+
+    const acceptedCount = request.applicants?.filter(a => a.status === 'accepted').length || 0;
+    const confirmMessage = acceptedCount > 0
+      ? `Are you sure you want to delete this match?\n\n${acceptedCount} accepted player(s) will be notified of the cancellation.`
+      : 'Are you sure you want to delete this match?';
+
+    if (!confirm(confirmMessage)) {
+      return;
+    }
+
+    this.matchService.cancelMatch(request.id, this.userId).subscribe({
+      next: () => {
+        this.alertService.success('Match deleted successfully!' + (acceptedCount > 0 ? ' All accepted applicants have been notified.' : ''));
+        // Refresh notifications
+        if (this.userId) {
+          this.notificationsService.updateUnreadCount(this.userId);
+        }
+        // Emit event to refresh data
+        this.applicantStatusChanged.emit({ requestId: request.id, applicantId: 0, status: 'cancelled' as any });
+      },
+      error: (err) => {
+        this.alertService.error(err.error?.message || 'Failed to delete match. Please try again.');
+      }
+    });
+  }
+
+  // Withdraw application (applicant only)
+  withdrawApplication(request: MyRequest): void {
+    // Check if match has already started
+    if (this.hasMatchStarted(request)) {
+      this.alertService.error('Cannot withdraw from a match that has already started.');
+      return;
+    }
+
+    const confirmMessage = 'Are you sure you want to withdraw your application?\n\nThe organizer will be notified.';
+
+    if (!confirm(confirmMessage)) {
+      return;
+    }
+
+    this.matchService.withdrawApplication(request.id, this.userId).subscribe({
+      next: () => {
+        this.alertService.success('Application withdrawn successfully! The organizer has been notified.');
+        // Refresh notifications
+        if (this.userId) {
+          this.notificationsService.updateUnreadCount(this.userId);
+        }
+        // Emit event to refresh data
+        this.applicantStatusChanged.emit({ requestId: request.id, applicantId: 0, status: 'withdrawn' as any });
+      },
+      error: (err) => {
+        this.alertService.error(err.error?.message || 'Failed to withdraw application. Please try again.');
+      }
+    });
+  }
+
+  // Check if match can be deleted/cancelled (not started)
+  canDeleteMatch(request: MyRequest): boolean {
+    return !this.hasMatchStarted(request);
+  }
+
+  // Chat dragging functionality
+  startDragging(event: MouseEvent): void {
+    if ((event.target as HTMLElement).closest('.chat-controls, .btn-close, .btn-minimize')) {
+      return; // Don't drag when clicking controls
+    }
+
+    this.isDragging = true;
+    this.dragOffset.x = event.clientX - this.chatPosition.x;
+    this.dragOffset.y = event.clientY - this.chatPosition.y;
+
+    event.preventDefault();
+
+    // Add global mouse move and mouse up listeners
+    const mouseMoveHandler = (e: MouseEvent) => this.onDrag(e);
+    const mouseUpHandler = () => this.stopDragging(mouseMoveHandler, mouseUpHandler);
+
+    document.addEventListener('mousemove', mouseMoveHandler);
+    document.addEventListener('mouseup', mouseUpHandler);
+  }
+
+  private onDrag(event: MouseEvent): void {
+    if (!this.isDragging) return;
+
+    let newX = event.clientX - this.dragOffset.x;
+    let newY = event.clientY - this.dragOffset.y;
+
+    // Keep chat within viewport bounds
+    const chatWidth = 350;
+    const chatHeight = this.chatMinimized ? 60 : 500;
+
+    newX = Math.max(0, Math.min(newX, window.innerWidth - chatWidth));
+    newY = Math.max(0, Math.min(newY, window.innerHeight - chatHeight));
+
+    this.chatPosition = { x: newX, y: newY };
+  }
+
+  private stopDragging(mouseMoveHandler: (e: MouseEvent) => void, mouseUpHandler: () => void): void {
+    this.isDragging = false;
+    document.removeEventListener('mousemove', mouseMoveHandler);
+    document.removeEventListener('mouseup', mouseUpHandler);
+  }
+
+  // Start polling for unread message counts
+  private startUnreadCountPolling(): void {
+    // Poll every 5 seconds
+    this.unreadCountPollingSubscription = interval(5000).pipe(
+      startWith(0) // Start immediately
+    ).subscribe(() => {
+      this.loadUnreadCounts();
+    });
+  }
+
+  // Load unread counts for all accepted applicants
+  private loadUnreadCounts(): void {
+    if (!this.userId || !this.requests) {
+      return;
+    }
+
+    this.requests.forEach(request => {
+      const acceptedApplicants = this.getAcceptedApplicants(request);
+      acceptedApplicants.forEach(applicant => {
+        const conversationKey = `${request.id}-${applicant.userId}`;
+
+        this.chatService.getUnreadCount(request.id, this.userId, applicant.userId).subscribe({
+          next: (response) => {
+            this.unreadCounts.set(conversationKey, response.unreadCount);
+          },
+          error: (err) => {
+            console.error('Error loading unread count:', err);
+          }
+        });
+      });
+    });
+  }
+
+  // Get unread message count for a specific conversation
+  getUnreadCount(request: MyRequest, applicant: Applicant): number {
+    const conversationKey = `${request.id}-${applicant.userId}`;
+    return this.unreadCounts.get(conversationKey) || 0;
+  }
+
+  // Toggle chat minimize/maximize
+  toggleChatMinimize(): void {
+    this.chatMinimized = !this.chatMinimized;
+  }
+
+  // Get Google Maps URL for a location
+  getGoogleMapsUrl(location: string): string {
+    if (!location) return '#';
+    const encodedLocation = encodeURIComponent(`${location}, Pakistan`);
+    return `https://www.google.com/maps/search/?api=1&query=${encodedLocation}`;
+  }
+
+
 }

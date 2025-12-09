@@ -83,6 +83,12 @@
   gap: 1rem;
 }
 
+/* Notification Bell in Navbar */
+.action-buttons app-notification-bell {
+  display: flex;
+  align-items: center;
+}
+
 .book-now {
   background: #fff;
   color: var(--brand-primary);
@@ -366,3 +372,31 @@
     width: 20px;
   }
 }
+
+/* Contact Us Button */
+.contact-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(255, 255, 255, 0.15);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 0.5rem 1rem;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.contact-btn:hover {
+  background: rgba(255, 255, 255, 0.25);
+  border-color: rgba(255, 255, 255, 0.4);
+  transform: translateY(-1px);
+}
+
+.contact-btn svg {
+  color: white;
+}
+
